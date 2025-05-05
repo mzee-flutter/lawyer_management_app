@@ -1,0 +1,275 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:right_case/routes/routes_names.dart';
+
+import 'package:right_case/view/show_add_client_dialog_view.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.grey.shade300,
+        title: Text('LexTrack',
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+            )),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.account_circle),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(bottom: 200.h),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(15.r),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Quick Actions',
+                      style: TextStyle(
+                          fontSize: 18.sp, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 5.h),
+                  Container(
+                    height: 100.h,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _QuickActionButton(
+                          label: 'Clients',
+                          icon: Icons.group,
+                          onTap: () {
+                            Navigator.pushNamed(
+                                context, RoutesName.clientsScreen);
+                          },
+                        ),
+                        _QuickActionButton(
+                          label: 'Cases',
+                          icon: Icons.cases_rounded,
+                          onTap: () {},
+                        ),
+                        _QuickActionButton(
+                          label: 'Calender',
+                          icon: Icons.calendar_month_rounded,
+                          onTap: () {},
+                        ),
+                        _QuickActionButton(
+                          label: 'Court',
+                          icon: Icons.gavel_rounded,
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  Text("Today's Schedule",
+                      style: TextStyle(
+                          fontSize: 18.sp, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 10.h),
+                  _buildSummaryCards(),
+                  SizedBox(height: 20.h),
+                  SizedBox(height: 10.h),
+                  // _buildScheduleList(),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 8,
+                    color: Colors.black12,
+                    offset: Offset(0, -2),
+                  ),
+                ],
+              ),
+              padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.w),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _QuickActionButton(
+                    label: 'Add Case',
+                    icon: Icons.cases_rounded,
+                    onTap: () {},
+                  ),
+                  _QuickActionButton(
+                    label: 'Add Client',
+                    icon: Icons.person_add,
+                    onTap: () {
+                      showAddClientDialog(context);
+                    },
+                  ),
+                  _QuickActionButton(
+                    label: 'Add Task',
+                    icon: Icons.playlist_add_check,
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCards() {
+    return GridView.count(
+      crossAxisCount: 3,
+      shrinkWrap: true,
+      crossAxisSpacing: 12.w,
+      mainAxisSpacing: 12.h,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        _DashboardCard(
+          title: "Today's Cases",
+          child: Icon(
+            Icons.today_rounded,
+          ),
+        ),
+        _DashboardCard(
+          title: "Tomorrow's Cases",
+          child: Icon(
+            Icons.event_available_rounded,
+          ),
+        ),
+        _DashboardCard(
+          title: "Running Cases",
+          child: Icon(
+            Icons.hourglass_top_rounded,
+          ),
+        ),
+        _DashboardCard(
+          title: 'Decided Cases',
+          child: Icon(
+            Icons.check_circle_outline_rounded,
+          ),
+        ),
+        _DashboardCard(
+          title: 'Date Awaited Cases',
+          child: Icon(
+            Icons.cases_rounded,
+          ),
+        ),
+        _DashboardCard(
+          title: 'Abandoned Cases',
+          child: Icon(
+            Icons.block_rounded,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScheduleList() {
+    return Column(
+      children: List.generate(3, (index) {
+        return Card(
+          color: Colors.grey.shade300,
+          margin: EdgeInsets.symmetric(vertical: 5.h),
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+          child: ListTile(
+            leading: const Icon(Icons.event),
+            title: Text('Court Hearing - Case #$index'),
+            subtitle: Text('10:00 AM - City Court'),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _DashboardCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+
+  const _DashboardCard({
+    required this.title,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.grey.shade300,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      elevation: 2,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          child,
+          SizedBox(height: 5.h),
+          Text(
+            textAlign: TextAlign.center,
+            title,
+            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _QuickActionButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Material(
+            elevation: 4,
+            shape: const CircleBorder(),
+            child: CircleAvatar(
+              radius: 25.r,
+              backgroundColor: Colors.white,
+              child: Icon(icon, size: 24.sp, color: Colors.grey.shade800),
+            ),
+          ),
+        ),
+        SizedBox(height: 6.h),
+        Text(label, style: TextStyle(fontSize: 12.sp))
+      ],
+    );
+  }
+}
