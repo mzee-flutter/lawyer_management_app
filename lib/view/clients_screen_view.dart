@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/view/show_add_client_dialog_view.dart';
 import 'package:right_case/view_model/client_view_model.dart';
@@ -11,14 +12,10 @@ class ClientsScreen extends StatefulWidget {
 }
 
 class _ClientsScreenState extends State<ClientsScreen> {
-  String _searchQuery = '';
-
   @override
   Widget build(BuildContext context) {
     final clientVM = Provider.of<ClientViewModel>(context);
-    final filteredClients = _searchQuery.isEmpty
-        ? clientVM.clients
-        : clientVM.searchClients(_searchQuery);
+    final filteredClients = clientVM.filteredClients;
 
     return Scaffold(
       appBar: AppBar(
@@ -27,57 +24,87 @@ class _ClientsScreenState extends State<ClientsScreen> {
         title: const Text('Clients'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12.r),
         child: Column(
           children: [
             TextField(
-              decoration: InputDecoration(
-                hintText: 'Search Clients...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                decoration: InputDecoration(
+                  hintText: 'Search Clients...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
                 ),
-              ),
-              onChanged: (val) {
-                setState(() {
-                  _searchQuery = val;
-                });
-              },
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
-                itemCount: filteredClients.length,
-                itemBuilder: (context, index) {
-                  final client = filteredClients[index];
-                  return Card(
-                    color: Colors.grey.shade300,
-                    elevation: 3,
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.teal.shade100,
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.black87,
+                onChanged: clientVM.updateSearchQuery),
+            SizedBox(height: 12.h),
+            filteredClients.isEmpty
+                ? Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 100.h,
+                          width: 100.w,
+                          decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              shape: BoxShape.circle),
+                          child: Icon(
+                            Icons.group_off_outlined,
+                            size: 40,
+                            color: Colors.grey.shade500,
+                          ),
                         ),
-                      ),
-                      title: Text(client.name),
-                      subtitle: Text('Contact: ${client.contact}'),
-                      trailing: Text('${client.cases} case(s)'),
+                        Center(
+                          child: Text(
+                            'No Client Found',
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
-            ),
+                  )
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredClients.length,
+                      itemBuilder: (context, index) {
+                        final client = filteredClients[index];
+                        return Card(
+                          color: Colors.grey.shade300,
+                          elevation: 3,
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.teal.shade100,
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            title: Text(client.name),
+                            subtitle: Text('Contact: ${client.contact}'),
+                            trailing: Text('${client.cases} case(s)'),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.grey.shade800,
         onPressed: () {
           showAddClientDialog(context);
         },
-        icon: const Icon(Icons.person_add),
-        label: const Text('Add Client'),
+        icon: const Icon(
+          Icons.person_add,
+          color: Colors.white,
+        ),
+        label: const Text(
+          'Add Client',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
     );
   }
