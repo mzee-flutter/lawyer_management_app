@@ -60,6 +60,20 @@ class _SignInScreenState extends State<SignInScreen> {
                     CustomTextField.fieldLabel('Enter your password'),
                     SizedBox(height: 5.h),
                     CustomTextField(hint: 'Password'),
+                    SizedBox(
+                      height: 5.h,
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: const Color(0xFF0077B5),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
 
                     // Login button
                     SizedBox(height: 20.h),
