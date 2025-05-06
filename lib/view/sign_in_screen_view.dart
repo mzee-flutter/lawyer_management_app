@@ -63,14 +63,20 @@ class _SignInScreenState extends State<SignInScreen> {
                     SizedBox(
                       height: 5.h,
                     ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: const Color(0xFF0077B5),
-                          fontWeight: FontWeight.bold,
+                    InkWell(
+                      onTap: () {
+                        Navigator.pushNamed(
+                            context, RoutesName.forgotPasswordScreen);
+                      },
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: const Color(0xFF0077B5),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
