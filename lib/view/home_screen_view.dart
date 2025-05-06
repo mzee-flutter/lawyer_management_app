@@ -80,7 +80,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 10.h),
-                  Text("Today's Schedule",
+                  Text("Cases Schedule",
                       style: TextStyle(
                           fontSize: 18.sp, fontWeight: FontWeight.bold)),
                   SizedBox(height: 10.h),
@@ -147,39 +147,27 @@ class HomeScreen extends StatelessWidget {
       children: [
         _DashboardCard(
           title: "Today's Cases",
-          child: Icon(
-            Icons.today_rounded,
-          ),
+          icon: Icons.today_rounded,
         ),
         _DashboardCard(
           title: "Tomorrow's Cases",
-          child: Icon(
-            Icons.event_available_rounded,
-          ),
+          icon: Icons.event_available_rounded,
         ),
         _DashboardCard(
           title: "Running Cases",
-          child: Icon(
-            Icons.hourglass_top_rounded,
-          ),
+          icon: Icons.hourglass_top_rounded,
         ),
         _DashboardCard(
           title: 'Decided Cases',
-          child: Icon(
-            Icons.check_circle_outline_rounded,
-          ),
+          icon: Icons.check_circle_outline_rounded,
         ),
         _DashboardCard(
           title: 'Date Awaited Cases',
-          child: Icon(
-            Icons.cases_rounded,
-          ),
+          icon: Icons.cases_rounded,
         ),
         _DashboardCard(
           title: 'Abandoned Cases',
-          child: Icon(
-            Icons.block_rounded,
-          ),
+          icon: Icons.block_rounded,
         ),
       ],
     );
@@ -207,11 +195,11 @@ class HomeScreen extends StatelessWidget {
 
 class _DashboardCard extends StatelessWidget {
   final String title;
-  final Widget child;
+  final IconData icon;
 
   const _DashboardCard({
     required this.title,
-    required this.child,
+    required this.icon,
   });
 
   @override
@@ -226,7 +214,10 @@ class _DashboardCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          child,
+          Icon(
+            icon,
+            color: Colors.grey.shade800,
+          ),
           SizedBox(height: 5.h),
           Text(
             textAlign: TextAlign.center,
