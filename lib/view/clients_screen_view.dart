@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/view/show_add_client_dialog_view.dart';
+import 'package:right_case/resources/client_info_card.dart';
+import 'package:right_case/routes/routes_names.dart';
+
 import 'package:right_case/view_model/client_view_model.dart';
 
 class ClientsScreen extends StatefulWidget {
@@ -70,21 +72,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       itemCount: filteredClients.length,
                       itemBuilder: (context, index) {
                         final client = filteredClients[index];
-                        return Card(
-                          color: Colors.grey.shade300,
-                          elevation: 3,
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.teal.shade100,
-                              child: Icon(
-                                Icons.person,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            title: Text(client.name),
-                            subtitle: Text('Contact: ${client.contact}'),
-                            trailing: Text('${client.cases} case(s)'),
-                          ),
+                        return ClientInfoCard(
+                          client: client,
                         );
                       },
                     ),
@@ -95,7 +84,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.grey.shade800,
         onPressed: () {
-          showAddClientDialog(context);
+          Navigator.pushNamed(context, RoutesName.addClientScreen);
         },
         icon: const Icon(
           Icons.person_add,
