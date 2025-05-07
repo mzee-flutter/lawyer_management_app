@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:right_case/routes/routes_names.dart';
 
-import 'package:right_case/view/show_add_client_dialog_view.dart';
+import 'package:right_case/view/add_client_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -120,7 +120,7 @@ class HomeScreen extends StatelessWidget {
                     label: 'Add Client',
                     icon: Icons.person_add,
                     onTap: () {
-                      showAddClientDialog(context);
+                      Navigator.pushNamed(context, RoutesName.addClientScreen);
                     },
                   ),
                   _QuickActionButton(
