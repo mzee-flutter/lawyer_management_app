@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/client_model.dart';
+import 'package:right_case/resources/custom_text_fields.dart';
 import 'package:right_case/view_model/client_edit_view_model.dart';
 
 class ClientEditScreen extends StatefulWidget {
@@ -41,12 +43,22 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
                   height: 12.h,
                 ),
                 _buildLabels('Enter Client Mobile Number(Optional)'),
-                _buildTextField(editViewModel.phoneController),
+                _buildTextField(editViewModel.phoneController,
+                    keyboardType: TextInputType.phone,
+                    maxLength: 12,
+                    inputFormatter: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(12),
+                      SpaceAfterFourDigitsFormatter(),
+                    ]),
                 SizedBox(
                   height: 12.h,
                 ),
                 _buildLabels('Enter Client EmailID (Optional)'),
-                _buildTextField(editViewModel.emailController),
+                _buildTextField(
+                  editViewModel.emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
                 SizedBox(
                   height: 12.h,
                 ),
@@ -82,11 +94,15 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
     TextEditingController controller, {
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
+    int? maxLength,
+    List<TextInputFormatter>? inputFormatter,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
+      maxLength: maxLength,
+      inputFormatters: inputFormatter,
       cursorColor: Colors.grey.shade800,
       decoration: InputDecoration(
         filled: true,
