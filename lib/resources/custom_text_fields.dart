@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomTextField extends StatelessWidget {
@@ -34,6 +35,30 @@ class CustomTextField extends StatelessWidget {
               EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
         ),
       ),
+    );
+  }
+}
+
+
+
+class SpaceAfterFourDigitsFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+      ) {
+    String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    String formatted = '';
+
+    if (digitsOnly.length <= 4) {
+      formatted = digitsOnly;
+    } else {
+      formatted = '${digitsOnly.substring(0, 4)} ${digitsOnly.substring(4)}';
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
