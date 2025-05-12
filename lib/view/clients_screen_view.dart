@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
+import 'package:right_case/models/client_model.dart';
 import 'package:right_case/resources/client_info_card.dart';
 import 'package:right_case/routes/routes_names.dart';
 
@@ -39,45 +42,50 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 ),
                 onChanged: clientVM.updateSearchQuery),
             SizedBox(height: 12.h),
-            filteredClients.isEmpty
-                ? Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          height: 100.h,
-                          width: 100.w,
-                          decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
-                              shape: BoxShape.circle),
-                          child: Icon(
-                            Icons.group_off_outlined,
-                            size: 40,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                        Center(
-                          child: Text(
-                            'No Client Found',
-                            style: TextStyle(
+            ValueListenableBuilder(
+                valueListenable: Hive.box<ClientModel>('clients').listenable(),
+                builder: (context, Box<ClientModel> box, child) {
+                  if (box.values.isEmpty) {
+                    return Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: 100.h,
+                            width: 100.w,
+                            decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                shape: BoxShape.circle),
+                            child: Icon(
+                              Icons.group_off_outlined,
+                              size: 40,
                               color: Colors.grey.shade500,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  )
-                : Expanded(
+                          Center(
+                            child: Text(
+                              'No Client Found',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return Expanded(
                     child: ListView.builder(
-                      itemCount: filteredClients.length,
+                      itemCount: box.length,
                       itemBuilder: (context, index) {
-                        final client = filteredClients[index];
+                        final client = box.getAt(index);
                         return ClientInfoCard(
-                          client: client,
+                          client: client!,
                         );
                       },
                     ),
-                  ),
+                  );
+                }),
           ],
         ),
       ),
