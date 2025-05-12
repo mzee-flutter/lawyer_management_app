@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:right_case/routes/routes_names.dart';
 
-import 'package:right_case/view/add_client_screen.dart';
-
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -170,25 +168,6 @@ class HomeScreen extends StatelessWidget {
           icon: Icons.block_rounded,
         ),
       ],
-    );
-  }
-
-  Widget _buildScheduleList() {
-    return Column(
-      children: List.generate(3, (index) {
-        return Card(
-          color: Colors.grey.shade300,
-          margin: EdgeInsets.symmetric(vertical: 5.h),
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-          child: ListTile(
-            leading: const Icon(Icons.event),
-            title: Text('Court Hearing - Case #$index'),
-            subtitle: Text('10:00 AM - City Court'),
-          ),
-        );
-      }),
     );
   }
 }
