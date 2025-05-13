@@ -26,6 +26,7 @@ class ClientEditViewModel with ChangeNotifier {
       mobileNumber: phoneController.text.trim(),
       emailAddress: emailController.text.trim(),
       address: addressController.text.trim(),
+      createdAt: _originalClient.createdAt,
     );
 
     Provider.of<ClientViewModel>(context, listen: false)
