@@ -20,7 +20,6 @@ class _ClientsScreenState extends State<ClientsScreen> {
   @override
   Widget build(BuildContext context) {
     final clientVM = Provider.of<ClientViewModel>(context);
-    final filteredClients = clientVM.filteredClients;
 
     return Scaffold(
       appBar: AppBar(
@@ -40,52 +39,53 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                 ),
-                onChanged: clientVM.updateSearchQuery),
-            SizedBox(height: 12.h),
-            ValueListenableBuilder(
-                valueListenable: Hive.box<ClientModel>('clients').listenable(),
-                builder: (context, Box<ClientModel> box, child) {
-                  if (box.values.isEmpty) {
-                    return Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 100.h,
-                            width: 100.w,
-                            decoration: BoxDecoration(
-                                color: Colors.grey.shade300,
-                                shape: BoxShape.circle),
-                            child: Icon(
-                              Icons.group_off_outlined,
-                              size: 40,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                          Center(
-                            child: Text(
-                              'No Client Found',
-                              style: TextStyle(
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return Expanded(
-                    child: ListView.builder(
-                      itemCount: box.length,
-                      itemBuilder: (context, index) {
-                        final client = box.getAt(index);
-                        return ClientInfoCard(
-                          client: client!,
-                        );
-                      },
-                    ),
-                  );
+                onChanged: (query) {
+                  clientVM.updateSearchQuery(query);
                 }),
+            SizedBox(height: 12.h),
+            Consumer<ClientViewModel>(builder: (context, clientVM, child) {
+              final filteredClients = clientVM.filteredClients;
+              if (filteredClients.isEmpty) {
+                return Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 100.h,
+                        width: 100.w,
+                        decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            shape: BoxShape.circle),
+                        child: Icon(
+                          Icons.group_off_outlined,
+                          size: 40,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                      Center(
+                        child: Text(
+                          'No Client Found',
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return Expanded(
+                child: ListView.builder(
+                  itemCount: filteredClients.length,
+                  itemBuilder: (context, index) {
+                    final client = filteredClients[index];
+                    return ClientInfoCard(
+                      client: client,
+                    );
+                  },
+                ),
+              );
+            }),
           ],
         ),
       ),
