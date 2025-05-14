@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/case_model.dart';
@@ -13,7 +14,7 @@ class CaseInfoCard extends StatelessWidget {
     return Consumer<CaseViewModel>(
       builder: (context, caseVM, child) {
         return Card(
-          color: Colors.grey[900],
+          color: Colors.grey.shade900,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 4,
@@ -91,13 +92,84 @@ class CaseInfoCard extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.delete, color: Colors.redAccent),
                       onPressed: () {
-                        // Delete confirmation
+                        showDeleteClientDialog(context, clientCase);
                       },
                     ),
                   ],
                 ),
               ],
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  void showDeleteClientDialog(BuildContext context, CaseModel clientCase) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey.shade300,
+          contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          content: Consumer<CaseViewModel>(
+            builder: (context, caseVM, child) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'Delete Case',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade800,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20.sp,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  Text(
+                    'Are you sure you want to delete this Case?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      SizedBox(width: 16.w),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        onPressed: () {
+                          caseVM.removeCase(clientCase);
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
         );
       },
