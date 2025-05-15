@@ -1,6 +1,3 @@
-import 'dart:ui';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/case_model.dart';
@@ -32,6 +29,7 @@ class AddCaseViewModel with ChangeNotifier {
       description: description,
       clientId: clientID,
       status: status,
+      createdAt: DateTime.now(),
     );
 
     Provider.of<CaseViewModel>(context, listen: false).addCase(newCase);
@@ -44,5 +42,13 @@ class AddCaseViewModel with ChangeNotifier {
     clientIdController.clear();
     statusController.clear();
     notifyListeners();
+  }
+
+  void disposeController() {
+    titleController.dispose();
+    descController.dispose();
+    clientIdController.dispose();
+    statusController.dispose();
+    super.dispose();
   }
 }
