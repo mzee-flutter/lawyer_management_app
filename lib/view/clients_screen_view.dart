@@ -64,7 +64,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       ),
                       Center(
                         child: Text(
-                          'No Client Found',
+                          'Client Not Found',
                           style: TextStyle(
                             color: Colors.grey.shade500,
                           ),
