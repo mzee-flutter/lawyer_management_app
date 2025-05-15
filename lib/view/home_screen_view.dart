@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:right_case/routes/routes_names.dart';
+import 'package:right_case/view/cases_screen_view/add_case_screen_view.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -115,7 +116,10 @@ class HomeScreen extends StatelessWidget {
                   _QuickActionButton(
                     label: 'Add Case',
                     icon: Icons.cases_rounded,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => AddCaseScreen()));
+                    },
                   ),
                   _QuickActionButton(
                     label: 'Add Client',
