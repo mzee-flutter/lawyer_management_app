@@ -37,13 +37,15 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
             padding: const EdgeInsets.all(16.0),
             child: ListView(
               children: [
-                _buildLabels('Enter Client Name*'),
-                _buildTextField(editViewModel.nameController),
+                CustomTextField.fieldLabel('Enter Client Name*'),
+                CustomTextField(controller: editViewModel.nameController),
                 SizedBox(
                   height: 12.h,
                 ),
-                _buildLabels('Enter Client Mobile Number(Optional)'),
-                _buildTextField(editViewModel.phoneController,
+                CustomTextField.fieldLabel(
+                    'Enter Client Mobile Number(Optional)'),
+                CustomTextField(
+                    controller: editViewModel.phoneController,
                     keyboardType: TextInputType.phone,
                     maxLength: 12,
                     inputFormatter: [
@@ -54,16 +56,17 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
                 SizedBox(
                   height: 12.h,
                 ),
-                _buildLabels('Enter Client EmailID (Optional)'),
-                _buildTextField(
-                  editViewModel.emailController,
+                CustomTextField.fieldLabel('Enter Client EmailID (Optional)'),
+                CustomTextField(
+                  controller: editViewModel.emailController,
                   keyboardType: TextInputType.emailAddress,
                 ),
-                SizedBox(
-                  height: 12.h,
+                SizedBox(height: 12.h),
+                CustomTextField.fieldLabel('Enter Client Address (Optional)'),
+                CustomTextField(
+                  controller: editViewModel.addressController,
+                  maxLines: 2,
                 ),
-                _buildLabels('Enter Client Address (Optional)'),
-                _buildTextField(editViewModel.addressController, maxLines: 2),
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
@@ -87,37 +90,6 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildTextField(
-    TextEditingController controller, {
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-    int? maxLength,
-    List<TextInputFormatter>? inputFormatter,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      maxLength: maxLength,
-      inputFormatters: inputFormatter,
-      cursorColor: Colors.grey.shade800,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.grey.shade300,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none),
-      ),
-    );
-  }
-
-  Widget _buildLabels(String title) {
-    return Text(
-      title,
-      style: TextStyle(color: Colors.grey.shade700, fontSize: 13.sp),
     );
   }
 }
