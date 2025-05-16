@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/adapters.dart';
+
 import 'package:provider/provider.dart';
-import 'package:right_case/models/client_model.dart';
+
 import 'package:right_case/resources/client_info_card.dart';
 import 'package:right_case/routes/routes_names.dart';
 
