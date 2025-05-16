@@ -3,11 +3,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomTextField extends StatelessWidget {
-  final String hint;
+  final TextEditingController controller;
+  final TextInputType keyboardType = TextInputType.text;
+  final int maxLines = 1;
+  int? maxLength;
+  List<TextInputFormatter>? inputFormatter;
 
-  const CustomTextField({
+  CustomTextField({
     super.key,
-    required this.hint,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    int? maxLength,
+    List<TextInputFormatter>? inputFormatter,
+    required this.controller,
   });
 
   static Widget fieldLabel(String text) {
@@ -22,31 +30,30 @@ class CustomTextField extends StatelessWidget {
     return SizedBox(
       height: 45.h,
       child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        maxLength: maxLength,
+        inputFormatters: inputFormatter,
+        cursorColor: Colors.grey.shade800,
         decoration: InputDecoration(
           filled: true,
           fillColor: Colors.grey.shade300,
-          hintText: hint,
-          hintStyle: TextStyle(fontSize: 16.sp, color: Colors.grey),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20.r),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding:
-              EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none),
         ),
       ),
     );
   }
 }
 
-
-
 class SpaceAfterFourDigitsFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue,
-      TextEditingValue newValue,
-      ) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
     String formatted = '';
 
