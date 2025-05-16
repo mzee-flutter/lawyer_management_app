@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
 import 'package:right_case/resources/login_icons.dart';
 import 'package:right_case/routes/routes_names.dart';
+import 'package:right_case/view_model/services/login_and_signup_service.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -12,6 +13,9 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  final LoginAndSignUpService _service = LoginAndSignUpService();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,13 +57,17 @@ class _SignInScreenState extends State<SignInScreen> {
                     CustomTextField.fieldLabel(
                         'Enter your email, phone, or username'),
                     SizedBox(height: 5.h),
-                    CustomTextField(hint: 'example@gmail.com'),
+                    CustomTextField(
+                      controller: emailController,
+                    ),
                     SizedBox(height: 15.h),
 
                     // Password
                     CustomTextField.fieldLabel('Enter your password'),
                     SizedBox(height: 5.h),
-                    CustomTextField(hint: 'Password'),
+                    CustomTextField(
+                      controller: passwordController,
+                    ),
                     SizedBox(
                       height: 5.h,
                     ),
@@ -85,7 +93,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     SizedBox(height: 20.h),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, RoutesName.homeScreen);
+                        _service.loginUser(context, emailController.text.trim(),
+                            passwordController.text.trim());
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0077B5),
