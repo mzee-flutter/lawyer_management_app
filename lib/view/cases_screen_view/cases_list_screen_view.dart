@@ -17,7 +17,7 @@ class CasesListScreen extends StatelessWidget {
       ),
       body: Consumer<CaseViewModel>(
         builder: (context, caseVM, child) {
-          if (caseVM.cases.isEmpty) {
+          if (caseVM.filteredCase.isEmpty) {
             return Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -46,9 +46,9 @@ class CasesListScreen extends StatelessWidget {
             );
           }
           return ListView.builder(
-            itemCount: caseVM.cases.length,
+            itemCount: caseVM.filteredCase.length,
             itemBuilder: (context, index) {
-              final clientCase = caseVM.cases[index];
+              final clientCase = caseVM.filteredCase[index];
 
               return CaseInfoCard(clientCase: clientCase);
             },
