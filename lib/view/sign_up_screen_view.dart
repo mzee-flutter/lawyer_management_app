@@ -3,9 +3,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
 import 'package:right_case/resources/login_icons.dart';
 import 'package:right_case/routes/routes_names.dart';
+import 'package:right_case/view_model/services/login_and_signup_service.dart';
 
 class SignUpScreen extends StatelessWidget {
-  const SignUpScreen({super.key});
+  SignUpScreen({super.key});
+
+  final LoginAndSignUpService _service = LoginAndSignUpService();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -46,31 +51,40 @@ class SignUpScreen extends StatelessWidget {
                     // First Name
                     CustomTextField.fieldLabel('Your first name'),
                     SizedBox(height: 5.h),
-                    CustomTextField(hint: 'John'),
+                    CustomTextField(
+                      controller: TextEditingController(),
+                    ),
                     SizedBox(height: 15.h),
 
                     // Last Name
                     CustomTextField.fieldLabel('Your last name'),
                     SizedBox(height: 5.h),
-                    CustomTextField(hint: 'Smith'),
+                    CustomTextField(
+                      controller: TextEditingController(),
+                    ),
                     SizedBox(height: 15.h),
                     // Email
                     CustomTextField.fieldLabel('Enter your email'),
                     SizedBox(height: 5.h),
-                    CustomTextField(hint: 'example@gmail.com'),
+                    CustomTextField(
+                      controller: emailController,
+                    ),
                     SizedBox(height: 15.h),
                     // Password
                     CustomTextField.fieldLabel('Enter your password'),
                     SizedBox(height: 5.h),
                     CustomTextField(
-                      hint: 'Password',
+                      controller: passwordController,
                     ),
 
                     SizedBox(height: 20.h),
 
                     ElevatedButton(
                       onPressed: () {
-                        // Handle sign-up logic
+                        _service.registerUser(
+                            context,
+                            emailController.text.trim(),
+                            passwordController.text.trim());
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0077B5),
