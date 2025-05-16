@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/case_model.dart';
+import 'package:right_case/routes/routes_names.dart';
+import 'package:right_case/view/cases_screen_view/case_edit_screen.dart';
 import 'package:right_case/view_model/cases_view_model/case_view_model.dart';
 
 class CaseInfoCard extends StatelessWidget {
@@ -86,7 +88,11 @@ class CaseInfoCard extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.edit, color: Colors.orangeAccent),
                       onPressed: () {
-                        // Open Edit Screen
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    EditCaseScreen(clientCase: clientCase)));
                       },
                     ),
                     IconButton(
