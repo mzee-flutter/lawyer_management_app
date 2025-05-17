@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import 'package:right_case/resources/client_info_card.dart';
-import 'package:right_case/routes/routes_names.dart';
+import 'package:right_case/utils/routes/routes_names.dart';
 
 import 'package:right_case/view_model/client_view_model.dart';
 
