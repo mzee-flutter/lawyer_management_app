@@ -71,7 +71,10 @@ class HomeScreen extends StatelessWidget {
                         _QuickActionButton(
                           label: 'Calender',
                           icon: Icons.calendar_month_rounded,
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.pushNamed(
+                                context, RoutesName.calendarScreen);
+                          },
                         ),
                         _QuickActionButton(
                           label: 'Court',
