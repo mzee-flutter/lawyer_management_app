@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:right_case/resources/custom_text_fields.dart';
 import 'package:right_case/view_model/cases_view_model/add_case_view_model.dart';
-import 'package:right_case/view_model/cases_view_model/case_view_model.dart';
 
 class AddCaseScreen extends StatefulWidget {
   const AddCaseScreen({super.key});
@@ -23,21 +23,21 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
       body: Consumer<AddCaseViewModel>(
         builder: (context, addCaseVM, child) {
           return Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0.r),
             child: ListView(
               children: [
-                _buildLabels('Case Title'),
-                _buildTextField(addCaseVM.titleController),
-                const SizedBox(height: 16),
-                _buildLabels('Enter Case Description'),
-                _buildTextField(addCaseVM.descController),
-                const SizedBox(height: 16),
-                _buildLabels('Enter Client ID'),
-                _buildTextField(addCaseVM.clientIdController),
-                const SizedBox(height: 16),
-                _buildLabels('Enter Case Status'),
-                _buildTextField(addCaseVM.statusController),
-                const SizedBox(height: 32),
+                CustomTextField.fieldLabel('Enter Case Title'),
+                CustomTextField(controller: addCaseVM.titleController),
+                SizedBox(height: 12.h),
+                CustomTextField.fieldLabel('Enter Case Description'),
+                CustomTextField(controller: addCaseVM.descController),
+                SizedBox(height: 12.h),
+                CustomTextField.fieldLabel('Enter Client ID'),
+                CustomTextField(controller: addCaseVM.clientIdController),
+                SizedBox(height: 12.h),
+                CustomTextField.fieldLabel('Enter Case Status'),
+                CustomTextField(controller: addCaseVM.statusController),
+                SizedBox(height: 20.h),
                 ElevatedButton.icon(
                   onPressed: () {
                     addCaseVM.submitCase(context);
@@ -58,37 +58,6 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildTextField(
-    TextEditingController controller, {
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-    int? maxLength,
-    List<TextInputFormatter>? inputFormatter,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      cursorColor: Colors.grey.shade800,
-      maxLength: maxLength,
-      inputFormatters: inputFormatter,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.grey.shade300,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none),
-      ),
-    );
-  }
-
-  Widget _buildLabels(String title) {
-    return Text(
-      title,
-      style: TextStyle(color: Colors.grey.shade700, fontSize: 13.sp),
     );
   }
 }
