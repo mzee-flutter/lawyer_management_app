@@ -39,15 +39,17 @@ class CaseInfoCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Chip(
-                      label: Text(
-                        clientCase.status,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      backgroundColor: clientCase.status == 'Open'
-                          ? Colors.green
-                          : Colors.redAccent,
-                    ),
+                    clientCase.status.isEmpty
+                        ? Container()
+                        : Chip(
+                            label: Text(
+                              clientCase.status,
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: clientCase.status == 'Open'
+                                ? Colors.green
+                                : Colors.redAccent,
+                          ),
                   ],
                 ),
                 const SizedBox(height: 8),
