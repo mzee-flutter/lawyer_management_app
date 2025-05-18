@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:right_case/routes/routes_names.dart';
+import 'package:right_case/utils/routes/routes_names.dart';
+
 import 'package:right_case/view/cases_screen_view/add_case_screen_view.dart';
+import 'drawer_view.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -9,8 +11,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: DrawerView(),
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        // automaticallyImplyLeading: false,
         backgroundColor: Colors.grey.shade300,
         title: Text('LexTrack',
             style: TextStyle(
