@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import '../../models/case_model.dart';
 
@@ -34,6 +33,7 @@ class CaseViewModel extends ChangeNotifier {
   void updateCase(CaseModel clientCase) {
     final box = Hive.box<CaseModel>('cases');
     box.put(clientCase.id, clientCase);
+    notifyListeners();
   }
 
   void _applyFilter() {
@@ -43,7 +43,7 @@ class CaseViewModel extends ChangeNotifier {
     allCases.sort((a, b) {
       final aData = a.createdAt;
       final bData = b.createdAt;
-      return b.createdAt.compareTo(a.createdAt);
+      return bData.compareTo(aData);
     });
 
     if (_searchQuery.isEmpty) {
