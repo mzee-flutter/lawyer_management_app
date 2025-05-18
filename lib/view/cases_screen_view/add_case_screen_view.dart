@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
@@ -35,8 +34,38 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
                 CustomTextField.fieldLabel('Enter Client ID'),
                 CustomTextField(controller: addCaseVM.clientIdController),
                 SizedBox(height: 12.h),
-                CustomTextField.fieldLabel('Enter Case Status'),
-                CustomTextField(controller: addCaseVM.statusController),
+                CustomTextField.fieldLabel('Select Case Status'),
+                DropdownButtonFormField<String>(
+                  focusColor: Colors.grey.shade300,
+                  dropdownColor: Colors.grey.shade300,
+                  value: addCaseVM.statusController.text.isNotEmpty
+                      ? addCaseVM.statusController.text
+                      : null,
+                  items: [
+                    'None',
+                    'Running',
+                    'Decided',
+                    'Date Awaited',
+                    'Abandoned'
+                  ]
+                      .map((status) => DropdownMenuItem(
+                            value: status == 'None' ? '' : status,
+                            child: Text(status),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      addCaseVM.statusController.text = value;
+                    }
+                  },
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+                  ),
+                ),
                 SizedBox(height: 20.h),
                 ElevatedButton.icon(
                   onPressed: () {
