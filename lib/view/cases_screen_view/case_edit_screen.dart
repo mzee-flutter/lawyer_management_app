@@ -33,7 +33,7 @@ class _EditCaseScreenState extends State<EditCaseScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Case'),
-        backgroundColor: Colors.grey.shade800,
+        backgroundColor: Colors.grey.shade300,
       ),
       body: Consumer<EditCaseViewModel>(
         builder: (context, editCaseVM, child) {
@@ -58,8 +58,36 @@ class _EditCaseScreenState extends State<EditCaseScreen> {
                   SizedBox(
                     height: 12.h,
                   ),
-                  CustomTextField.fieldLabel('Enter Case Status'),
-                  CustomTextField(controller: editCaseVM.statusController),
+                  CustomTextField.fieldLabel('Select Case Status'),
+                  DropdownButtonFormField<String>(
+                    value: editCaseVM.statusController.text.isNotEmpty
+                        ? editCaseVM.statusController.text
+                        : null,
+                    items: [
+                      'None',
+                      'Running',
+                      'Decided',
+                      'Date Awaited',
+                      'Abandoned'
+                    ]
+                        .map((status) => DropdownMenuItem(
+                              value: status == 'None' ? '' : status,
+                              child: Text(status),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        editCaseVM.statusController.text = value;
+                      }
+                    },
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12.w, vertical: 14.h),
+                    ),
+                  ),
                   SizedBox(height: 20.h),
                   ElevatedButton.icon(
                     onPressed: () {
