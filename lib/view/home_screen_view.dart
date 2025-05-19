@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:right_case/resources/custom_cases_category_view.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 
 import 'package:right_case/view/cases_screen_view/add_case_screen_view.dart';
+import 'package:right_case/view_model/cases_view_model/case_view_model.dart';
 import 'drawer_view.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -92,7 +95,7 @@ class HomeScreen extends StatelessWidget {
                       style: TextStyle(
                           fontSize: 18.sp, fontWeight: FontWeight.bold)),
                   SizedBox(height: 10.h),
-                  _buildSummaryCards(),
+                  _buildSummaryCards(context),
                   SizedBox(height: 20.h),
                   SizedBox(height: 10.h),
                   // _buildScheduleList(),
@@ -148,39 +151,55 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryCards() {
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      crossAxisSpacing: 12.w,
-      mainAxisSpacing: 12.h,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        _DashboardCard(
-          title: "Today's Cases",
-          icon: Icons.today_rounded,
-        ),
-        _DashboardCard(
-          title: "Tomorrow's Cases",
-          icon: Icons.event_available_rounded,
-        ),
-        _DashboardCard(
-          title: "Running Cases",
-          icon: Icons.hourglass_top_rounded,
-        ),
-        _DashboardCard(
-          title: 'Decided Cases',
-          icon: Icons.check_circle_outline_rounded,
-        ),
-        _DashboardCard(
-          title: 'Date Awaited Cases',
-          icon: Icons.cases_rounded,
-        ),
-        _DashboardCard(
-          title: 'Abandoned Cases',
-          icon: Icons.block_rounded,
-        ),
-      ],
+  Widget _buildSummaryCards(context) {
+    return Consumer<CaseViewModel>(
+      builder: (context, caseVM, child) {
+        return GridView.count(
+          crossAxisCount: 3,
+          shrinkWrap: true,
+          crossAxisSpacing: 12.w,
+          mainAxisSpacing: 12.h,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _DashboardCard(
+              title: "Today's Cases",
+              icon: Icons.today_rounded,
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => CustomCasesCategoryView(
+                            title: 'Today Cases', cases: caseVM.todayCases)));
+              },
+            ),
+            _DashboardCard(
+              title: "Tomorrow's Cases",
+              icon: Icons.event_available_rounded,
+              onTap: () {},
+            ),
+            _DashboardCard(
+              title: "Running Cases",
+              icon: Icons.hourglass_top_rounded,
+              onTap: () {},
+            ),
+            _DashboardCard(
+              title: 'Decided Cases',
+              icon: Icons.check_circle_outline_rounded,
+              onTap: () {},
+            ),
+            _DashboardCard(
+              title: 'Date Awaited Cases',
+              icon: Icons.cases_rounded,
+              onTap: () {},
+            ),
+            _DashboardCard(
+              title: 'Abandoned Cases',
+              icon: Icons.block_rounded,
+              onTap: () {},
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -188,35 +207,40 @@ class HomeScreen extends StatelessWidget {
 class _DashboardCard extends StatelessWidget {
   final String title;
   final IconData icon;
+  final VoidCallback onTap;
 
   const _DashboardCard({
     required this.title,
     required this.icon,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.grey.shade300,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      elevation: 2,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: Colors.grey.shade800,
-          ),
-          SizedBox(height: 5.h),
-          Text(
-            textAlign: TextAlign.center,
-            title,
-            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
-          ),
-        ],
+    return InkWell(
+      onTap: onTap,
+      child: Card(
+        color: Colors.grey.shade300,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        elevation: 2,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: Colors.grey.shade800,
+            ),
+            SizedBox(height: 5.h),
+            Text(
+              textAlign: TextAlign.center,
+              title,
+              style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+            ),
+          ],
+        ),
       ),
     );
   }
