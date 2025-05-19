@@ -30,6 +30,7 @@ class AddCaseViewModel with ChangeNotifier {
       clientId: clientID,
       status: status,
       createdAt: DateTime.now(),
+      nextHearingDate: DateTime.now(),
     );
 
     Provider.of<CaseViewModel>(context, listen: false).addCase(newCase);
