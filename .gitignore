@@ -1,0 +1,36 @@
+
+# --- Backend ignores ---
+.env
+myvenv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+
+# # --- Frontend ignores ---
+# # Flutter build files
+# /build/
+
+# .android/
+# .ios/
+
+# /android/.gradle/
+# /android/app/build/
+# *.iml
+# .idea/
+# .flutter-plugins
+# .flutter-plugins-dependencies
+# .packages
+# .dart_tool/
+
+
+
+# # Ignore release/debug artifacts
+# *.apk
+# *.aab
+# *.so
+
+# # App secrets
+# /lib/resources/api_urls.dart
+
