@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, StringConstraints
 from typing import Annotated
+from datetime import datetime
 
 
 
@@ -21,7 +22,7 @@ class UserCreate(BaseModel):
         
 class UserLogin(BaseModel):
     email:EmailStr
-    password_hash:Annotated[str, StringConstraints(min_length=6)]
+    password:Annotated[str, StringConstraints(min_length=6)]
 
 
 
@@ -29,7 +30,7 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type:str=  Field(default="bearer")
     refresh_token:str
-    expire_at:int
+    expire_at:datetime
 
 
 class TokenRefresh(BaseModel):
