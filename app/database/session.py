@@ -1,6 +1,6 @@
 
 from sqlalchemy.orm import sessionmaker
-from init_db import engine
+from app.database.init_db import engine
 
 
 
