@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
 import 'package:right_case/resources/login_icons.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
-import 'package:right_case/view_model/services/login_and_signup_view_model.dart';
+import 'package:right_case/view_model/auth_view_models/register_view_model.dart';
 
 class SignUpScreen extends StatelessWidget {
   SignUpScreen({super.key});
@@ -24,8 +24,8 @@ class SignUpScreen extends StatelessWidget {
               ),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.r),
-                child: Consumer<LoginAndSignUpViewModel>(
-                  builder: (context, loginAndSignUpVM, child) {
+                child: Consumer<RegisterViewModel>(
+                  builder: (context, registerVM, child) {
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -62,28 +62,33 @@ class SignUpScreen extends StatelessWidget {
                         CustomTextField.fieldLabel('Your last name'),
                         SizedBox(height: 5.h),
                         CustomTextField(
-                          controller: TextEditingController(),
+                          controller: registerVM.nameController,
                         ),
                         SizedBox(height: 15.h),
                         // Email
                         CustomTextField.fieldLabel('Enter your email'),
                         SizedBox(height: 5.h),
                         CustomTextField(
-                          controller: loginAndSignUpVM.emailController,
+                          controller: registerVM.emailController,
                         ),
                         SizedBox(height: 15.h),
                         // Password
                         CustomTextField.fieldLabel('Enter your password'),
                         SizedBox(height: 5.h),
                         CustomTextField(
-                          controller: loginAndSignUpVM.passwordController,
+                          controller: registerVM.passwordController,
                         ),
 
                         SizedBox(height: 20.h),
 
                         ElevatedButton(
-                          onPressed: () {
-                            loginAndSignUpVM.registerUser(context);
+                          onPressed: () async {
+                            final user = await registerVM.registerUser(context);
+                            if (user != null) {
+                              Navigator.pushReplacementNamed(
+                                  context, RoutesName.homeScreen);
+                            }
+                            registerVM.clearFields();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0077B5),
@@ -92,7 +97,7 @@ class SignUpScreen extends StatelessWidget {
                             ),
                             padding: EdgeInsets.symmetric(vertical: 14.h),
                           ),
-                          child: loginAndSignUpVM.isLoading
+                          child: registerVM.isLoading
                               ? CircularProgressIndicator(color: Colors.white)
                               : Text(
                                   'Create new account',
