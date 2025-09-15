@@ -13,5 +13,8 @@ abstract class BaseApiServices {
     Map<String, dynamic> body,
   );
 
-  Future<dynamic> getDeleteApiRequest(String url);
+  Future<dynamic> getDeleteApiRequest(
+    String url,
+    Map<String, dynamic> body,
+  );
 }
