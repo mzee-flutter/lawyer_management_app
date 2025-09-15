@@ -5,7 +5,7 @@ import 'package:right_case/resources/custom_text_fields.dart';
 import 'package:right_case/resources/login_icons.dart';
 
 import 'package:right_case/utils/routes/routes_names.dart';
-import 'package:right_case/view_model/services/login_and_signup_view_model.dart';
+import 'package:right_case/view_model/auth_view_models/login_view_model.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -29,8 +29,8 @@ class _SignInScreenState extends State<SignInScreen> {
                 minHeight: MediaQuery.of(context).size.height,
               ),
               child: IntrinsicHeight(
-                child: Consumer<LoginAndSignUpViewModel>(
-                  builder: (context, loginAndSignUpVM, child) {
+                child: Consumer<LoginViewModel>(
+                  builder: (context, loginVM, child) {
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment:
@@ -61,7 +61,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             'Enter your email, phone, or username'),
                         SizedBox(height: 5.h),
                         CustomTextField(
-                          controller: loginAndSignUpVM.emailController,
+                          controller: loginVM.emailController,
                         ),
                         SizedBox(height: 15.h),
 
@@ -69,7 +69,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         CustomTextField.fieldLabel('Enter your password'),
                         SizedBox(height: 5.h),
                         CustomTextField(
-                          controller: loginAndSignUpVM.passwordController,
+                          controller: loginVM.passwordController,
                         ),
                         SizedBox(
                           height: 5.h,
@@ -95,8 +95,14 @@ class _SignInScreenState extends State<SignInScreen> {
                         // Login button
                         SizedBox(height: 20.h),
                         ElevatedButton(
-                          onPressed: () {
-                            loginAndSignUpVM.loginUser(context);
+                          onPressed: () async {
+                            final valid = await loginVM.loginUser(context);
+                            if (valid) {
+                              Navigator.pushReplacementNamed(
+                                  context, RoutesName.homeScreen);
+                            } else {
+                              debugPrint('Login Failed');
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0077B5),
@@ -105,7 +111,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                             padding: EdgeInsets.symmetric(vertical: 14.h),
                           ),
-                          child: loginAndSignUpVM.isLoading
+                          child: loginVM.isLoading
                               ? CircularProgressIndicator(color: Colors.white)
                               : Text(
                                   'Login',
