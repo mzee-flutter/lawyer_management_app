@@ -19,9 +19,9 @@ class LoginRepository {
         requestBody,
       );
 
-      final accessToken = response["access_token"];
-      final refreshToken = response["refresh_token"];
-      final accessTokenExpiry = response["expire_at"];
+      final accessToken = response["access_token"] as String;
+      final refreshToken = response["refresh_token"] as String;
+      final accessTokenExpiry = response["expire_at"] as int;
 
       await _tokenStorage.saveToken(
         accessToken,
