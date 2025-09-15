@@ -80,15 +80,16 @@ class NetworkApiServices extends BaseApiServices {
   }
 
   @override
-  Future getDeleteApiRequest(String url) async {
+  Future getDeleteApiRequest(String url, Map<String, dynamic> body) async {
     return _sendRequest(
-      (headers) => http.delete(Uri.parse(url), headers: headers),
+      (headers) =>
+          http.delete(Uri.parse(url), headers: headers, body: jsonEncode(body)),
     );
   }
 
   dynamic _checkAndReturnApiResponse(http.Response response) {
     switch (response.statusCode) {
-      case 200:
+      case 200 || 201:
         return jsonDecode(response.body);
 
       case 400:
