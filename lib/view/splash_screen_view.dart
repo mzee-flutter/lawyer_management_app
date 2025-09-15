@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/view_model/services/login_and_signup_view_model.dart';
+import 'package:right_case/view_model/splash_view_model.dart';
 
 class SplashScreenView extends StatefulWidget {
   const SplashScreenView({super.key});
@@ -13,10 +14,12 @@ class SplashScreenViewState extends State<SplashScreenView> {
   @override
   void initState() {
     super.initState();
-    final loginAndSignUpVM =
-        Provider.of<LoginAndSignUpViewModel>(context, listen: false);
+    // final loginAndSignUpVM =
+    //     Provider.of<LoginAndSignUpViewModel>(context, listen: false);
+    final splashVM = Provider.of<SplashViewModel>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      loginAndSignUpVM.checkLoginSession(context);
+      splashVM.getInitialRoute(context);
+      // loginAndSignUpVM.checkLoginSession(context);
     });
   }
 
