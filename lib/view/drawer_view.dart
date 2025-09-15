@@ -1,16 +1,16 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import 'package:right_case/utils/routes/routes_names.dart';
-import 'package:right_case/view_model/services/login_and_signup_view_model.dart';
+import 'package:provider/provider.dart';
+import 'package:right_case/view_model/auth_view_models/login_user_info_view_model.dart';
+import 'package:right_case/view_model/auth_view_models/logout_view_model.dart';
+import 'package:right_case/view_model/auth_view_models/register_view_model.dart';
 
 class DrawerView extends StatelessWidget {
-  DrawerView({
+  const DrawerView({
     super.key,
   });
-
-  final LoginAndSignUpViewModel _loginAndSignUpViewModel =
-      LoginAndSignUpViewModel();
 
   @override
   Widget build(BuildContext context) {
@@ -22,28 +22,38 @@ class DrawerView extends StatelessWidget {
           // Header
           DrawerHeader(
             decoration: BoxDecoration(color: Colors.grey.shade300),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Colors.grey.shade800,
-                  child: Text("M",
-                      style: TextStyle(color: Colors.white, fontSize: 20)),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  "Muhammad",
-                  style: TextStyle(
-                      color: Colors.grey.shade800,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.sp),
-                ),
-                Text(
-                  "isprofessorkhan@gmail.com",
-                  style: TextStyle(color: Colors.grey.shade800),
-                ),
-              ],
+            child: Consumer2<RegisterViewModel, LoginUserInfoViewModel>(
+              builder: (BuildContext context, registerVM, loginUserInfoMV,
+                  Widget? child) {
+                final user = registerVM.user;
+                final loginUserInfo = loginUserInfoMV.loggedInUserInfo;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Colors.grey.shade800,
+                      child: Text(
+                          user?.name.characters.first ??
+                              loginUserInfo?.name.characters.first ??
+                              'X',
+                          style: TextStyle(color: Colors.white, fontSize: 20)),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      user?.name ?? loginUserInfo?.name ?? "Unknown",
+                      style: TextStyle(
+                          color: Colors.grey.shade800,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18.sp),
+                    ),
+                    Text(
+                      user?.email ?? loginUserInfo?.email ?? "example.com",
+                      style: TextStyle(color: Colors.grey.shade800),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
 
@@ -94,12 +104,15 @@ class DrawerView extends StatelessWidget {
             title: 'Privacy Policy',
             onTap: () {},
           ),
-          AboutAppIcons(
-            icon: Icons.logout_rounded,
-            title: 'Logout',
-            onTap: () {
-              _loginAndSignUpViewModel.logOut();
-              Navigator.pushNamed(context, RoutesName.signInScreen);
+          Consumer<LogoutViewModel>(
+            builder: (BuildContext context, logoutVM, Widget? child) {
+              return AboutAppIcons(
+                icon: Icons.logout_rounded,
+                title: 'Logout',
+                onTap: () async {
+                  await logoutVM.logoutUser(context);
+                },
+              );
             },
           ),
           AboutAppIcons(
