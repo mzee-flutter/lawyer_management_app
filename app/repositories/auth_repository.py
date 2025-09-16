@@ -2,7 +2,9 @@ from sqlalchemy.orm import Session
 from app.models.auth_model import User, RefreshToken
 
 
-
+def get_user_by_id(db:Session, id:int):
+    db_user= db.query(User).filter(User.id==id).first()
+    return db_user
 
 def get_user_by_email(db:Session, email:str)-> User:
     db_user= db.query(User).filter(User.email==email).first()
