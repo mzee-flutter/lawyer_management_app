@@ -6,8 +6,12 @@ import 'package:right_case/models/case_model.dart';
 import 'package:right_case/models/client_model.dart';
 import 'package:right_case/utils/routes/routes.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
-
 import 'package:right_case/view_model/add_client_view_model.dart';
+import 'package:right_case/view_model/auth_view_models/login_user_info_view_model.dart';
+import 'package:right_case/view_model/auth_view_models/login_view_model.dart';
+import 'package:right_case/view_model/auth_view_models/logout_view_model.dart';
+import 'package:right_case/view_model/auth_view_models/refresh_acces_token_view_model.dart';
+import 'package:right_case/view_model/auth_view_models/register_view_model.dart';
 import 'package:right_case/view_model/calendar_view_model/calendar_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/add_case_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_view_model.dart';
@@ -16,6 +20,7 @@ import 'package:right_case/view_model/client_edit_view_model.dart';
 import 'package:right_case/view_model/client_view_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:right_case/view_model/services/login_and_signup_view_model.dart';
+import 'package:right_case/view_model/splash_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,6 +58,13 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => EditCaseViewModel()),
             ChangeNotifierProvider(create: (_) => LoginAndSignUpViewModel()),
             ChangeNotifierProvider(create: (_) => CalendarViewModel()),
+            ChangeNotifierProvider(create: (_) => SplashViewModel()),
+            ChangeNotifierProvider(create: (_) => LoginViewModel()),
+            ChangeNotifierProvider(create: (_) => RegisterViewModel()),
+            ChangeNotifierProvider(
+                create: (_) => RefreshAccessTokenViewModel()),
+            ChangeNotifierProvider(create: (_) => LogoutViewModel()),
+            ChangeNotifierProvider(create: (_) => LoginUserInfoViewModel()),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
