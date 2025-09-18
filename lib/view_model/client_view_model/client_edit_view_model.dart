@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/client_model.dart';
-import 'package:right_case/view_model/client_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_view_model.dart';
 
 class ClientEditViewModel with ChangeNotifier {
   late TextEditingController nameController;
@@ -29,8 +29,8 @@ class ClientEditViewModel with ChangeNotifier {
       createdAt: _originalClient.createdAt,
     );
 
-    Provider.of<ClientViewModel>(context, listen: false)
-        .updateClient(updatedClient);
+    // Provider.of<ClientViewModel>(context, listen: false)
+    //     .updateClient(updatedClient);
 
     Navigator.pop(context);
   }

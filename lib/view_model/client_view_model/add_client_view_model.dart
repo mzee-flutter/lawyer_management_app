@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/client_model.dart';
-import 'package:right_case/view_model/client_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_view_model.dart';
+
 import 'package:uuid/uuid.dart';
 
 class AddClientViewModel extends ChangeNotifier {
@@ -32,8 +33,8 @@ class AddClientViewModel extends ChangeNotifier {
       createdAt: DateTime.now(),
     );
 
-    Provider.of<ClientViewModel>(context, listen: false).addClient(newClient);
-    Navigator.pop(context);
+    // Provider.of<ClientViewModel>(context, listen: false).addClient(newClient);
+    // Navigator.pop(context);
   }
 
   void clearFields() {
