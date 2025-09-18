@@ -3,7 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/client_model.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:right_case/view/client_edit_screen.dart';
+import 'package:right_case/view/client_screen_view/client_edit_screen.dart';
+
 import 'package:right_case/view_model/client_view_model.dart';
 import 'package:right_case/view_model/services/contact_service.dart';
 
