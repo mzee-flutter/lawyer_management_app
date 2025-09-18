@@ -19,6 +19,8 @@ class ClientRepository:
     def get_by_id(db: Session, client_id) -> Client | None:
         return db.query(Client).filter(Client.id == client_id).first()
 
+
+#This function return the active clients
     @staticmethod
     def search(
         db: Session,
@@ -27,9 +29,9 @@ class ClientRepository:
         limit: int = 10,
         sort: str | None = None
     ) -> list[Client]:
-        q = db.query(Client)
+        q = db.query(Client).filter(Client.archived_at.is_(None))
 
-        # 🔎 Filtering
+        #  Filtering
         if query:
             q = q.filter(
                 or_(
@@ -40,7 +42,7 @@ class ClientRepository:
                 )
             )
 
-        # ↕ Sorting
+        #  Sorting
         if sort:
             try:
                 field, direction = sort.split(",")
@@ -52,8 +54,62 @@ class ClientRepository:
             except Exception:
                 raise ValueError("Invalid sort format. Use field,asc or field,desc")
 
-        # 📄 Pagination
+        #  Pagination
         return q.offset(skip).limit(limit).all()
+    
+
+
+#This function return the delete clients(we use the soft delete) 
+    @staticmethod
+    def search_archived(
+        db: Session,
+        query: str | None,
+        skip: int = 0,
+        limit: int = 10,
+        sort: str | None = None
+    ) -> list[Client]:
+        """Search archived clients only"""
+        q = db.query(Client).filter(Client.archived_at.isnot(None))
+
+        if query:
+            q = q.filter(
+                or_(
+                    Client.name.ilike(f"%{query}%"),
+                    Client.email.ilike(f"%{query}%"),
+                    Client.phone.ilike(f"%{query}%"),
+                    Client.cnic.ilike(f"%{query}%"),
+                )
+            )
+
+        if sort:
+            try:
+                field, direction = sort.split(",")
+                sort_column = getattr(Client, field)
+                if direction.lower() == "desc":
+                    q = q.order_by(desc(sort_column))
+                else:
+                    q = q.order_by(asc(sort_column))
+            except Exception:
+                raise ValueError("Invalid sort format. Use field,asc or field,desc")
+
+        return q.offset(skip).limit(limit).all()
+                       
+
+#This function restore the client by making null its archived_at property 
+    @staticmethod
+    def restore(db: Session, client: Client) -> Client:
+        client.archived_at = None
+        db.add(client)
+        db.commit()
+        db.refresh(client)
+        return client
+
+
+    @staticmethod
+    def delete(db:Session, client:Client)-> None:
+        db.delete(client)
+        db.commit()
+
 
     @staticmethod
     def update(db: Session, client: Client, client_in: ClientUpdate) -> Client:
@@ -63,6 +119,8 @@ class ClientRepository:
         db.commit()
         db.refresh(client)
         return client
+
+
 
     @staticmethod
     def archive(db: Session, client: Client) -> Client:
