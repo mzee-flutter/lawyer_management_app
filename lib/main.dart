@@ -14,7 +14,8 @@ import 'package:right_case/view_model/cases_view_model/add_case_view_model.dart'
 import 'package:right_case/view_model/cases_view_model/case_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/edit_case_view_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:right_case/view_model/client_view_model/add_client_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_create_view_model.dart';
+
 import 'package:right_case/view_model/client_view_model/client_edit_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 
@@ -51,7 +52,7 @@ class MyApp extends StatelessWidget {
           providers: [
             ChangeNotifierProvider(create: (_) => CaseViewModel()),
             ChangeNotifierProvider(create: (_) => ClientListViewModel()),
-            ChangeNotifierProvider(create: (_) => AddClientViewModel()),
+            ChangeNotifierProvider(create: (_) => ClientCreateViewModel()),
             ChangeNotifierProvider(create: (_) => ClientEditViewModel()),
             ChangeNotifierProvider(create: (_) => AddCaseViewModel()),
             ChangeNotifierProvider(create: (_) => EditCaseViewModel()),
