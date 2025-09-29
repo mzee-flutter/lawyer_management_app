@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:right_case/models/client_model.dart';
+import 'package:provider/provider.dart';
 
-import 'package:uuid/uuid.dart';
+import 'package:right_case/models/client_models/client_create_model.dart';
+import 'package:right_case/repository/client_repository/client_create_repo.dart';
+import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 
-class AddClientViewModel extends ChangeNotifier {
+class ClientCreateViewModel extends ChangeNotifier {
+  final ClientCreateRepo _clientCreateRepo = ClientCreateRepo();
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController mobileController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController mobileController = TextEditingController();
+  final TextEditingController cnicController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
+  final TextEditingController notesController = TextEditingController();
 
-  void submitClient(context) {
+  Future<void> submitClient(context) async {
     final name = nameController.text.trim();
-    final mobile = mobileController.text.trim();
     final email = emailController.text.trim();
+    final mobile = mobileController.text.trim();
+    final cnic = cnicController.text.trim();
     final address = addressController.text.trim();
+    final notes = notesController.text.trim();
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -22,32 +29,42 @@ class AddClientViewModel extends ChangeNotifier {
       return;
     }
 
-    // final newClient = ClientModel(
-    //   id: const Uuid().v4(),
-    //   name: name,
-    //   phone: mobile,
-    //   email: email,
-    //   address: address,
-    //   createdAt: DateTime.now(),
-    // );
+    final newClient = ClientCreateModel(
+        name: name,
+        email: email,
+        phone: mobile,
+        cnic: cnic,
+        address: address,
+        notes: notes);
 
-    // Provider.of<ClientViewModel>(context, listen: false).addClient(newClient);
-    // Navigator.pop(context);
+    try {
+      final dbClient = await _clientCreateRepo.createClient(newClient);
+      Provider.of<ClientListViewModel>(context, listen: false)
+          .addClient(dbClient);
+      Navigator.pop(context);
+    } catch (e) {
+      debugPrint("Error in ClientCreateViewModel: $e");
+    }
   }
 
   void clearFields() {
     nameController.clear();
-    mobileController.clear();
     emailController.clear();
+    mobileController.clear();
+    cnicController.clear();
     addressController.clear();
+    notesController.clear();
     notifyListeners();
   }
 
   void disposeController() {
     nameController.dispose();
-    mobileController.dispose();
     emailController.dispose();
+    mobileController.dispose();
+    cnicController.clear();
+
     addressController.dispose();
+    notesController.clear();
     super.dispose();
   }
 }
