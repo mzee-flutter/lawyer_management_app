@@ -33,11 +33,40 @@ class ClientModel {
       address: json['address'],
       notes: json['notes'],
       createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt:
-          json['updatedAt'] != null ? DateTime.parse(json['updated_at']) : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : null,
       archivedAt: json['archived_at'] != null
           ? DateTime.parse(json['archived_at'])
           : null,
     );
+  }
+
+  /// Full JSON (useful for debugging or sending back full updates)
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "name": name,
+      "email": email,
+      "phone": phone,
+      "cnic": cnic,
+      "address": address,
+      "notes": notes,
+      "created_at": createdAt.toIso8601String(),
+      "updated_at": updatedAt?.toIso8601String(),
+      "archived_at": archivedAt?.toIso8601String(),
+    };
+  }
+
+  /// Only the fields required when creating a new client
+  Map<String, dynamic> toJsonForCreate() {
+    return {
+      "name": name,
+      "email": email,
+      "phone": phone,
+      "cnic": cnic,
+      "address": address,
+      "notes": notes,
+    };
   }
 }
