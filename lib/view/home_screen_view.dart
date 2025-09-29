@@ -72,6 +72,7 @@ class HomeScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.pushNamed(
                                 context, RoutesName.casesListScreen);
+                            print("hello world to this ");
                           },
                         ),
                         _QuickActionButton(
@@ -164,13 +165,7 @@ class HomeScreen extends StatelessWidget {
             _DashboardCard(
               title: "Today's Cases",
               icon: Icons.today_rounded,
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => CustomCasesCategoryView(
-                            title: 'Today Cases', cases: caseVM.todayCases)));
-              },
+              onTap: () {},
             ),
             _DashboardCard(
               title: "Tomorrow's Cases",

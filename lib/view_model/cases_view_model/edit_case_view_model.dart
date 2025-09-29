@@ -21,12 +21,13 @@ class EditCaseViewModel with ChangeNotifier {
 
   void saveChanges(context) {
     final updateCase = CaseModel(
-        id: _originalCase.id,
-        title: titleController.text.trim(),
-        description: descController.text.trim(),
-        clientId: clientIdController.text.trim(),
-        status: statusController.text.trim(),
-        createdAt: _originalCase.createdAt);
+      id: _originalCase.id,
+      title: titleController.text.trim(),
+      description: descController.text.trim(),
+      clientId: clientIdController.text.trim(),
+      status: statusController.text.trim(),
+      createdAt: _originalCase.createdAt,
+    );
 
     Provider.of<CaseViewModel>(context, listen: false).updateCase(updateCase);
     Navigator.pop(context);
