@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:right_case/models/client_model.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:right_case/view/client_screen_view/client_edit_screen.dart';
-
-import 'package:right_case/view_model/client_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 import 'package:right_case/view_model/services/contact_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ClientInfoCard extends StatelessWidget {
   ClientInfoCard({
@@ -18,7 +18,7 @@ class ClientInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ClientViewModel>(
+    return Consumer<ClientListViewModel>(
       builder: (context, clientViewModel, child) {
         return Padding(
           padding: EdgeInsets.only(bottom: 8.r),
@@ -72,7 +72,7 @@ class ClientInfoCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                          Text(client.mobileNumber.toString())
+                          Text(client.phone.toString())
                         ],
                       ),
                       Spacer(),
@@ -144,8 +144,7 @@ class ClientInfoCard extends StatelessWidget {
                       Spacer(),
                       InkWell(
                         onTap: () {
-                          contactService.makePhoneCall(
-                              context, client.mobileNumber);
+                          contactService.makePhoneCall(context, client.phone);
                         },
                         child: Container(
                           height: 25.h,
@@ -163,7 +162,8 @@ class ClientInfoCard extends StatelessWidget {
                       SizedBox(width: 10.w),
                       InkWell(
                         onTap: () {
-                          contactService.sendSMS(context, client.mobileNumber);
+                          print(client.phone);
+                          contactService.sendSMS(context, client.phone);
                         },
                         child: Container(
                           height: 25.h,
@@ -180,9 +180,8 @@ class ClientInfoCard extends StatelessWidget {
                       ),
                       SizedBox(width: 10.w),
                       InkWell(
-                        onTap: () {
-                          contactService.openWhatsApp(
-                              context, client.mobileNumber);
+                        onTap: () async {
+                          // contactService.openWhatsApp(context, client.phone);
                         },
                         child: Container(
                           height: 25.h,
@@ -215,7 +214,7 @@ class ClientInfoCard extends StatelessWidget {
         return AlertDialog(
           backgroundColor: Colors.grey.shade300,
           contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          content: Consumer<ClientViewModel>(
+          content: Consumer<ClientListViewModel>(
             builder: (context, clientViewModel, child) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
@@ -260,8 +259,8 @@ class ClientInfoCard extends StatelessWidget {
                           backgroundColor: Colors.red,
                         ),
                         onPressed: () {
-                          clientViewModel.removeClient(client);
-                          Navigator.of(context).pop();
+                          // clientViewModel.removeClient(client);
+                          // Navigator.of(context).pop();
                         },
                         child: Text(
                           'Delete',
@@ -279,3 +278,7 @@ class ClientInfoCard extends StatelessWidget {
     );
   }
 }
+
+/// This code is for testing to launch the url
+// await launchUrl(Uri.parse("https://flutter.dev"),
+// mode: LaunchMode.externalApplication);
