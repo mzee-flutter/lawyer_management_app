@@ -1,33 +1,43 @@
-import 'package:hive/hive.dart';
-
-part 'client_model.g.dart';
-
-@HiveType(typeId: 0)
-class ClientModel extends HiveObject {
-  @HiveField(0)
+class ClientModel {
   final String id;
-
-  @HiveField(1)
   final String name;
-
-  @HiveField(2)
-  final String? mobileNumber;
-
-  @HiveField(3)
-  final String? emailAddress;
-
-  @HiveField(4)
-  final String? address;
-
-  @HiveField(5)
-  final DateTime? createdAt;
+  final String email;
+  final String phone;
+  final String cnic;
+  final String address;
+  final String notes;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  final DateTime? archivedAt;
 
   ClientModel({
     required this.id,
     required this.name,
-    this.mobileNumber,
-    this.emailAddress,
-    this.address,
-    this.createdAt,
+    required this.email,
+    required this.phone,
+    required this.cnic,
+    required this.address,
+    required this.notes,
+    required this.createdAt,
+    this.updatedAt,
+    this.archivedAt,
   });
+
+  factory ClientModel.fromJson(Map<String, dynamic> json) {
+    return ClientModel(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      email: json['email'],
+      phone: json['phone'],
+      cnic: json['cnic'],
+      address: json['address'],
+      notes: json['notes'],
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updated_at']) : null,
+      archivedAt: json['archived_at'] != null
+          ? DateTime.parse(json['archived_at'])
+          : null,
+    );
+  }
 }
