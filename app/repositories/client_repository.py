@@ -9,7 +9,7 @@ class ClientRepository:
 
     @staticmethod
     def create(db: Session, client_in: ClientCreate) -> Client:
-        db_client = Client(**client_in.dict())
+        db_client = Client(**client_in.model_dump())
         db.add(db_client)
         db.commit()
         db.refresh(db_client)
@@ -113,7 +113,7 @@ class ClientRepository:
 
     @staticmethod
     def update(db: Session, client: Client, client_in: ClientUpdate) -> Client:
-        for field, value in client_in.dict(exclude_unset=True).items():
+        for field, value in client_in.model_dump(exclude_unset=True).items():
             setattr(client, field, value)
         client.updated_at = datetime.utcnow()
         db.commit()
