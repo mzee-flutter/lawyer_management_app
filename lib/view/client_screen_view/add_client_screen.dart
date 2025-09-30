@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 
 import 'package:right_case/resources/custom_text_fields.dart';
-import 'package:right_case/view_model/add_client_view_model.dart';
+
+import 'package:right_case/view_model/client_view_model/client_create_view_model.dart';
 
 class AddClientScreen extends StatefulWidget {
   const AddClientScreen({super.key});
@@ -14,13 +16,13 @@ class AddClientScreen extends StatefulWidget {
 }
 
 class _AddClientScreenState extends State<AddClientScreen> {
-  late AddClientViewModel addClientViewModel;
+  late ClientCreateViewModel addClientViewModel;
 
   @override
   void initState() {
     super.initState();
     addClientViewModel =
-        Provider.of<AddClientViewModel>(context, listen: false);
+        Provider.of<ClientCreateViewModel>(context, listen: false);
   }
 
   @override
@@ -32,13 +34,17 @@ class _AddClientScreenState extends State<AddClientScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Consumer<AddClientViewModel>(
+          child: Consumer<ClientCreateViewModel>(
             builder: (context, addClientViewModel, child) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildLabels('Enter Client Name*'),
                   _buildTextField(addClientViewModel.nameController),
+                  const SizedBox(height: 12),
+                  _buildLabels('Enter Client EmailID (Optional)'),
+                  _buildTextField(addClientViewModel.emailController,
+                      keyboardType: TextInputType.emailAddress),
                   const SizedBox(height: 12),
                   _buildLabels('Enter Client Mobile Number (Optional)'),
                   _buildTextField(
@@ -52,13 +58,19 @@ class _AddClientScreenState extends State<AddClientScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _buildLabels('Enter Client EmailID (Optional)'),
-                  _buildTextField(addClientViewModel.emailController,
-                      keyboardType: TextInputType.emailAddress),
+                  _buildLabels('Enter Client CNIC (Optional)'),
+                  _buildTextField(
+                    addClientViewModel.cnicController,
+                    keyboardType: TextInputType.number,
+                  ),
                   const SizedBox(height: 12),
                   _buildLabels('Enter Client Address (Optional)'),
                   _buildTextField(addClientViewModel.addressController,
                       maxLines: 2),
+                  const SizedBox(height: 12),
+                  _buildLabels('Add Notes (Optional)'),
+                  _buildTextField(addClientViewModel.notesController,
+                      maxLines: 3),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: () {
