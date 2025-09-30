@@ -57,16 +57,4 @@ class ClientModel {
       "archived_at": archivedAt?.toIso8601String(),
     };
   }
-
-  /// Only the fields required when creating a new client
-  Map<String, dynamic> toJsonForCreate() {
-    return {
-      "name": name,
-      "email": email,
-      "phone": phone,
-      "cnic": cnic,
-      "address": address,
-      "notes": notes,
-    };
-  }
 }
