@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/resources/custom_cases_category_view.dart';
+
 import 'package:right_case/utils/routes/routes_names.dart';
 
 import 'package:right_case/view/cases_screen_view/add_case_screen_view.dart';
@@ -72,7 +72,6 @@ class HomeScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.pushNamed(
                                 context, RoutesName.casesListScreen);
-                            print("hello world to this ");
                           },
                         ),
                         _QuickActionButton(
