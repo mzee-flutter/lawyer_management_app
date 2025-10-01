@@ -41,7 +41,6 @@ class ClientCreateViewModel extends ChangeNotifier {
       final dbClient = await _clientCreateRepo.createClient(newClient);
       Provider.of<ClientListViewModel>(context, listen: false)
           .addClient(dbClient);
-      Navigator.pop(context);
     } catch (e) {
       debugPrint("Error in ClientCreateViewModel: $e");
     }
