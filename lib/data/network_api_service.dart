@@ -39,7 +39,8 @@ class NetworkApiServices extends BaseApiServices {
         await _refreshRepo.getFreshAccessToken(refreshToken);
         final newAccessToken = await _tokenStorage.getAccessToken();
 
-        headers["Authentication"] = "Bearer $newAccessToken";
+        headers["Authorization"] =
+            "Bearer $newAccessToken"; // fixed: Authorization not Authentication
         response = await requestFunction(headers);
       }
       return _checkAndReturnApiResponse(response);
@@ -84,6 +85,19 @@ class NetworkApiServices extends BaseApiServices {
     return _sendRequest(
       (headers) =>
           http.delete(Uri.parse(url), headers: headers, body: jsonEncode(body)),
+    );
+  }
+
+  /// ✅ New PATCH request added
+  @override
+  Future getPatchApiRequest(
+    String url,
+    Map<String, dynamic> header,
+    Map<String, dynamic> body,
+  ) async {
+    return _sendRequest(
+      (headers) =>
+          http.patch(Uri.parse(url), headers: headers, body: jsonEncode(body)),
     );
   }
 
