@@ -31,6 +31,14 @@ class ClientListViewModel extends ChangeNotifier {
     }
   }
 
+  void archiveClient(ClientModel archiveClient) {
+    final index = _clientList.indexWhere((c) => c.id == archiveClient.id);
+    if (index != -1) {
+      _clientList.removeAt(index);
+      notifyListeners();
+    }
+  }
+
   Future<void> fetchClientList() async {
     _toggleLoading(true);
     try {
