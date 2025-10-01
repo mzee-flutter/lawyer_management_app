@@ -17,4 +17,10 @@ abstract class BaseApiServices {
     String url,
     Map<String, dynamic> body,
   );
+
+  Future<dynamic> getPatchApiRequest(
+    String url,
+    Map<String, dynamic> header,
+    Map<String, dynamic> body,
+  );
 }
