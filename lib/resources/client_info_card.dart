@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:right_case/models/client_models/client_model.dart';
 import 'package:right_case/view/client_screen_view/client_edit_screen.dart';
+import 'package:right_case/view_model/client_view_model/client_archive_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 import 'package:right_case/view_model/services/contact_service.dart';
 
@@ -212,9 +213,9 @@ class ClientInfoCard extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.grey.shade300,
-          contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          content: Consumer<ClientListViewModel>(
-            builder: (context, clientViewModel, child) {
+          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+          content: Consumer<ClientArchiveViewModel>(
+            builder: (context, clientArchiveVM, child) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -240,31 +241,24 @@ class ClientInfoCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                      _deleteConformationButtons(
+                        title: "Cancel",
+                        color: Colors.blue,
+                        onTap: () {},
                       ),
-                      SizedBox(width: 16.w),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                        onPressed: () {
-                          // clientViewModel.removeClient(client);
-                          // Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          'Delete',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                      SizedBox(width: 10.w),
+                      _deleteConformationButtons(
+                          title: "Archive",
+                          color: Colors.orangeAccent,
+                          onTap: () {
+                            clientArchiveVM.archiveClient(context, client.id);
+                            Navigator.of(context).pop();
+                          }),
+                      SizedBox(width: 10.w),
+                      _deleteConformationButtons(
+                        title: "Delete",
+                        color: Colors.red,
+                        onTap: () {},
                       ),
                     ],
                   ),
@@ -276,6 +270,32 @@ class ClientInfoCard extends StatelessWidget {
       },
     );
   }
+}
+
+Widget _deleteConformationButtons({
+  required String title,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return Container(
+    height: 40,
+    width: 75,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(50),
+    ),
+    child: InkWell(
+      onTap: onTap,
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ),
+  );
 }
 
 /// This code is for testing to launch the url
