@@ -20,6 +20,15 @@ class ClientListViewModel extends ChangeNotifier {
 
   void addClient(ClientModel client) {
     _clientList.add(client);
+    notifyListeners();
+  }
+
+  void updateClient(ClientModel updateClient) {
+    final index = _clientList.indexWhere((c) => c.id == updateClient.id);
+    if (index != -1) {
+      _clientList[index] = updateClient;
+      notifyListeners();
+    }
   }
 
   Future<void> fetchClientList() async {
