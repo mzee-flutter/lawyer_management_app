@@ -1,7 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
-import 'package:right_case/models/client_model.dart';
-import 'package:right_case/view_model/client_view_model/client_view_model.dart';
+import 'package:right_case/models/client_models/client_model.dart';
 
 class ClientEditViewModel with ChangeNotifier {
   late TextEditingController nameController;
@@ -14,20 +12,20 @@ class ClientEditViewModel with ChangeNotifier {
   void initializeFields(ClientModel client) {
     _originalClient = client;
     nameController = TextEditingController(text: client.name);
-    phoneController = TextEditingController(text: client.mobileNumber);
-    emailController = TextEditingController(text: client.emailAddress ?? '');
+    phoneController = TextEditingController(text: client.phone);
+    emailController = TextEditingController(text: client.email ?? '');
     addressController = TextEditingController(text: client.address ?? '');
   }
 
   void saveChanges(context) {
-    final updatedClient = ClientModel(
-      id: _originalClient.id,
-      name: nameController.text.trim(),
-      mobileNumber: phoneController.text.trim(),
-      emailAddress: emailController.text.trim(),
-      address: addressController.text.trim(),
-      createdAt: _originalClient.createdAt,
-    );
+    // final updatedClient = ClientModel(
+    //   id: _originalClient.id,
+    //   name: nameController.text.trim(),
+    //   phone: phoneController.text.trim(),
+    //   email: emailController.text.trim(),
+    //   address: addressController.text.trim(),
+    //   createdAt: _originalClient.createdAt,
+    // );
 
     // Provider.of<ClientViewModel>(context, listen: false)
     //     .updateClient(updatedClient);
