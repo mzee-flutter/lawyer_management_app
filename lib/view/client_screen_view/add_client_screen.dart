@@ -75,6 +75,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                   ElevatedButton.icon(
                     onPressed: () {
                       addClientViewModel.submitClient(context);
+                      Navigator.pop(context);
                       addClientViewModel.clearFields();
                     },
                     icon: const Icon(Icons.person_add_alt, color: Colors.white),
