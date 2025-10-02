@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:right_case/models/client_models/client_create_model.dart';
 import 'package:right_case/repository/client_repository/client_create_repo.dart';
+import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 
 class ClientCreateViewModel extends ChangeNotifier {
@@ -13,6 +14,14 @@ class ClientCreateViewModel extends ChangeNotifier {
   final TextEditingController cnicController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController notesController = TextEditingController();
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  void _toggleLoading(bool loader) {
+    _isLoading = loader;
+    notifyListeners();
+  }
 
   Future<void> submitClient(context) async {
     final name = nameController.text.trim();
@@ -36,13 +45,17 @@ class ClientCreateViewModel extends ChangeNotifier {
         cnic: cnic,
         address: address,
         notes: notes);
-
+    _toggleLoading(true);
     try {
       final dbClient = await _clientCreateRepo.createClient(newClient);
       Provider.of<ClientListViewModel>(context, listen: false)
           .addClient(dbClient);
+      Navigator.pop(context);
     } catch (e) {
+      SnakeBars.flutterToast("Failed to create Client: $e", context);
       debugPrint("Error in ClientCreateViewModel: $e");
+    } finally {
+      _toggleLoading(false);
     }
   }
 
