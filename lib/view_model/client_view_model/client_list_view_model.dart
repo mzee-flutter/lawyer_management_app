@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:right_case/models/client_models/client_create_model.dart';
 
 import 'package:right_case/models/client_models/client_model.dart';
 import 'package:right_case/repository/client_repository/client_list_repo.dart';
 
 class ClientListViewModel extends ChangeNotifier {
   final ClientListRepo _clientListRepo = ClientListRepo();
+  final TextEditingController searchController = TextEditingController();
+  final FocusNode searchFocusNode = FocusNode();
+
+  String _searchQuery = '';
+  String get searchQuery => _searchQuery;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -15,8 +19,29 @@ class ClientListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void unFocusSearch() {
+    searchFocusNode.unfocus();
+  }
+
   List<ClientModel> _clientList = [];
-  List<ClientModel> get clientList => _clientList;
+  List<ClientModel> get filterClients {
+    if (searchQuery.isEmpty) return _clientList;
+    return _clientList
+        .where((c) =>
+            c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            c.phone.contains(_searchQuery))
+        .toList();
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query.trim();
+    notifyListeners();
+  }
+
+  void setClients(List<ClientModel> clients) {
+    _clientList = clients;
+    notifyListeners();
+  }
 
   void addClient(ClientModel client) {
     _clientList.add(client);
@@ -31,7 +56,7 @@ class ClientListViewModel extends ChangeNotifier {
     }
   }
 
-  void archiveClient(ClientModel archiveClient) {
+  void removeClient(ClientModel archiveClient) {
     final index = _clientList.indexWhere((c) => c.id == archiveClient.id);
     if (index != -1) {
       _clientList.removeAt(index);
@@ -50,5 +75,12 @@ class ClientListViewModel extends ChangeNotifier {
     } finally {
       _toggleLoading(false);
     }
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    searchFocusNode.dispose(); // 👈 clean up
+    super.dispose();
   }
 }
