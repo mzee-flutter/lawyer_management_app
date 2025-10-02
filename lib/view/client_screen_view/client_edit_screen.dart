@@ -79,25 +79,33 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
                   maxLines: 3,
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton.icon(
+                ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey.shade800),
-                  onPressed: () {
-                    editViewModel.saveChanges(
-                      context,
-                      widget.client.id,
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.save,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    "Save Changes",
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
+                  onPressed: editViewModel.isLoading
+                      ? null
+                      : () {
+                          editViewModel.saveChanges(
+                            context,
+                            widget.client.id,
+                          );
+                        },
+                  child: editViewModel.isLoading
+                      ? CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.save, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text(
+                              'Save Changes',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
                 ),
               ],
             ),
