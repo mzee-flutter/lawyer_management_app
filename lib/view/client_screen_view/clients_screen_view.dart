@@ -31,26 +31,34 @@ class _ClientsScreenState extends State<ClientsScreen> {
         backgroundColor: Colors.grey.shade300,
         title: const Text('Clients'),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(12.r),
-        child: Column(
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search Clients...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+      body: Consumer<ClientListViewModel>(
+        builder: (BuildContext context, clientListVM, Widget? child) {
+          return Padding(
+            padding: EdgeInsets.all(12.r),
+            child: Column(
+              children: [
+                TextField(
+                  controller: clientListVM.searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search Clients...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    clientListVM.setSearchQuery(value);
+                  },
                 ),
-              ),
-            ),
-            Consumer<ClientListViewModel>(
-              builder: (BuildContext context, clientListVM, Widget? child) {
-                if (clientListVM.isLoading) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                if (clientListVM.clientList.isEmpty) {
-                  return Expanded(
+                if (clientListVM.isLoading)
+                  Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.grey.shade700,
+                      strokeWidth: 2,
+                    ),
+                  )
+                else if (clientListVM.filterClients.isEmpty)
+                  Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -76,24 +84,24 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         ),
                       ],
                     ),
-                  );
-                }
-
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 12.r),
-                    child: ListView.builder(
-                        itemCount: clientListVM.clientList.length,
+                  )
+                else
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 12.r),
+                      child: ListView.builder(
+                        itemCount: clientListVM.filterClients.length,
                         itemBuilder: (context, index) {
-                          final client = clientListVM.clientList[index];
+                          final client = clientListVM.filterClients[index];
                           return ClientInfoCard(client: client);
-                        }),
+                        },
+                      ),
+                    ),
                   ),
-                );
-              },
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.grey.shade800,
