@@ -123,18 +123,18 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _QuickActionButton(
+                    label: 'Add Client',
+                    icon: Icons.person_add,
+                    onTap: () {
+                      Navigator.pushNamed(context, RoutesName.addClientScreen);
+                    },
+                  ),
+                  _QuickActionButton(
                     label: 'Add Case',
                     icon: Icons.cases_rounded,
                     onTap: () {
                       Navigator.push(context,
                           MaterialPageRoute(builder: (_) => AddCaseScreen()));
-                    },
-                  ),
-                  _QuickActionButton(
-                    label: 'Add Client',
-                    icon: Icons.person_add,
-                    onTap: () {
-                      Navigator.pushNamed(context, RoutesName.addClientScreen);
                     },
                   ),
                   _QuickActionButton(
