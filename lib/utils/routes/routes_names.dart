@@ -4,6 +4,7 @@ class RoutesName {
   static const String splashScreenView = 'splash_screen_view';
   static const String homeScreen = 'home_screen';
   static const String clientsScreen = 'clients_screen';
+  static const String archivedClientsScreen = "archived_clients_screen";
   static const String forgotPasswordScreen = 'forgot_password_screen';
   static const String addClientScreen = "add_client_screen";
   static const String casesListScreen = 'cases_list_screen';
