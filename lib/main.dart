@@ -15,7 +15,9 @@ import 'package:right_case/view_model/cases_view_model/case_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/edit_case_view_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:right_case/view_model/client_view_model/client_archive_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_archived_list_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_create_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_permanent_delete_view_model.dart';
 
 import 'package:right_case/view_model/client_view_model/client_update_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
@@ -67,6 +69,11 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => LogoutViewModel()),
             ChangeNotifierProvider(create: (_) => LoginUserInfoViewModel()),
             ChangeNotifierProvider(create: (_) => ClientArchiveViewModel()),
+            ChangeNotifierProvider(
+                create: (_) => ClientPermanentDeleteViewModel()),
+            ChangeNotifierProvider(
+              create: (_) => ClientArchivedListViewModel(),
+            ),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
