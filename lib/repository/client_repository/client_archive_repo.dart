@@ -15,7 +15,7 @@ class ClientArchiveRepo {
       final clients = ClientModel.fromJson(response);
       return clients;
     } catch (e) {
-      debugPrint("Error in ClientListRepo: $e");
+      debugPrint("Error in ClientArchiveRepo: $e");
       rethrow;
     }
   }
