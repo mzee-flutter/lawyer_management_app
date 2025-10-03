@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/view_model/auth_view_models/login_user_info_view_model.dart';
 import 'package:right_case/view_model/auth_view_models/logout_view_model.dart';
 import 'package:right_case/view_model/auth_view_models/register_view_model.dart';
@@ -66,7 +67,8 @@ class DrawerView extends StatelessWidget {
                 title: Text("Archived Clients"),
                 subtitle: Text("Restore it from here..."),
                 onTap: () async {
-                  await clientArchivedListVM.fetchArchivedClients();
+                  Navigator.pushNamed(
+                      context, RoutesName.archivedClientsScreen);
                 },
               );
             },
