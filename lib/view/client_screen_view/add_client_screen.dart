@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
 
 import 'package:right_case/view_model/client_view_model/client_create_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 
 class AddClientScreen extends StatefulWidget {
   const AddClientScreen({super.key});
@@ -76,7 +77,12 @@ class _AddClientScreenState extends State<AddClientScreen> {
                         ? null // disable button when loading
                         : () async {
                             await addClientViewModel.submitClient(context);
+
                             addClientViewModel.clearFields();
+                            Provider.of<ClientListViewModel>(
+                              context,
+                              listen: false,
+                            ).unFocusSearch();
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey.shade800,
