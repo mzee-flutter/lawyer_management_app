@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-
 import 'package:right_case/utils/routes/routes_names.dart';
-import 'package:right_case/view/add_client_screen.dart';
 import 'package:right_case/view/calendar_view/calendar_screen_view.dart';
 import 'package:right_case/view/cases_screen_view/add_case_screen_view.dart';
-import 'package:right_case/view/cases_screen_view/case_edit_screen.dart';
-
 import 'package:right_case/view/cases_screen_view/cases_list_screen_view.dart';
-import 'package:right_case/view/clients_screen_view.dart';
-import 'package:right_case/view/client_edit_screen.dart';
+import 'package:right_case/view/client_screen_view/add_client_screen.dart';
+import 'package:right_case/view/client_screen_view/client_archived_list_screen.dart';
+import 'package:right_case/view/client_screen_view/clients_screen_view.dart';
 import 'package:right_case/view/forgot_password_screen_view.dart';
 import 'package:right_case/view/home_screen_view.dart';
 import 'package:right_case/view/sign_in_screen_view.dart';
@@ -33,6 +30,8 @@ class Routes {
       case RoutesName.clientsScreen:
         return MaterialPageRoute(builder: (_) => const ClientsScreen());
 
+      case RoutesName.archivedClientsScreen:
+        return MaterialPageRoute(builder: (_) => ClientArchivedListScreen());
       case RoutesName.forgotPasswordScreen:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
 
