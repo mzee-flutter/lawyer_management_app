@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:right_case/models/client_models/client_model.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
+import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 
 import 'package:right_case/view_model/client_view_model/client_update_view_model.dart';
 
@@ -85,10 +86,10 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
                   onPressed: editViewModel.isLoading
                       ? null
                       : () {
-                          editViewModel.saveChanges(
-                            context,
-                            widget.client.id,
-                          );
+                          editViewModel.saveChanges(context, widget.client.id);
+                          Provider.of<ClientListViewModel>(context,
+                                  listen: false)
+                              .unFocusSearch();
                         },
                   child: editViewModel.isLoading
                       ? CircularProgressIndicator(
