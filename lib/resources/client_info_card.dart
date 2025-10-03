@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:right_case/models/client_models/client_model.dart';
 import 'package:right_case/view/client_screen_view/client_edit_screen.dart';
 import 'package:right_case/view_model/client_view_model/client_archive_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_permanent_delete_view_model.dart';
 import 'package:right_case/view_model/services/contact_service.dart';
 
 class ClientInfoCard extends StatelessWidget {
@@ -214,8 +214,10 @@ class ClientInfoCard extends StatelessWidget {
         return AlertDialog(
           backgroundColor: Colors.grey.shade300,
           contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-          content: Consumer<ClientArchiveViewModel>(
-            builder: (context, clientArchiveVM, child) {
+          content:
+              Consumer2<ClientArchiveViewModel, ClientPermanentDeleteViewModel>(
+            builder:
+                (context, clientArchiveVM, clientPermanentDeleteVM, child) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -244,21 +246,36 @@ class ClientInfoCard extends StatelessWidget {
                       _deleteConformationButtons(
                         title: "Cancel",
                         color: Colors.blue,
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
                       ),
                       SizedBox(width: 10.w),
                       _deleteConformationButtons(
                           title: "Archive",
                           color: Colors.orangeAccent,
-                          onTap: () {
-                            clientArchiveVM.archiveClient(context, client.id);
-                            Navigator.of(context).pop();
+                          onTap: () async {
+                            await clientArchiveVM.archiveClient(
+                                context, client.id);
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
+                            Provider.of<ClientListViewModel>(
+                              context,
+                              listen: false,
+                            ).unFocusSearch();
                           }),
                       SizedBox(width: 10.w),
                       _deleteConformationButtons(
                         title: "Delete",
                         color: Colors.red,
-                        onTap: () {},
+                        onTap: () async {
+                          await clientPermanentDeleteVM.deleteClientPermanent(
+                              context, client.id);
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
+                        },
                       ),
                     ],
                   ),
