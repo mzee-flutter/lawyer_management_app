@@ -11,7 +11,7 @@ class ClientArchiveViewModel with ChangeNotifier {
       final dbClient = await _clientArchiveRepo.archiveClient(id);
 
       Provider.of<ClientListViewModel>(context, listen: false)
-          .archiveClient(dbClient);
+          .removeClient(dbClient);
     } catch (e) {
       debugPrint("Error in ClientArchiveViewModel: $e");
     }
