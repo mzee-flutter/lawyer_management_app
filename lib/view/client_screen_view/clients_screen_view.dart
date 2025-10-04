@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/resources/client_info_card.dart';
+
+import 'package:right_case/resources/client_resources/client_info_card.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 
@@ -51,14 +52,29 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.r),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey.shade700),
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      disabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey.shade700),
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Colors.grey.shade700, width: 1.5),
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
                     ),
                     onChanged: (value) => clientListVM.setSearchQuery(value),
+                    cursorColor: Colors.grey.shade700,
                   ),
                   if (clientListVM.isLoading)
                     Center(
                       child: CircularProgressIndicator(
                         color: Colors.grey.shade700,
-                        strokeWidth: 2,
+                        strokeWidth: 3,
+                        padding: EdgeInsets.only(top: 5.r),
                       ),
                     )
                   else if (clientListVM.filterClients.isEmpty)
