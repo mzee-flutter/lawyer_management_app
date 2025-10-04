@@ -12,8 +12,8 @@ class ClientArchiveRepo {
       final response = await _services.getDeleteApiRequest(
           "${ClientURl.baseUrl}$id", ClientURl.headers);
 
-      final clients = ClientModel.fromJson(response);
-      return clients;
+      final client = ClientModel.fromJson(response);
+      return client;
     } catch (e) {
       debugPrint("Error in ClientArchiveRepo: $e");
       rethrow;
