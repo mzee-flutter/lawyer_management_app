@@ -39,8 +39,7 @@ class NetworkApiServices extends BaseApiServices {
         await _refreshRepo.getFreshAccessToken(refreshToken);
         final newAccessToken = await _tokenStorage.getAccessToken();
 
-        headers["Authorization"] =
-            "Bearer $newAccessToken"; // fixed: Authorization not Authentication
+        headers["Authorization"] = "Bearer $newAccessToken";
         response = await requestFunction(headers);
       }
       return _checkAndReturnApiResponse(response);
