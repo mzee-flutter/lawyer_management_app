@@ -7,10 +7,13 @@ import 'package:right_case/resources/URLs/client_urls.dart';
 
 class ClientListRepo {
   final BaseApiServices _services = NetworkApiServices();
-  Future<List<ClientModel>> fetchClientList() async {
+  Future<List<ClientModel>> fetchClientList({
+    required int page,
+    required int size,
+  }) async {
     try {
       final response = await _services.getGetApiRequest(
-          ClientURl.baseUrl, ClientURl.headers);
+          "${ClientURl.baseUrl}?page=$page&size=$size", ClientURl.headers);
 
       final data = response as List<dynamic>;
       final clients =
