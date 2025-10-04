@@ -28,16 +28,23 @@ class ClientArchivedListViewModel with ChangeNotifier {
   bool isMoreLoading = false; // for load more
   bool hasMore = true; // if backend still has more data
 
-  Future<void> fetchArchivedClients({bool loadMore = false}) async {
+  Future<void> fetchArchivedClients({
+    bool loadMore = false,
+    bool isRefresh = false,
+  }) async {
     if (loadMore) {
       if (isMoreLoading || !hasMore) return;
       isMoreLoading = true;
-    } else {
+    } else if (!isRefresh) {
       // reset state for first load
       _page = 1;
       hasMore = true;
       _archiveClientList.clear();
       isFirstLoading = true;
+    } else {
+      _page = 1;
+      hasMore = true;
+      _archiveClientList.clear();
     }
     notifyListeners();
 
