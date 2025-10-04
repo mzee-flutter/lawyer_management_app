@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:right_case/models/client_models/client_model.dart';
 import 'package:right_case/repository/client_repository/client_list_repo.dart';
 
@@ -14,8 +13,22 @@ class ClientListViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  void _toggleLoading(bool loading) {
-    _isLoading = loading;
+  bool _isLoadingMore = false;
+  bool get isLoadingMore => _isLoadingMore;
+
+  bool _hasMore = true;
+  bool get hasMore => _hasMore;
+
+  int _page = 1;
+  final int _size = 10;
+
+  void _setLoading(bool val) {
+    _isLoading = val;
+    notifyListeners();
+  }
+
+  void _setLoadingMore(bool val) {
+    _isLoadingMore = val;
     notifyListeners();
   }
 
@@ -25,7 +38,7 @@ class ClientListViewModel extends ChangeNotifier {
 
   List<ClientModel> _clientList = [];
   List<ClientModel> get filterClients {
-    if (searchQuery.isEmpty) return _clientList;
+    if (_searchQuery.isEmpty) return _clientList;
     return _clientList
         .where((c) =>
             c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -44,7 +57,7 @@ class ClientListViewModel extends ChangeNotifier {
   }
 
   void addClient(ClientModel client) {
-    _clientList.add(client);
+    _clientList.insert(0, client);
     notifyListeners();
   }
 
@@ -64,23 +77,54 @@ class ClientListViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchClientList() async {
-    _toggleLoading(true);
+  /// Fetch page 1 (loadMore=false) or next page (loadMore=true).
+  Future<void> fetchClientList({bool loadMore = false}) async {
+    if (loadMore) {
+      if (_isLoadingMore || !_hasMore) return;
+      _setLoadingMore(true);
+    } else {
+      // initial load or refresh
+      _page = 1;
+      _hasMore = true;
+      _clientList.clear();
+      _setLoading(true);
+    }
+
     try {
-      final clients = await _clientListRepo.fetchClientList();
-      _clientList = clients;
-      _toggleLoading(false);
+      final clients = await _clientListRepo.fetchClientList(
+        page: _page,
+        size: _size,
+      );
+
+      // If backend returned nothing, stop further calls
+      if (clients.isEmpty) {
+        _hasMore = false;
+      } else {
+        // append or set depending on loadMore
+        if (loadMore) {
+          _clientList.addAll(clients);
+        } else {
+          _clientList = clients;
+        }
+        _page++;
+        // if returned fewer than page size, no more data
+        if (clients.length < _size) _hasMore = false;
+      }
     } catch (e) {
       debugPrint("Error in ClientListViewModel: $e");
     } finally {
-      _toggleLoading(false);
+      if (loadMore) {
+        _setLoadingMore(false);
+      } else {
+        _setLoading(false);
+      }
     }
   }
 
   @override
   void dispose() {
     searchController.dispose();
-    searchFocusNode.dispose(); // 👈 clean up
+    searchFocusNode.dispose();
     super.dispose();
   }
 }
