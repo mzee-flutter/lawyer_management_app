@@ -24,6 +24,11 @@ class _ClientArchivedListScreenState extends State<ClientArchivedListScreen> {
     });
   }
 
+  bool _isScrollNearToEnd(ScrollNotification scrollInfo) {
+    return scrollInfo.metrics.pixels >=
+        (scrollInfo.metrics.maxScrollExtent * .85);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,35 +63,45 @@ class _ClientArchivedListScreenState extends State<ClientArchivedListScreen> {
 
           return NotificationListener<ScrollNotification>(
             onNotification: (scrollInfo) {
-              if (scrollInfo.metrics.pixels >=
-                  scrollInfo.metrics.maxScrollExtent * 0.85) {
+              if (_isScrollNearToEnd(scrollInfo)) {
                 if (!clientListVM.isMoreLoading && clientListVM.hasMore) {
                   clientListVM.fetchArchivedClients(loadMore: true);
                 }
               }
               return false;
             },
-            child: ListView.builder(
-              padding: EdgeInsets.all(12.r),
-              itemCount: clientListVM.archiveClientList.length +
-                  (clientListVM.isMoreLoading ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index < clientListVM.archiveClientList.length) {
-                  final client = clientListVM.archiveClientList[index];
-                  return ArchivedClientInfoCard(client: client);
-                } else {
-                  // Loader at bottom for loadMore
-                  return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.r),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.grey.shade700,
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  );
-                }
+            child: RefreshIndicator(
+              color: Colors.grey.shade700,
+              backgroundColor: Colors.white,
+              strokeWidth: 2.w,
+              onRefresh: () async {
+                await clientListVM.fetchArchivedClients(
+                  loadMore: false,
+                  isRefresh: false,
+                );
               },
+              child: ListView.builder(
+                padding: EdgeInsets.all(12.r),
+                itemCount: clientListVM.archiveClientList.length +
+                    (clientListVM.isMoreLoading ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index < clientListVM.archiveClientList.length) {
+                    final client = clientListVM.archiveClientList[index];
+                    return ArchivedClientInfoCard(client: client);
+                  } else {
+                    // Loader at bottom for loadMore
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.r),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.grey.shade700,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
             ),
           );
         },
