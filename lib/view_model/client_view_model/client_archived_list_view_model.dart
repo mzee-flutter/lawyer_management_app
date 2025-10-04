@@ -11,7 +11,7 @@ class ClientArchivedListViewModel with ChangeNotifier {
   final int _size = 10;
 
   /// Client list
-  final List<ClientModel> _archiveClientList = [];
+  List<ClientModel> _archiveClientList = [];
   List<ClientModel> get archiveClientList => _archiveClientList;
 
   /// Removing client by restoring
@@ -53,11 +53,16 @@ class ClientArchivedListViewModel with ChangeNotifier {
         page: _page,
         size: _size,
       );
-
       if (clients.isEmpty) {
         hasMore = false;
-      } else {
+      }
+      if (isRefresh) {
+        _archiveClientList = clients;
+      } else if (loadMore) {
         _archiveClientList.addAll(clients);
+        _page++;
+      } else {
+        _archiveClientList = clients;
         _page++;
       }
     } catch (e) {
