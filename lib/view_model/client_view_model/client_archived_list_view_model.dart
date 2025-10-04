@@ -14,6 +14,15 @@ class ClientArchivedListViewModel with ChangeNotifier {
   final List<ClientModel> _archiveClientList = [];
   List<ClientModel> get archiveClientList => _archiveClientList;
 
+  /// Removing client by restoring
+  void removeFromArchived(ClientModel client) {
+    final index = _archiveClientList.indexWhere((c) => c.id == client.id);
+    if (index != -1) {
+      _archiveClientList.removeAt(index);
+      notifyListeners();
+    }
+  }
+
   /// Loading flags
   bool isFirstLoading = false; // for initial page
   bool isMoreLoading = false; // for load more
