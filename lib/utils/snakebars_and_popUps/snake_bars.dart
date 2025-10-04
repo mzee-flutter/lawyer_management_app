@@ -6,8 +6,9 @@ import 'package:flutter/material.dart';
 class SnakeBars {
   static flutterToast(String message, context) {
     Fluttertoast.showToast(
+      textColor: Colors.white,
       msg: message,
-      backgroundColor: Color(0xFF0077B5),
+      backgroundColor: Colors.grey.shade900,
     );
   }
 
