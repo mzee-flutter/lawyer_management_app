@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/resources/client_info_card.dart';
+import 'package:right_case/resources/client_resources/archived_client_info_card.dart';
+
 import 'package:right_case/view_model/client_view_model/client_archived_list_view_model.dart';
 
 class ClientArchivedListScreen extends StatefulWidget {
@@ -72,7 +73,7 @@ class _ClientArchivedListScreenState extends State<ClientArchivedListScreen> {
               itemBuilder: (context, index) {
                 if (index < clientListVM.archiveClientList.length) {
                   final client = clientListVM.archiveClientList[index];
-                  return ClientInfoCard(client: client);
+                  return ArchivedClientInfoCard(client: client);
                 } else {
                   // Loader at bottom for loadMore
                   return Padding(
