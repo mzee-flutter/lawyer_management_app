@@ -78,16 +78,22 @@ class ClientListViewModel extends ChangeNotifier {
   }
 
   /// Fetch page 1 (loadMore=false) or next page (loadMore=true).
-  Future<void> fetchClientList({bool loadMore = false}) async {
+  Future<void> fetchClientList({
+    bool loadMore = false,
+    bool isRefresh = false,
+  }) async {
     if (loadMore) {
       if (_isLoadingMore || !_hasMore) return;
       _setLoadingMore(true);
-    } else {
-      // initial load or refresh
+    } else if (!isRefresh) {
+      /// initial load or refresh
       _page = 1;
       _hasMore = true;
       _clientList.clear();
       _setLoading(true);
+    } else {
+      _page = 1;
+      _hasMore = true;
     }
 
     try {
@@ -96,19 +102,20 @@ class ClientListViewModel extends ChangeNotifier {
         size: _size,
       );
 
-      // If backend returned nothing, stop further calls
+      /// If backend returned nothing, stop further calls
       if (clients.isEmpty) {
         _hasMore = false;
-      } else {
-        // append or set depending on loadMore
-        if (loadMore) {
-          _clientList.addAll(clients);
-        } else {
-          _clientList = clients;
-        }
+      }
+      if (isRefresh) {
+        _clientList.clear();
+        _clientList = clients;
+        _page = 2;
+      } else if (loadMore) {
+        _clientList.addAll(clients);
         _page++;
-        // if returned fewer than page size, no more data
-        if (clients.length < _size) _hasMore = false;
+      } else {
+        _clientList = clients;
+        _page = 2;
       }
     } catch (e) {
       debugPrint("Error in ClientListViewModel: $e");
