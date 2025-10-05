@@ -18,6 +18,7 @@ import 'package:right_case/view_model/client_view_model/client_archive_view_mode
 import 'package:right_case/view_model/client_view_model/client_archived_list_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_create_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_permanent_delete_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_restore_view_model.dart';
 
 import 'package:right_case/view_model/client_view_model/client_update_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
@@ -72,8 +73,8 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(
                 create: (_) => ClientPermanentDeleteViewModel()),
             ChangeNotifierProvider(
-              create: (_) => ClientArchivedListViewModel(),
-            ),
+                create: (_) => ClientArchivedListViewModel()),
+            ChangeNotifierProvider(create: (_) => ClientRestoreViewModel()),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
