@@ -44,7 +44,6 @@ class ClientArchivedListViewModel with ChangeNotifier {
     } else {
       _page = 1;
       hasMore = true;
-      _archiveClientList.clear();
     }
     notifyListeners();
 
@@ -57,13 +56,15 @@ class ClientArchivedListViewModel with ChangeNotifier {
         hasMore = false;
       }
       if (isRefresh) {
+        _archiveClientList.clear();
         _archiveClientList = clients;
+        _page = 2;
       } else if (loadMore) {
         _archiveClientList.addAll(clients);
         _page++;
       } else {
         _archiveClientList = clients;
-        _page++;
+        _page = 2;
       }
     } catch (e) {
       debugPrint("Error in ClientArchivedListViewModel: $e");
