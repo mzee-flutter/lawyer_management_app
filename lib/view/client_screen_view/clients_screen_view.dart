@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/client_resources/client_info_card.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
+import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 
 class ClientsScreen extends StatefulWidget {
@@ -137,7 +138,14 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         backgroundColor: Colors.white,
                         strokeWidth: 2.w,
                         onRefresh: () async {
-                          await clientListVM.fetchClientList(loadMore: false);
+                          await clientListVM.fetchClientList(
+                            loadMore: false,
+                            isRefresh: true,
+                          );
+                          if (context.mounted) {
+                            SnakeBars.flutterToast(
+                                "Clients Refreshed", context);
+                          }
                         },
                         child: ListView.builder(
                           controller: _scrollController,

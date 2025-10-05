@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/client_resources/archived_client_info_card.dart';
+import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 
 import 'package:right_case/view_model/client_view_model/client_archived_list_view_model.dart';
 
@@ -77,8 +78,11 @@ class _ClientArchivedListScreenState extends State<ClientArchivedListScreen> {
               onRefresh: () async {
                 await clientListVM.fetchArchivedClients(
                   loadMore: false,
-                  isRefresh: false,
+                  isRefresh: true,
                 );
+                if (context.mounted) {
+                  SnakeBars.flutterToast("Clients Refreshed", context);
+                }
               },
               child: ListView.builder(
                 padding: EdgeInsets.all(12.r),
