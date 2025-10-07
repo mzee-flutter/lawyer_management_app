@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import 'package:right_case/resources/custom_text_fields.dart';
-import 'package:right_case/view_model/add_client_view_model.dart';
+
+import 'package:right_case/view_model/client_view_model/client_create_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 
 class AddClientScreen extends StatefulWidget {
   const AddClientScreen({super.key});
@@ -14,13 +16,13 @@ class AddClientScreen extends StatefulWidget {
 }
 
 class _AddClientScreenState extends State<AddClientScreen> {
-  late AddClientViewModel addClientViewModel;
+  late ClientCreateViewModel addClientViewModel;
 
   @override
   void initState() {
     super.initState();
     addClientViewModel =
-        Provider.of<AddClientViewModel>(context, listen: false);
+        Provider.of<ClientCreateViewModel>(context, listen: false);
   }
 
   @override
@@ -32,13 +34,17 @@ class _AddClientScreenState extends State<AddClientScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Consumer<AddClientViewModel>(
+          child: Consumer<ClientCreateViewModel>(
             builder: (context, addClientViewModel, child) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildLabels('Enter Client Name*'),
                   _buildTextField(addClientViewModel.nameController),
+                  const SizedBox(height: 12),
+                  _buildLabels('Enter Client EmailID (Optional)'),
+                  _buildTextField(addClientViewModel.emailController,
+                      keyboardType: TextInputType.emailAddress),
                   const SizedBox(height: 12),
                   _buildLabels('Enter Client Mobile Number (Optional)'),
                   _buildTextField(
@@ -52,28 +58,52 @@ class _AddClientScreenState extends State<AddClientScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _buildLabels('Enter Client EmailID (Optional)'),
-                  _buildTextField(addClientViewModel.emailController,
-                      keyboardType: TextInputType.emailAddress),
+                  _buildLabels('Enter Client CNIC (Optional)'),
+                  _buildTextField(
+                    addClientViewModel.cnicController,
+                    keyboardType: TextInputType.number,
+                  ),
                   const SizedBox(height: 12),
                   _buildLabels('Enter Client Address (Optional)'),
                   _buildTextField(addClientViewModel.addressController,
                       maxLines: 2),
+                  const SizedBox(height: 12),
+                  _buildLabels('Add Notes (Optional)'),
+                  _buildTextField(addClientViewModel.notesController,
+                      maxLines: 3),
                   const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      addClientViewModel.submitClient(context);
-                      addClientViewModel.clearFields();
-                    },
-                    icon: const Icon(Icons.person_add_alt, color: Colors.white),
-                    label: const Text(
-                      'Add Client',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                  ElevatedButton(
+                    onPressed: addClientViewModel.isLoading
+                        ? null // disable button when loading
+                        : () async {
+                            await addClientViewModel.submitClient(context);
+
+                            addClientViewModel.clearFields();
+                            Provider.of<ClientListViewModel>(
+                              context,
+                              listen: false,
+                            ).unFocusSearch();
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey.shade800,
                       minimumSize: const Size(double.infinity, 48),
                     ),
+                    child: addClientViewModel.isLoading
+                        ? CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.person_add_alt, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text(
+                                'Add Client',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
                   ),
                 ],
               );

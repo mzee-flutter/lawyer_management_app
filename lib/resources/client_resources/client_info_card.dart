@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/models/client_model.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:right_case/models/client_models/client_model.dart';
 import 'package:right_case/view/client_screen_view/client_edit_screen.dart';
-
-import 'package:right_case/view_model/client_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_archive_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_permanent_delete_view_model.dart';
 import 'package:right_case/view_model/services/contact_service.dart';
 
 class ClientInfoCard extends StatelessWidget {
@@ -18,7 +19,7 @@ class ClientInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ClientViewModel>(
+    return Consumer<ClientListViewModel>(
       builder: (context, clientViewModel, child) {
         return Padding(
           padding: EdgeInsets.only(bottom: 8.r),
@@ -72,7 +73,7 @@ class ClientInfoCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                          Text(client.mobileNumber.toString())
+                          Text(client.phone.toString())
                         ],
                       ),
                       Spacer(),
@@ -144,8 +145,7 @@ class ClientInfoCard extends StatelessWidget {
                       Spacer(),
                       InkWell(
                         onTap: () {
-                          contactService.makePhoneCall(
-                              context, client.mobileNumber);
+                          contactService.makePhoneCall(context, client.phone);
                         },
                         child: Container(
                           height: 25.h,
@@ -163,7 +163,7 @@ class ClientInfoCard extends StatelessWidget {
                       SizedBox(width: 10.w),
                       InkWell(
                         onTap: () {
-                          contactService.sendSMS(context, client.mobileNumber);
+                          contactService.sendSMS(context, client.phone);
                         },
                         child: Container(
                           height: 25.h,
@@ -180,9 +180,8 @@ class ClientInfoCard extends StatelessWidget {
                       ),
                       SizedBox(width: 10.w),
                       InkWell(
-                        onTap: () {
-                          contactService.openWhatsApp(
-                              context, client.mobileNumber);
+                        onTap: () async {
+                          contactService.openWhatsApp(context, client.phone);
                         },
                         child: Container(
                           height: 25.h,
@@ -214,9 +213,11 @@ class ClientInfoCard extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.grey.shade300,
-          contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          content: Consumer<ClientViewModel>(
-            builder: (context, clientViewModel, child) {
+          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+          content:
+              Consumer2<ClientArchiveViewModel, ClientPermanentDeleteViewModel>(
+            builder:
+                (context, clientArchiveVM, clientPermanentDeleteVM, child) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -242,31 +243,39 @@ class ClientInfoCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
+                      _deleteConformationButtons(
+                        title: "Cancel",
+                        color: Colors.blue,
+                        onTap: () {
+                          Navigator.pop(context);
                         },
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(color: Colors.white),
-                        ),
                       ),
-                      SizedBox(width: 16.w),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                        onPressed: () {
-                          clientViewModel.removeClient(client);
-                          Navigator.of(context).pop();
+                      SizedBox(width: 10.w),
+                      _deleteConformationButtons(
+                          title: "Archive",
+                          color: Colors.orangeAccent,
+                          onTap: () async {
+                            await clientArchiveVM.archiveClient(
+                                context, client.id);
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
+                            Provider.of<ClientListViewModel>(
+                              context,
+                              listen: false,
+                            ).unFocusSearch();
+                          }),
+                      SizedBox(width: 10.w),
+                      _deleteConformationButtons(
+                        title: "Delete",
+                        color: Colors.red,
+                        onTap: () async {
+                          await clientPermanentDeleteVM.deleteClientPermanent(
+                              context, client.id);
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
                         },
-                        child: Text(
-                          'Delete',
-                          style: TextStyle(color: Colors.white),
-                        ),
                       ),
                     ],
                   ),
@@ -279,3 +288,33 @@ class ClientInfoCard extends StatelessWidget {
     );
   }
 }
+
+Widget _deleteConformationButtons({
+  required String title,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return Container(
+    height: 40,
+    width: 75,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(50),
+    ),
+    child: InkWell(
+      onTap: onTap,
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ),
+  );
+}
+
+/// This code is for testing to launch the url
+// await launchUrl(Uri.parse("https://flutter.dev"),
+// mode: LaunchMode.externalApplication);

@@ -18,7 +18,7 @@ class RegisterRepository {
 
     try {
       final response = await _services.getPostApiRequest(
-        "${AuthURL.baseURl}auth/register",
+        "${AuthURL.baseURl}/register",
         header,
         requestBody,
       );

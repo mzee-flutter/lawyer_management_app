@@ -3,9 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/view_model/auth_view_models/login_user_info_view_model.dart';
 import 'package:right_case/view_model/auth_view_models/logout_view_model.dart';
 import 'package:right_case/view_model/auth_view_models/register_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_archived_list_view_model.dart';
 
 class DrawerView extends StatelessWidget {
   const DrawerView({
@@ -57,7 +59,21 @@ class DrawerView extends StatelessWidget {
             ),
           ),
 
-          // Contact on WhatsApp
+          Consumer<ClientArchivedListViewModel>(
+            builder:
+                (BuildContext context, clientArchivedListVM, Widget? child) {
+              return ListTile(
+                leading: Icon(Icons.archive_rounded, color: Colors.blue),
+                title: Text("Archived Clients"),
+                subtitle: Text("Restore it from here..."),
+                onTap: () async {
+                  Navigator.pushNamed(
+                      context, RoutesName.archivedClientsScreen);
+                },
+              );
+            },
+          ),
+
           ListTile(
             leading: Icon(Icons.chat, color: Colors.blue),
             title: Text("Contact on WhatsApp"),

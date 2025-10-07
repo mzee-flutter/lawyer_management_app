@@ -164,8 +164,8 @@ class CaseInfoCard extends StatelessWidget {
                           backgroundColor: Colors.red,
                         ),
                         onPressed: () {
-                          caseVM.removeCase(clientCase);
-                          Navigator.of(context).pop();
+                          // caseVM.removeCase(clientCase);
+                          // Navigator.of(context).pop();
                         },
                         child: Text(
                           'Delete',

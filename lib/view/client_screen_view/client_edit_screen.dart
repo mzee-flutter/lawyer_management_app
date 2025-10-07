@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/models/client_model.dart';
+
+import 'package:right_case/models/client_models/client_model.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
-import 'package:right_case/view_model/client_edit_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
+
+import 'package:right_case/view_model/client_view_model/client_update_view_model.dart';
 
 class ClientEditScreen extends StatefulWidget {
   final ClientModel client;
@@ -16,11 +19,11 @@ class ClientEditScreen extends StatefulWidget {
 }
 
 class _ClientEditScreenState extends State<ClientEditScreen> {
-  late ClientEditViewModel editViewModel;
+  late ClientUpdateViewModel editViewModel;
   @override
   void initState() {
     super.initState();
-    editViewModel = Provider.of<ClientEditViewModel>(context, listen: false);
+    editViewModel = Provider.of<ClientUpdateViewModel>(context, listen: false);
     editViewModel.initializeFields(widget.client);
   }
 
@@ -31,7 +34,7 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
         title: const Text("Edit Client"),
         backgroundColor: Colors.grey.shade300,
       ),
-      body: Consumer<ClientEditViewModel>(
+      body: Consumer<ClientUpdateViewModel>(
         builder: (context, editViewModel, child) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -39,6 +42,14 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
               children: [
                 CustomTextField.fieldLabel('Enter Client Name*'),
                 CustomTextField(controller: editViewModel.nameController),
+                SizedBox(
+                  height: 12.h,
+                ),
+                CustomTextField.fieldLabel('Enter Client EmailID (Optional)'),
+                CustomTextField(
+                  controller: editViewModel.emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
                 SizedBox(
                   height: 12.h,
                 ),
@@ -53,37 +64,49 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
                       LengthLimitingTextInputFormatter(12),
                       SpaceAfterFourDigitsFormatter(),
                     ]),
-                SizedBox(
-                  height: 12.h,
-                ),
-                CustomTextField.fieldLabel('Enter Client EmailID (Optional)'),
-                CustomTextField(
-                  controller: editViewModel.emailController,
-                  keyboardType: TextInputType.emailAddress,
-                ),
+                SizedBox(height: 12.h),
+                CustomTextField.fieldLabel('Enter Client CNIC*'),
+                CustomTextField(controller: editViewModel.cnicController),
                 SizedBox(height: 12.h),
                 CustomTextField.fieldLabel('Enter Client Address (Optional)'),
                 CustomTextField(
                   controller: editViewModel.addressController,
                   maxLines: 2,
                 ),
+                SizedBox(height: 12.h),
+                CustomTextField.fieldLabel('Enter Notes (Optional)'),
+                CustomTextField(
+                  controller: editViewModel.notesController,
+                  maxLines: 3,
+                ),
                 const SizedBox(height: 20),
-                ElevatedButton.icon(
+                ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey.shade800),
-                  onPressed: () {
-                    editViewModel.saveChanges(context);
-                  },
-                  icon: const Icon(
-                    Icons.save,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    "Save Changes",
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
+                  onPressed: editViewModel.isLoading
+                      ? null
+                      : () {
+                          editViewModel.saveChanges(context, widget.client.id);
+                          Provider.of<ClientListViewModel>(context,
+                                  listen: false)
+                              .unFocusSearch();
+                        },
+                  child: editViewModel.isLoading
+                      ? CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.save, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text(
+                              'Save Changes',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
                 ),
               ],
             ),

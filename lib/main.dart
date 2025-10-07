@@ -14,9 +14,15 @@ import 'package:right_case/view_model/cases_view_model/add_case_view_model.dart'
 import 'package:right_case/view_model/cases_view_model/case_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/edit_case_view_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:right_case/view_model/client_view_model/add_client_view_model.dart';
-import 'package:right_case/view_model/client_view_model/client_edit_view_model.dart';
-import 'package:right_case/view_model/client_view_model/client_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_archive_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_archived_list_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_create_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_permanent_delete_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_restore_view_model.dart';
+
+import 'package:right_case/view_model/client_view_model/client_update_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
+
 import 'package:right_case/view_model/services/login_and_signup_view_model.dart';
 import 'package:right_case/view_model/splash_view_model.dart';
 
@@ -49,9 +55,9 @@ class MyApp extends StatelessWidget {
         return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => CaseViewModel()),
-            ChangeNotifierProvider(create: (_) => ClientViewModel()),
-            ChangeNotifierProvider(create: (_) => AddClientViewModel()),
-            ChangeNotifierProvider(create: (_) => ClientEditViewModel()),
+            ChangeNotifierProvider(create: (_) => ClientListViewModel()),
+            ChangeNotifierProvider(create: (_) => ClientCreateViewModel()),
+            ChangeNotifierProvider(create: (_) => ClientUpdateViewModel()),
             ChangeNotifierProvider(create: (_) => AddCaseViewModel()),
             ChangeNotifierProvider(create: (_) => EditCaseViewModel()),
             ChangeNotifierProvider(create: (_) => LoginAndSignUpViewModel()),
@@ -63,6 +69,12 @@ class MyApp extends StatelessWidget {
                 create: (_) => RefreshAccessTokenViewModel()),
             ChangeNotifierProvider(create: (_) => LogoutViewModel()),
             ChangeNotifierProvider(create: (_) => LoginUserInfoViewModel()),
+            ChangeNotifierProvider(create: (_) => ClientArchiveViewModel()),
+            ChangeNotifierProvider(
+                create: (_) => ClientPermanentDeleteViewModel()),
+            ChangeNotifierProvider(
+                create: (_) => ClientArchivedListViewModel()),
+            ChangeNotifierProvider(create: (_) => ClientRestoreViewModel()),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,

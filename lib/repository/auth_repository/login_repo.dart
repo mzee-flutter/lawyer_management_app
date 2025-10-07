@@ -14,7 +14,7 @@ class LoginRepository {
     final requestBody = user.toJson();
     try {
       final response = await _services.getPostApiRequest(
-        "${AuthURL.baseURl}auth/login",
+        "${AuthURL.baseURl}/login",
         header,
         requestBody,
       );
