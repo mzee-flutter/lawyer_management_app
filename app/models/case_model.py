@@ -22,7 +22,8 @@ class Case(Base):
     judge_name = Column(String, nullable=True)
 
     # ✅ Client relations
-    first_party_id = Column(UUID(as_uuid=True), ForeignKey("clients.id"), nullable=False)
+    first_party_id = Column(UUID(as_uuid=True), ForeignKey("client.id"), nullable=False)
+    second_party_id= Column(UUID(as_uuid=True), ForeignKey("client.id"), nullable= False)
     opposite_party_name = Column(String, nullable=True)
 
     # Reference tables
@@ -42,6 +43,7 @@ class Case(Base):
 
     # ✅ Relationships
     first_party = relationship("Client", back_populates="cases", foreign_keys=[first_party_id])
+    second_party= relationship("Client", back_populates="cases", foreign_keys=[second_party_id])
     court_category = relationship("CourtCategory")
     case_type = relationship("CaseType")
     case_stage = relationship("CaseStage")
