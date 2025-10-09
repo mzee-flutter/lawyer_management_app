@@ -1,12 +1,13 @@
 from pydantic import BaseModel, EmailStr, Field, StringConstraints
 from typing import Annotated
 from datetime import datetime
+from uuid import UUID
 
 
 
 
 class UserPublic(BaseModel):
-    id:int
+    id:UUID
     name:str
     email:EmailStr
     role: str
