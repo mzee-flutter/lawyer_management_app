@@ -104,16 +104,21 @@ class CaseFileBase(BaseModel):
 
 
 class CaseFileCreate(CaseFileBase):
-    uploaded_by: Optional[UUID] = None
+    pass
+    
 
 
-class CaseFilePublic(CaseFileBase):
+class CaseFilePublic(BaseModel):
     id: UUID
+    case_id: UUID
+    filename: str
+    file_url: str
     uploaded_at: datetime
-    uploaded_by: Optional[UUID] = None
+    
 
     class Config:
         from_attributes = True
+
 
 
 # -----------------------------
