@@ -89,4 +89,4 @@ class CaseFile(Base):
     filename = Column(String, nullable=False)
     file_url = Column(String, nullable=False)
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
-    uploaded_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    
