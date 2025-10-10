@@ -1,5 +1,9 @@
 from sqlalchemy.orm import Session
+import os
 from fastapi import HTTPException, status
+import uuid
+from uuid import UUID
+from fastapi import UploadFile
 from app.repositories.case_repository import (
     CaseRepository,
     CourtCategoryRepository,
@@ -195,29 +199,58 @@ class CaseStatusService:
 # ---------------------------------------------------
 
 class CaseFileService:
+    UPLOAD_DIR = "uploads/case_files"
 
     @staticmethod
-    def create_case_file(db: Session, file_in: CaseFileCreate) -> CaseFilePublic:
-        file = CaseFileRepository.create(db, file_in)
-        return CaseFilePublic.model_validate(file)
+    def create_case_file(
+        db: Session, 
+        case_id: UUID, 
+        file: UploadFile, 
+        
+        ) -> CaseFilePublic:
+
+        # Ensure upload folder exists
+        os.makedirs(CaseFileService.UPLOAD_DIR, exist_ok=True)
+
+        # Generate unique file name
+        ext = os.path.splitext(file.filename)[1]
+        unique_name = f"{uuid.uuid4()}{ext}"
+        file_path = os.path.join(CaseFileService.UPLOAD_DIR, unique_name)
+
+        # Save the file
+        with open(file_path, "wb") as buffer:
+            buffer.write(file.file.read())
+
+        # Save file record in DB
+        db_file = CaseFileRepository.create(db, {
+            "case_id": case_id,
+            "filename": file.filename,
+            "file_url": file_path,
+        })
+
+        return CaseFilePublic.model_validate(db_file)
 
     @staticmethod
-    def get_case_file_by_id(db: Session, file_id) -> CaseFilePublic:
+    def get_case_file_by_id(db: Session, file_id: UUID) -> CaseFilePublic:
         file = CaseFileRepository.get_by_id(db, file_id)
         if not file:
             raise HTTPException(status_code=404, detail="Case file not found")
         return CaseFilePublic.model_validate(file)
 
     @staticmethod
-    def get_all_files_by_case(db: Session, case_id: str) -> list[CaseFilePublic]:
+    def get_all_files_by_case(db: Session, case_id: UUID) -> list[CaseFilePublic]:
         files = CaseFileRepository.get_all_by_case(db, case_id)
         return [CaseFilePublic.model_validate(f) for f in files]
 
     @staticmethod
-    def delete_case_file(db: Session, file_id: str) -> CaseFilePublic:
+    def delete_case_file(db: Session, file_id: UUID) -> CaseFilePublic:
         file = CaseFileRepository.get_by_id(db, file_id)
         if not file:
             raise HTTPException(status_code=404, detail="Case file not found")
+
+        # Remove physical file if exists
+        if os.path.exists(file.file_url):
+            os.remove(file.file_url)
 
         file_copy = CaseFilePublic.model_validate(file)
         CaseFileRepository.delete(db, file)
