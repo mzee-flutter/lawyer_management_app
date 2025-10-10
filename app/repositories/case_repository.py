@@ -3,6 +3,8 @@ from sqlalchemy import or_, asc, desc
 from app.models.case_model import Case, CourtCategory, CaseType, CaseStage, CaseStatus, CaseFile
 from app.schemas.case_schema import CaseCreate, CaseFileCreate, CaseUpdate
 from datetime import datetime, timezone
+from uuid import UUID
+import uuid
 
 
 class CaseRepository:
@@ -243,25 +245,15 @@ class CaseStatusRepository:
 #---------------------------------------------------#
 
 
-
-
-from sqlalchemy.orm import Session
-from sqlalchemy import asc, desc
-from app.models.case_model import CaseFile
-from app.schemas.case_schema import CaseFileCreate
-from datetime import datetime, timezone
-
-
 class CaseFileRepository:
 
     @staticmethod
-    def create(db: Session, file_in: CaseFileCreate) -> CaseFile:
-        """Create and save a new case file record."""
+    def create(db: Session, file_data: dict) -> CaseFile:
         db_file = CaseFile(
-            case_id=file_in.case_id,
-            filename=file_in.filename,
-            file_url=file_in.file_url,
-            uploaded_by=file_in.uploaded_by,
+            id=uuid.uuid4(),
+            case_id=file_data["case_id"],
+            filename=file_data["filename"],
+            file_url=file_data["file_url"],
             uploaded_at=datetime.now(timezone.utc),
         )
         db.add(db_file)
@@ -270,14 +262,14 @@ class CaseFileRepository:
         return db_file
 
     @staticmethod
-    def get_by_id(db: Session, file_id) -> CaseFile | None:
+    def get_by_id(db: Session, file_id: UUID) -> CaseFile | None:
         return db.query(CaseFile).filter(CaseFile.id == file_id).first()
 
     @staticmethod
-    def get_all_by_case(db: Session, case_id: str) -> list[CaseFile]:
+    def get_all_by_case(db: Session, case_id: UUID) -> list[CaseFile]:
         return db.query(CaseFile).filter(CaseFile.case_id == case_id).all()
 
     @staticmethod
-    def delete(db: Session, case_file: CaseFile) -> None:
-        db.delete(case_file)
+    def delete(db: Session, file: CaseFile):
+        db.delete(file)
         db.commit()
