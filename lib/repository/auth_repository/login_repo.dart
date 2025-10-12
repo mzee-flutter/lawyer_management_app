@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:right_case/data/base_api_service.dart';
 import 'package:right_case/data/network_api_service.dart';
+import 'package:right_case/models/auth_models/auth_model.dart';
 import 'package:right_case/view_model/services/token_storage_service.dart';
 import 'package:right_case/models/auth_models/login_request_model.dart';
 import 'package:right_case/resources/URLs/auth_urls.dart';
@@ -9,7 +10,7 @@ class LoginRepository {
   final BaseApiServices _services = NetworkApiServices();
   final TokenStorageService _tokenStorage = TokenStorageService();
 
-  Future<bool> loginUser(LoginRequestModel user) async {
+  Future<AuthModel> loginUser(LoginRequestModel user) async {
     final header = {'Content-Type': 'application/json'};
     final requestBody = user.toJson();
     try {
@@ -18,10 +19,10 @@ class LoginRepository {
         header,
         requestBody,
       );
-
-      final accessToken = response["access_token"] as String;
-      final refreshToken = response["refresh_token"] as String;
-      final accessTokenExpiry = response["expire_at"] as int;
+      final authResponse = AuthModel.fromJson(response);
+      final accessToken = authResponse.tokens.accessToken;
+      final refreshToken = authResponse.tokens.refreshToken;
+      final accessTokenExpiry = authResponse.tokens.expireAt;
 
       await _tokenStorage.saveToken(
         accessToken,
@@ -29,9 +30,7 @@ class LoginRepository {
         accessTokenExpiry,
       );
 
-      // final user = TokenModel.fromJson(response);
-
-      return true;
+      return authResponse;
     } catch (e) {
       debugPrint(e.toString());
       rethrow;
