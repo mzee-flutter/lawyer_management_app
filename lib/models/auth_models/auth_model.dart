@@ -14,25 +14,32 @@ class AuthModel {
 
 class User {
   final String id;
-  final String name;
+  final String? name; // nullable because backend might not send it on login
   final String email;
-  final String createdAt;
+  final String? createdAt;
 
   User({
     required this.id,
-    required this.name,
     required this.email,
-    required this.createdAt,
+    this.name,
+    this.createdAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      email: json['email'],
-      name: json['name'],
-      createdAt: json['created_at'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? json['full_name'], // handles both name or full_name
+      email: json['email'] ?? '',
+      createdAt: json['created_at']?.toString(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'email': email,
+        'created_at': createdAt,
+      };
 }
 
 class Tokens {
