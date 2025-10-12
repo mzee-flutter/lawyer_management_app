@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:right_case/models/auth_models/register_request_model.dart';
-import 'package:right_case/models/auth_models/user_model.dart';
+import 'package:right_case/models/auth_models/auth_model.dart';
 import 'package:right_case/repository/auth_repository/register_repo.dart';
 
 class RegisterViewModel with ChangeNotifier {
@@ -10,8 +10,8 @@ class RegisterViewModel with ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  UserModel? _user;
-  UserModel? get user => _user;
+  User? _dbUser;
+  User? get dbUser => _dbUser;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -21,7 +21,7 @@ class RegisterViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<UserModel?> registerUser(BuildContext context) async {
+  Future<bool> registerUser(BuildContext context) async {
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
@@ -30,7 +30,6 @@ class RegisterViewModel with ChangeNotifier {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('All fields are required')));
-      return null;
     }
 
     final newUser = RegisterRequestModel(
@@ -43,13 +42,14 @@ class RegisterViewModel with ChangeNotifier {
     try {
       final user = await _registerRepo.registerUser(newUser);
 
-      _user = user;
+      _dbUser = user.user;
       toggleLoading(false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User ${user.name} registered successfully')),
+        SnackBar(
+            content: Text('User ${_dbUser?.name} registered successfully')),
       );
 
-      return user;
+      return true;
     } catch (e, stack) {
       debugPrint('Error in RegisterViewModel: $e');
       debugPrint('Stack: $stack');
@@ -57,7 +57,7 @@ class RegisterViewModel with ChangeNotifier {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Registration failed. Try again.')),
       );
-      return null;
+      return false;
     } finally {
       toggleLoading(false);
     }

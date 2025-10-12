@@ -3,12 +3,16 @@ import 'package:provider/provider.dart';
 import 'package:right_case/models/auth_models/login_request_model.dart';
 import 'package:right_case/repository/auth_repository/login_repo.dart';
 import 'package:right_case/view_model/auth_view_models/login_user_info_view_model.dart';
+import 'package:right_case/models/auth_models/auth_model.dart';
 
 class LoginViewModel with ChangeNotifier {
   final _loginRepo = LoginRepository();
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  User? _dbUser;
+  User? get dbUser => _dbUser;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -27,15 +31,15 @@ class LoginViewModel with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final success = await _loginRepo.loginUser(existingUser);
-
+      final user = await _loginRepo.loginUser(existingUser);
+      _dbUser = user.user;
       Provider.of<LoginUserInfoViewModel>(
         context,
         listen: false,
       ).fetchLoggedInUserInfo();
       _isLoading = false;
       notifyListeners();
-      return success;
+      return true;
     } catch (e, stack) {
       debugPrint('Error in LoginViewModel: $e');
       debugPrint(stack.toString());
