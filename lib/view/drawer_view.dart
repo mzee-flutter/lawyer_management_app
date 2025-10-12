@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +25,7 @@ class DrawerView extends StatelessWidget {
             child: Consumer2<RegisterViewModel, LoginUserInfoViewModel>(
               builder: (BuildContext context, registerVM, loginUserInfoMV,
                   Widget? child) {
-                final user = registerVM.user;
+                final user = registerVM.dbUser;
                 final loginUserInfo = loginUserInfoMV.loggedInUserInfo;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,21 +34,21 @@ class DrawerView extends StatelessWidget {
                       radius: 24,
                       backgroundColor: Colors.grey.shade800,
                       child: Text(
-                          user?.name.characters.first ??
-                              loginUserInfo?.name.characters.first ??
+                          user?.name?.characters.first ??
+                              loginUserInfo?.user.name?.characters.first ??
                               'X',
                           style: TextStyle(color: Colors.white, fontSize: 20)),
                     ),
                     SizedBox(height: 8),
                     Text(
-                      user?.name ?? loginUserInfo?.name ?? "Unknown",
+                      user?.name ?? loginUserInfo?.user.name ?? "Unknown",
                       style: TextStyle(
                           color: Colors.grey.shade800,
                           fontWeight: FontWeight.bold,
                           fontSize: 18.sp),
                     ),
                     Text(
-                      user?.email ?? loginUserInfo?.email ?? "example.com",
+                      user?.email ?? loginUserInfo?.user.email ?? "example.com",
                       style: TextStyle(color: Colors.grey.shade800),
                     ),
                   ],
