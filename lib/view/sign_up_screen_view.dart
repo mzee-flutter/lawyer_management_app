@@ -51,15 +51,9 @@ class SignUpScreen extends StatelessWidget {
                         SizedBox(height: 15.h),
 
                         // First Name
-                        CustomTextField.fieldLabel('Your first name'),
-                        SizedBox(height: 5.h),
-                        CustomTextField(
-                          controller: TextEditingController(),
-                        ),
-                        SizedBox(height: 15.h),
 
                         // Last Name
-                        CustomTextField.fieldLabel('Your last name'),
+                        CustomTextField.fieldLabel('Enter your name'),
                         SizedBox(height: 5.h),
                         CustomTextField(
                           controller: registerVM.nameController,
