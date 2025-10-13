@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:right_case/models/auth_models/register_request_model.dart';
 import 'package:right_case/models/auth_models/auth_model.dart';
 import 'package:right_case/repository/auth_repository/register_repo.dart';
+import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 
 class RegisterViewModel with ChangeNotifier {
   final RegisterRepository _registerRepo = RegisterRepository();
@@ -44,18 +45,15 @@ class RegisterViewModel with ChangeNotifier {
 
       _dbUser = user.user;
       toggleLoading(false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${_dbUser?.name} registered successfully')),
-      );
+      SnakeBars.flutterToast(
+          '${_dbUser?.name} registered successfully', context);
 
       return true;
     } catch (e, stack) {
       debugPrint('Error in RegisterViewModel: $e');
       debugPrint('Stack: $stack');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration failed. Try again.')),
-      );
+      SnakeBars.flutterToast('Registration failed. Try again.', context);
       return false;
     } finally {
       toggleLoading(false);

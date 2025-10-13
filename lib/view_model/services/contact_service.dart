@@ -5,7 +5,7 @@ class ContactService {
   String formatNumber(String rawNumber) {
     String digits = rawNumber.replaceAll(RegExp(r'\D'), '');
     if (digits.startsWith('0')) {
-      digits = '92${digits.substring(1)}'; // Pakistan example
+      digits = '92${digits.substring(1)}';
     }
     return digits;
   }
@@ -17,10 +17,13 @@ class ContactService {
     }
 
     final cleanNumber = formatNumber(phoneNumber);
-    final Uri phoneUri = Uri(scheme: 'tel', path: cleanNumber);
+    final formatted =
+        cleanNumber.startsWith('+') ? cleanNumber : '+$cleanNumber';
+
+    final Uri phoneUri = Uri(scheme: 'tel', path: formatted);
 
     if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
+      await launchUrl(phoneUri, mode: LaunchMode.platformDefault);
     } else {
       _showSnackBar(context, 'Could not launch phone dialer');
     }

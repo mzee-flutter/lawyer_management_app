@@ -10,16 +10,19 @@ class LogoutViewModel with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  Future<void> logoutUser(context) async {
-    _isLoading = true;
+  void _toggleLoading(bool loader) {
+    _isLoading = loader;
     notifyListeners();
+  }
+
+  Future<void> logoutUser(context) async {
+    _toggleLoading(true);
     try {
       final isUserLoggedOut = await _logoutRepo.logoutUser(
         await _tokenStorage.getRefreshToken(),
       );
 
-      _isLoading = false;
-      notifyListeners();
+      _toggleLoading(false);
       if (isUserLoggedOut) {
         Navigator.pushReplacementNamed(context, RoutesName.signInScreen);
       } else {
@@ -28,8 +31,7 @@ class LogoutViewModel with ChangeNotifier {
     } catch (e) {
       debugPrint("Error in the LogoutViewModel: $e");
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _toggleLoading(false);
     }
   }
 }

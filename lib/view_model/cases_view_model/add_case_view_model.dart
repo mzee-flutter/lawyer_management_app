@@ -32,8 +32,8 @@ class AddCaseViewModel with ChangeNotifier {
       createdAt: DateTime.now(),
     );
 
-    Provider.of<CaseViewModel>(context, listen: false).addCase(newCase);
-    Navigator.pop(context);
+    // Provider.of<CaseViewModel>(context, listen: false).addCase(newCase);
+    // Navigator.pop(context);
   }
 
   void clearFields() {

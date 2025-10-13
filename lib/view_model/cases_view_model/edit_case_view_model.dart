@@ -29,8 +29,8 @@ class EditCaseViewModel with ChangeNotifier {
       createdAt: _originalCase.createdAt,
     );
 
-    Provider.of<CaseViewModel>(context, listen: false).updateCase(updateCase);
-    Navigator.pop(context);
+    // Provider.of<CaseViewModel>(context, listen: false).updateCase(updateCase);
+    // Navigator.pop(context);
   }
 
   @override

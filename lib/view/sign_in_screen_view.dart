@@ -103,6 +103,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             } else {
                               debugPrint('Login Failed');
                             }
+                            loginVM.clearFields();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0077B5),

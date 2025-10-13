@@ -1,13 +1,3 @@
-
-# --- Backend ignores ---
-.env
-myvenv/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-poetry.lock
-
 ###########################################
 # 🧠 COMBINED .gitignore
 # Covers both FastAPI backend and Flutter frontend
@@ -17,13 +7,14 @@ poetry.lock
 # 🐍 FASTAPI / PYTHON BACKEND
 ###########################
 
-# Environments
+# Virtual environments
 venv/
 env/
+myvenv/
 .venv/
 
 # Byte-compiled / optimized / DLL files
-
+__pycache__/
 *.py[cod]
 *$py.class
 
@@ -61,24 +52,25 @@ migrations/
 alembic/
 
 # Env & Secrets
-
+.env
 *.env
 secrets.json
 config.json
+
+# Dependency managers
+poetry.lock
+Pipfile
+Pipfile.lock
 
 # IDE / Editors
 .idea/
 .vscode/
 *.iml
 
-# Poetry / Pipenv
-
-Pipfile
-Pipfile.lock
-
 # Compiled C extensions
 *.so
-
+*.pyd
+*.dll
 
 # OS generated files
 .DS_Store
@@ -90,12 +82,12 @@ Thumbs.db
 ###########################
 
 # Flutter build & cache
-
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
 pubspec.lock
+
 
 # Android
 android/.gradle/
@@ -121,14 +113,12 @@ macos/build/
 windows/Flutter/ephemeral/
 windows/build/
 
-# # Linux
-# linux/build/
+# Linux
+linux/build/
 
-# # Web
-# web/.dart_tool/
-# web/build/
-
-
+# Web
+web/.dart_tool/
+web/build/
 
 # Output binaries
 *.apk
@@ -136,7 +126,8 @@ windows/build/
 *.ipa
 *.exe
 
-# App secrets or URLs
+# Firebase and secrets
+lib/firebase_options.dart
 lib/resources/URLs/
 
 
@@ -151,3 +142,22 @@ firebase_crashlytics/
 *.orig
 *.old
 *.backup
+*.swp
+*.swo
+
+
+###########################
+# 🗂 MONOREPO STRUCTURE RULES
+###########################
+
+# Node / JS tools (if used for CI or web builds)
+node_modules/
+
+# Python cache in subfolders
+**/__pycache__/
+
+# Flutter build cache in subfolders
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
