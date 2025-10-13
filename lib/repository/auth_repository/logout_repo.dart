@@ -9,7 +9,6 @@ class LogoutRepo {
   final TokenStorageService _tokenStorage = TokenStorageService();
 
   Future<bool> logoutUser(String? refreshToken) async {
-    final header = {"Content-Type": "application/json"};
     final requestBody = {"refresh_token": refreshToken};
 
     try {
