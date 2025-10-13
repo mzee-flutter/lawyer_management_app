@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/view_model/auth_view_models/login_user_info_view_model.dart';
+import 'package:right_case/view_model/auth_view_models/login_view_model.dart';
 import 'package:right_case/view_model/auth_view_models/logout_view_model.dart';
 import 'package:right_case/view_model/auth_view_models/register_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_archived_list_view_model.dart';
@@ -22,11 +23,11 @@ class DrawerView extends StatelessWidget {
           // Header
           DrawerHeader(
             decoration: BoxDecoration(color: Colors.grey.shade300),
-            child: Consumer2<RegisterViewModel, LoginUserInfoViewModel>(
-              builder: (BuildContext context, registerVM, loginUserInfoMV,
-                  Widget? child) {
+            child: Consumer2<RegisterViewModel, LoginViewModel>(
+              builder:
+                  (BuildContext context, registerVM, loginVM, Widget? child) {
                 final user = registerVM.dbUser;
-                final loginUserInfo = loginUserInfoMV.loggedInUserInfo;
+                final userInfo = loginVM.dbUser;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -35,20 +36,20 @@ class DrawerView extends StatelessWidget {
                       backgroundColor: Colors.grey.shade800,
                       child: Text(
                           user?.name?.characters.first ??
-                              loginUserInfo?.user.name?.characters.first ??
+                              userInfo?.name?.characters.first ??
                               'X',
                           style: TextStyle(color: Colors.white, fontSize: 20)),
                     ),
                     SizedBox(height: 8),
                     Text(
-                      user?.name ?? loginUserInfo?.user.name ?? "Unknown",
+                      user?.name ?? userInfo?.name ?? "Unknown",
                       style: TextStyle(
                           color: Colors.grey.shade800,
                           fontWeight: FontWeight.bold,
                           fontSize: 18.sp),
                     ),
                     Text(
-                      user?.email ?? loginUserInfo?.user.email ?? "example.com",
+                      user?.email ?? userInfo?.email ?? "example.com",
                       style: TextStyle(color: Colors.grey.shade800),
                     ),
                   ],
