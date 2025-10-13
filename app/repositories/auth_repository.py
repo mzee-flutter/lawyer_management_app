@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
 from app.models.auth_model import User, RefreshToken
+from uuid import UUID
 
 
-def get_user_by_id(db:Session, id:int):
+def get_user_by_id(db:Session, id:UUID):
     db_user= db.query(User).filter(User.id==id).first()
     return db_user
 

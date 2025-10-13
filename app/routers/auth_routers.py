@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter,Depends, HTTPException,status
 from app.database.session import get_db
 from fastapi.security import OAuth2PasswordBearer
-from app.schemas import auth_schema
+from app.schemas.auth_schema import AuthResponse
+from app.schemas import auth_schema 
 from app.models.auth_model import User
 from app.services import auth_service
 from app.services.auth_service import (
@@ -19,16 +20,15 @@ from app.services.auth_service import (
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-@router.post("/register", response_model=auth_schema.UserPublic, status_code=status.HTTP_201_CREATED)
-def register(user: auth_schema.UserCreate, db:Session= Depends(get_db)):
+@router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+def register(user: auth_schema.UserCreate, db: Session = Depends(get_db)) -> AuthResponse:
     return auth_service.register_user(db=db, user=user)
 
 
-@router.post("/login", response_model=auth_schema.TokenResponse)
-def login(user:auth_schema.UserLogin, db:Session= Depends(get_db)):
-    logged_in_user= auth_service.login_user(db=db, user=user)
-    
-    return auth_service.generate_tokens(db=db, user=logged_in_user)
+@router.post("/login", response_model=AuthResponse)
+def login(user: auth_schema.UserLogin, db: Session = Depends(get_db)) -> AuthResponse:
+    return auth_service.login_user(db=db, user=user)
+
 
 
 @router.post("/refresh", response_model=auth_schema.TokenResponse)

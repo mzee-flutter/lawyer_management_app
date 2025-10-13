@@ -3,10 +3,11 @@ from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timezone, timedelta, UTC
 import os
+from uuid import UUID
 
 from app.database.session import get_db
 from app.repositories import auth_repository
-from app.schemas.auth_schema import UserPublic, UserCreate, UserLogin, TokenResponse
+from app.schemas.auth_schema import UserPublic, UserCreate, UserLogin, TokenResponse, AuthResponse
 from app.utils.auth_utils import hash_password, verify_password, _sha256, create_access_token, create_refresh_token, decode_accesss_token
 
 
@@ -14,20 +15,25 @@ auth2_scheme= OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 
-def register_user(db:Session, user:UserCreate):
-    db_user= auth_repository.get_user_by_email(db, user.email)
-
+def register_user(db: Session, user: UserCreate)-> AuthResponse:
+    db_user = auth_repository.get_user_by_email(db, user.email)
     if db_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exist")
-    hashed_password= hash_password(user.password)
-    return auth_repository.create_user(db, user.name, user.email, hashed_password)
+
+    hashed_password = hash_password(user.password)
+    new_user = auth_repository.create_user(db, user.name, user.email, hashed_password)
+    tokens = generate_tokens(db, new_user)
+    return {"user": new_user, "tokens": tokens}
 
 
-def login_user(db:Session, user:UserLogin):
-    db_user= auth_repository.get_user_by_email(db, user.email)
+def login_user(db: Session, user: UserLogin)->AuthResponse:
+    db_user = auth_repository.get_user_by_email(db, user.email)
     if not db_user or not verify_password(user.password, db_user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email and password")
-    return db_user
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+
+    tokens = generate_tokens(db, db_user)
+    return {"user": db_user, "tokens": tokens}
+
 
 
 
@@ -38,14 +44,14 @@ def get_current_user( db:Session=Depends(get_db), token:str= Depends(auth2_schem
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid or expired token",
                             headers={"WWW-Authenticate": "Bearer"})
-    user= auth_repository.get_user_by_id(db, int(payload["sub"]))
+    user= auth_repository.get_user_by_id(db, UUID(payload["sub"]))
     if not user:
         raise HTTPException(detail="Current User Not Found")
     return user
 
 
 def generate_tokens(db:Session, user):
-    payload= {"sub":str(user.id)}
+    payload= {"sub": str(user.id)}
 
     access_token, expire_in= create_access_token(payload)
     raw_refresh, hash_refresh= create_refresh_token()
