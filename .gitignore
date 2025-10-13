@@ -23,7 +23,7 @@ env/
 .venv/
 
 # Byte-compiled / optimized / DLL files
-__pycache__/
+
 *.py[cod]
 *$py.class
 
@@ -61,7 +61,7 @@ migrations/
 alembic/
 
 # Env & Secrets
-.env
+
 *.env
 secrets.json
 config.json
@@ -72,13 +72,13 @@ config.json
 *.iml
 
 # Poetry / Pipenv
-poetry.lock
+
 Pipfile
 Pipfile.lock
 
 # Compiled C extensions
 *.so
-*.pyd
+
 
 # OS generated files
 .DS_Store
@@ -90,7 +90,7 @@ Thumbs.db
 ###########################
 
 # Flutter build & cache
-build/
+
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -128,14 +128,7 @@ windows/build/
 # web/.dart_tool/
 # web/build/
 
-# IDE / Editors
-.idea/
-.vscode/
-*.iml
 
-# OS generated
-.DS_Store
-Thumbs.db
 
 # Output binaries
 *.apk
