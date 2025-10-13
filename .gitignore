@@ -6,31 +6,155 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+poetry.lock
+
+###########################################
+# 🧠 COMBINED .gitignore
+# Covers both FastAPI backend and Flutter frontend
+###########################################
+
+###########################
+# 🐍 FASTAPI / PYTHON BACKEND
+###########################
+
+# Environments
+venv/
+env/
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+coverage.xml
+*.cover
+*.py,cover
+.cache
+.pytest_cache/
+
+# Databases / Logs
+*.db
+*.sqlite3
+*.sqlite
+*.log
+
+# Uploads and generated files
+uploads/
+migrations/
+alembic/
+
+# Env & Secrets
+.env
+*.env
+secrets.json
+config.json
+
+# IDE / Editors
+.idea/
+.vscode/
+*.iml
+
+# Poetry / Pipenv
+poetry.lock
+Pipfile
+Pipfile.lock
+
+# Compiled C extensions
+*.so
+*.pyd
+
+# OS generated files
+.DS_Store
+Thumbs.db
 
 
-# # --- Frontend ignores ---
-# # Flutter build files
-# /build/
+###########################
+# 🐦 FLUTTER FRONTEND
+###########################
 
-# .android/
-# .ios/
+# Flutter build & cache
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
 
-# /android/.gradle/
-# /android/app/build/
-# *.iml
-# .idea/
-# .flutter-plugins
-# .flutter-plugins-dependencies
-# .packages
-# .dart_tool/
+# Android
+android/.gradle/
+android/app/build/
+android/key.properties
+
+# iOS
+ios/Flutter/.last_build_id
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS
+macos/Flutter/ephemeral/
+macos/Pods/
+macos/build/
+
+# Windows
+windows/Flutter/ephemeral/
+windows/build/
+
+# # Linux
+# linux/build/
+
+# # Web
+# web/.dart_tool/
+# web/build/
+
+# IDE / Editors
+.idea/
+.vscode/
+*.iml
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Output binaries
+*.apk
+*.aab
+*.ipa
+*.exe
+
+# App secrets or URLs
+lib/resources/URLs/
 
 
+# Crash logs
+crashlytics/
+firebase_crashlytics/
 
-# # Ignore release/debug artifacts
-# *.apk
-# *.aab
-# *.so
-
-# # App secrets
-# /lib/resources/api_urls.dart
-
+# Temporary & backup files
+*.tmp
+*.temp
+*.bak
+*.orig
+*.old
+*.backup
