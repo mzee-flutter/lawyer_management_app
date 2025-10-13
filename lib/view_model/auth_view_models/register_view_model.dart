@@ -45,8 +45,7 @@ class RegisterViewModel with ChangeNotifier {
       _dbUser = user.user;
       toggleLoading(false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('User ${_dbUser?.name} registered successfully')),
+        SnackBar(content: Text('${_dbUser?.name} registered successfully')),
       );
 
       return true;
