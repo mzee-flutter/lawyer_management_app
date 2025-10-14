@@ -2,104 +2,168 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/models/case_model.dart';
+import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/view/cases_screen_view/case_edit_screen.dart';
 import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
 
 class CaseInfoCard extends StatelessWidget {
   final CaseModel clientCase;
+
   const CaseInfoCard({super.key, required this.clientCase});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CaseViewModel>(
+    final formattedDate =
+        DateFormat('MMM dd, yyyy').format(clientCase.registrationDate);
+
+    return Consumer<CaseListViewModel>(
       builder: (context, caseVM, child) {
-        return Card(
-          color: Colors.grey.shade900,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 4,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
+        return GestureDetector(
+          onTap: () {
+            // Navigate to Case Detail Screen
+            // Navigator.push(context, MaterialPageRoute(builder: (_) => CaseDetailScreen(caseData: clientCase)));
+          },
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            padding: EdgeInsets.all(14.w),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(16.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: Title and Status Chip
+                // 🔹 Top Row — Court + Status
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
-                        clientCase.title,
+                        clientCase.courtName ?? "Unknown Court",
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
                       ),
                     ),
-                    clientCase.status.isEmpty
-                        ? Container()
-                        : Chip(
-                            label: Text(
-                              clientCase.status,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            backgroundColor: clientCase.status == 'Open'
-                                ? Colors.green
-                                : Colors.redAccent,
+                    if (clientCase.status != null &&
+                        clientCase.status!.isNotEmpty)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 10.w, vertical: 4.h),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(clientCase.status!),
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: Text(
+                          clientCase.status!,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w500,
                           ),
+                        ),
+                      ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                // Sub Info
-                Text(
-                  "Client ID: ${clientCase.clientId}",
-                  style: TextStyle(color: Colors.grey[300]),
+
+                SizedBox(height: 8.h),
+
+                // 🔹 Case Number + Date
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Case #: ${clientCase.caseNumber}",
+                      style: TextStyle(fontSize: 14.sp, color: Colors.black87),
+                    ),
+                    Text(
+                      formattedDate,
+                      style: TextStyle(
+                          fontSize: 12.sp, color: Colors.grey.shade600),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
+
+                SizedBox(height: 6.h),
+
+                // 🔹 Parties
                 Text(
-                  "Description: ${clientCase.description}",
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.grey[400]),
+                  "Parties: ${clientCase.oppositePartyName ?? 'N/A'}",
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: Colors.grey.shade700,
+                  ),
                 ),
-                const SizedBox(height: 8),
-                // Date (optional)
-                Text(
-                  "Added on: ${DateFormat.yMMMd().format(clientCase.createdAt)}",
-                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                ),
-                const SizedBox(height: 12),
-                // Action Buttons
+
+                SizedBox(height: 4.h),
+
+                // 🔹 Judge (if available)
+                if (clientCase.judgeName != null &&
+                    clientCase.judgeName!.isNotEmpty)
+                  Text(
+                    "Judge: ${clientCase.judgeName}",
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+
+                SizedBox(height: 6.h),
+
+                // 🔹 Description (one-liner)
+                if (clientCase.caseNotes != null &&
+                    clientCase.caseNotes!.isNotEmpty)
+                  Text(
+                    clientCase.caseNotes!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+
+                SizedBox(height: 10.h),
+
+                // 🔹 Action Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.visibility, color: Colors.blueAccent),
-                      onPressed: () {
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //       builder: (_) => CaseDetailScreen(caseData: caseData),
-                        //     ));
+                    _actionButton(
+                      icon: Icons.visibility_outlined,
+                      color: Colors.blueAccent,
+                      onTap: () {
+                        // View details
+                        // Navigator.push(context, MaterialPageRoute(builder: (_) => CaseDetailScreen(caseData: clientCase)));
                       },
                     ),
-                    IconButton(
-                      icon: Icon(Icons.edit, color: Colors.orangeAccent),
-                      onPressed: () {
+                    _actionButton(
+                      icon: Icons.edit_outlined,
+                      color: Colors.orangeAccent,
+                      onTap: () {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) =>
-                                    EditCaseScreen(clientCase: clientCase)));
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                EditCaseScreen(clientCase: clientCase),
+                          ),
+                        );
                       },
                     ),
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.redAccent),
-                      onPressed: () {
-                        showDeleteClientDialog(context, clientCase);
+                    _actionButton(
+                      icon: Icons.delete_outline,
+                      color: Colors.redAccent,
+                      onTap: () {
+                        showDeleteCaseDialog(context, clientCase);
                       },
                     ),
                   ],
@@ -112,72 +176,68 @@ class CaseInfoCard extends StatelessWidget {
     );
   }
 
-  void showDeleteClientDialog(BuildContext context, CaseModel clientCase) {
+  Widget _actionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8.r),
+      child: Container(
+        margin: EdgeInsets.only(left: 8.w),
+        padding: EdgeInsets.all(8.w),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: Icon(icon, color: color, size: 20.sp),
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'open':
+      case 'running':
+        return Colors.green;
+      case 'decided':
+        return Colors.blue;
+      case 'pending':
+        return Colors.orangeAccent;
+      case 'closed':
+      case 'abandoned':
+        return Colors.redAccent;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  void showDeleteCaseDialog(BuildContext context, CaseModel clientCase) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.grey.shade300,
-          contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          content: Consumer<CaseViewModel>(
-            builder: (context, caseVM, child) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    'Delete Case',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey.shade800,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20.sp,
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  Text(
-                    'Are you sure you want to delete this Case?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      SizedBox(width: 16.w),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                        onPressed: () {
-                          // caseVM.removeCase(clientCase);
-                          // Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          'Delete',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
+          backgroundColor: Colors.white,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+          title: Text("Delete Case",
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Text("Are you sure you want to delete this case?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                // caseVM.removeCase(clientCase);
+                Navigator.pop(context);
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text("Delete"),
+            ),
+          ],
         );
       },
     );
