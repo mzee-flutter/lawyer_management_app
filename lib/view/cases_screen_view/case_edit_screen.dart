@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:provider/provider.dart';
-import 'package:right_case/models/case_model.dart';
+
+import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
 
 import 'package:right_case/view_model/cases_view_model/edit_case_view_model.dart';
@@ -25,7 +26,7 @@ class _EditCaseScreenState extends State<EditCaseScreen> {
     super.initState();
 
     final editCaseVM = Provider.of<EditCaseViewModel>(context, listen: false);
-    editCaseVM.initializeFields(widget.clientCase);
+    // editCaseVM.initializeFields(widget.clientCase);
   }
 
   @override

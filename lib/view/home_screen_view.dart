@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 
 import 'package:right_case/view/cases_screen_view/add_case_screen_view.dart';
-import 'package:right_case/view_model/cases_view_model/case_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
 import 'drawer_view.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -152,7 +152,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildSummaryCards(context) {
-    return Consumer<CaseViewModel>(
+    return Consumer<CaseListViewModel>(
       builder: (context, caseVM, child) {
         return GridView.count(
           crossAxisCount: 3,

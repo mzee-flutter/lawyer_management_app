@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:right_case/models/auth_models/register_request_model.dart';
 import 'package:right_case/models/auth_models/auth_model.dart';
 import 'package:right_case/repository/auth_repository/register_repo.dart';

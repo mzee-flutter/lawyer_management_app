@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/models/case_model.dart';
-import 'package:right_case/view_model/cases_view_model/case_view_model.dart';
+
+import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
 import 'package:uuid/uuid.dart';
 
 class AddCaseViewModel with ChangeNotifier {
@@ -23,14 +23,14 @@ class AddCaseViewModel with ChangeNotifier {
       return;
     }
 
-    final newCase = CaseModel(
-      id: Uuid().v4(),
-      title: title,
-      description: description,
-      clientId: clientID,
-      status: status,
-      createdAt: DateTime.now(),
-    );
+    // final newCase = CaseModel(
+    //   id: Uuid().v4(),
+    //   title: title,
+    //   description: description,
+    //   clientId: clientID,
+    //   status: status,
+    //   createdAt: DateTime.now(),
+    // );
 
     // Provider.of<CaseViewModel>(context, listen: false).addCase(newCase);
     // Navigator.pop(context);

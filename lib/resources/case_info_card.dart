@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/case_model.dart';
 import 'package:right_case/view/cases_screen_view/case_edit_screen.dart';
-import 'package:right_case/view_model/cases_view_model/case_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
 
 class CaseInfoCard extends StatelessWidget {
   final CaseModel clientCase;
