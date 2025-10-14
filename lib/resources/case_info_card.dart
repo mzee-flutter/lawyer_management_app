@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/case_models/case_model.dart';
+import 'package:right_case/view/cases_screen_view/case_detail_info_screen_view.dart';
 import 'package:right_case/view/cases_screen_view/case_edit_screen.dart';
 import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
 
@@ -20,8 +21,12 @@ class CaseInfoCard extends StatelessWidget {
       builder: (context, caseVM, child) {
         return GestureDetector(
           onTap: () {
-            // Navigate to Case Detail Screen
-            // Navigator.push(context, MaterialPageRoute(builder: (_) => CaseDetailScreen(caseData: clientCase)));
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CaseDetailInfoScreenView(caseData: clientCase),
+              ),
+            );
           },
           child: Container(
             margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -31,7 +36,7 @@ class CaseInfoCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(16.r),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -188,7 +193,7 @@ class CaseInfoCard extends StatelessWidget {
         margin: EdgeInsets.only(left: 8.w),
         padding: EdgeInsets.all(8.w),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: Icon(icon, color: color, size: 20.sp),

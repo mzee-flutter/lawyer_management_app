@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:right_case/resources/case_info_card.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
+import 'package:right_case/view/cases_screen_view/case_detail_info_screen_view.dart';
 import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
 
 class CasesListScreen extends StatefulWidget {
@@ -104,7 +105,9 @@ class CasesListScreenState extends State<CasesListScreen> {
                       itemBuilder: (context, index) {
                         if (index < caseListVM.filterCases.length) {
                           final clientCase = caseListVM.filterCases[index];
-                          return CaseInfoCard(clientCase: clientCase);
+                          return InkWell(
+                            child: CaseInfoCard(clientCase: clientCase),
+                          );
                         } else {
                           // bottom loader
                           return Padding(
