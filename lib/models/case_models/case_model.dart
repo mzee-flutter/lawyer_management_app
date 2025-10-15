@@ -1,3 +1,5 @@
+import 'package:right_case/models/client_models/client_model.dart';
+
 /// ✅ Root model for a Case (matches `CasePublic`)
 class CaseModel {
   final String id;
@@ -24,6 +26,8 @@ class CaseModel {
   final CaseStageModel? caseStage;
   final CaseStatusModel? caseStatus;
   final List<CaseFileModel>? files;
+  final ClientModel? firstParty;
+  final ClientModel? secondParty;
 
   CaseModel({
     required this.id,
@@ -50,6 +54,8 @@ class CaseModel {
     this.caseStage,
     this.caseStatus,
     this.files,
+    this.firstParty,
+    this.secondParty,
   });
 
   factory CaseModel.fromJson(Map<String, dynamic> json) {
@@ -95,6 +101,12 @@ class CaseModel {
           ? List<CaseFileModel>.from(
               json["files"].map((x) => CaseFileModel.fromJson(x)))
           : null,
+      firstParty: json["first_party"] != null
+          ? ClientModel.fromJson(json["first_party"])
+          : null,
+      secondParty: json["second_party"] != null
+          ? ClientModel.fromJson(json["second_party"])
+          : null,
     );
   }
 
@@ -123,6 +135,8 @@ class CaseModel {
         "case_stage": caseStage?.toJson(),
         "case_status": caseStatus?.toJson(),
         "files": files?.map((x) => x.toJson()).toList(),
+        "first_party": firstParty?.toJson(),
+        "second_party": secondParty?.toJson(),
       };
 
   static List<CaseModel> listFromJson(List<dynamic> data) =>

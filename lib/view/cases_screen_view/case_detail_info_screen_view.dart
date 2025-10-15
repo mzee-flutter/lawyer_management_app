@@ -20,9 +20,13 @@ class CaseDetailInfoScreenView extends StatelessWidget {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: Colors.grey.shade300,
-        centerTitle: true,
-        title: const Text("Case Preview",
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(
+          "Case Preview",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16.sp,
+          ),
+        ),
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 12.w),
@@ -127,10 +131,10 @@ class CaseDetailInfoScreenView extends StatelessWidget {
               children: [
                 _courtCard(Icons.house_outlined, "Court Category",
                     caseData.courtCategory?.name ?? "N/A"),
-                _courtCard(Icons.account_balance_outlined, "Court Name",
+                _courtCard(Icons.account_balance_rounded, "Court Name",
                     caseData.courtName ?? "N/A"),
-                _courtCard(
-                    Icons.person_outline, "Judge", caseData.judgeName ?? "N/A"),
+                _courtCard(Icons.person_outline_rounded, "Judge",
+                    caseData.judgeName ?? "N/A"),
               ],
             ),
 
@@ -152,7 +156,10 @@ class CaseDetailInfoScreenView extends StatelessWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.grey.shade900,
+        shape: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(50.sp),
+            borderSide: BorderSide.none),
+        backgroundColor: Colors.grey.shade800,
         onPressed: () {
           Navigator.push(
             context,
