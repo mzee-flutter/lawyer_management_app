@@ -195,17 +195,17 @@ class CaseDetailInfoScreenView extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               decoration: BoxDecoration(
-                color: Colors.blue.shade100,
+                color: Colors.lightBlueAccent.shade700,
                 borderRadius: BorderRadius.circular(20.r),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.push_pin_outlined,
-                      size: 16, color: Colors.indigo),
+                      size: 16, color: Colors.white),
                   SizedBox(width: 4.w),
                   Text(trailing,
                       style: const TextStyle(
-                          color: Colors.indigo, fontWeight: FontWeight.w600)),
+                          color: Colors.white, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
@@ -247,63 +247,90 @@ class CaseDetailInfoScreenView extends StatelessWidget {
         ),
       );
 
-  Widget _dropdownTile(String title, String content) => ExpansionTile(
-        title: Text(title,
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15.sp)),
-        children: [
-          Padding(
-            padding: EdgeInsets.all(12.w),
-            child: Text(content,
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 14.sp)),
-          ),
-        ],
+  Widget _dropdownTile(String title, String content) => Material(
+        elevation: 3,
+        borderRadius: BorderRadius.circular(10.r),
+        child: ExpansionTile(
+          collapsedBackgroundColor: Colors.grey.shade300,
+          backgroundColor: Colors.grey.shade300,
+          shape: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: BorderSide.none),
+          collapsedShape: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: BorderSide.none),
+          title: Text(title,
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15.sp)),
+          children: [
+            Padding(
+              padding: EdgeInsets.all(12.w),
+              child: Text(content,
+                  style:
+                      TextStyle(color: Colors.grey.shade900, fontSize: 14.sp)),
+            ),
+          ],
+        ),
       );
 
   Widget _courtCard(IconData icon, String label, String value) => Container(
-        width: 180.w,
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.w),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14.r),
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(10.r),
           boxShadow: [
             BoxShadow(
                 color: Colors.black12,
-                blurRadius: 6,
+                blurRadius: 2,
                 offset: const Offset(0, 2)),
           ],
         ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Icon(icon, color: Colors.indigo, size: 18.sp),
-            SizedBox(width: 6.w),
-            Text(label,
-                style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600)),
-          ]),
-          SizedBox(height: 6.h),
-          Text(value,
-              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600)),
-        ]),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.grey.shade700, size: 20.sp),
+            SizedBox(
+              width: 10.w,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 11.sp, color: Colors.grey.shade700)),
+                SizedBox(height: 3.w),
+                Text(value,
+                    style: TextStyle(
+                        fontSize: 14.sp, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ],
+        ),
       );
 
   Widget _iconInfo(IconData icon, String title, String value) => Padding(
         padding: EdgeInsets.only(bottom: 10.h),
-        child: Row(children: [
-          CircleAvatar(
-            backgroundColor: Colors.blue.shade50,
-            child: Icon(icon, color: Colors.indigo),
-          ),
-          SizedBox(width: 10.w),
-          Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title,
-                  style:
-                      TextStyle(fontWeight: FontWeight.w600, fontSize: 14.sp)),
-              Text(value,
-                  style:
-                      TextStyle(color: Colors.grey.shade600, fontSize: 13.sp)),
-            ]),
-          ),
-        ]),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.blue.shade100,
+              child: Icon(icon, color: Colors.grey.shade900, size: 18.sp),
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 14.sp)),
+                  Text(value,
+                      style: TextStyle(
+                          color: Colors.grey.shade600, fontSize: 13.sp)),
+                ],
+              ),
+            ),
+          ],
+        ),
       );
 }
