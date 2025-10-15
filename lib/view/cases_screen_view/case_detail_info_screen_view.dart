@@ -11,256 +11,299 @@ class CaseDetailInfoScreenView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('MMM dd, yyyy');
+    final formattedDate =
+        DateFormat('dd MMM, yyyy').format(caseData.registrationDate);
+    final caseStatus =
+        caseData.caseStatus?.name ?? caseData.status ?? 'Unknown';
 
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text("Case Details"),
+        backgroundColor: Colors.grey.shade300,
         centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        titleTextStyle: TextStyle(
-          color: Colors.black87,
-          fontSize: 18.sp,
-          fontWeight: FontWeight.w600,
-        ),
+        title: const Text("Case Preview",
+            style: TextStyle(fontWeight: FontWeight.w600)),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 12.w),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade100,
+                foregroundColor: Colors.indigo.shade900,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.r)),
+              ),
+              onPressed: () {
+                // TODO: Generate PDF
+              },
+              icon: const Icon(Icons.picture_as_pdf_outlined,
+                  size: 18, color: Colors.black),
+              label: const Text(
+                "Generate PDF",
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+          )
+        ],
       ),
-
-      // Main Body
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle("Case Overview"),
-            _infoCard([
-              _infoRow("Case Number", caseData.caseNumber),
-              _infoRow("Status", caseData.status ?? "N/A"),
-              _infoRow("Registered On",
-                  dateFormat.format(caseData.registrationDate)),
-            ]),
-            _buildSectionTitle("Court Information"),
-            _infoCard([
-              _infoRow("Court", caseData.courtName ?? "N/A"),
-              _infoRow("Judge", caseData.judgeName ?? "N/A"),
-              _infoRow("Category", caseData.courtCategory?.name ?? "N/A"),
-              _infoRow("Case Type", caseData.caseType?.name ?? "N/A"),
-              _infoRow("Stage", caseData.caseStage?.name ?? "N/A"),
-            ]),
-            _buildSectionTitle("Parties"),
-            _infoCard([
-              _infoRow("First Party ID", caseData.firstPartyId),
-              _infoRow("Second Party ID", caseData.secondPartyId),
-              _infoRow("Opposite Party", caseData.oppositePartyName ?? "N/A"),
-            ]),
-            _buildSectionTitle("Case Details"),
-            _infoCard([
-              _infoRow(
-                  "Legal Fees",
-                  caseData.legalFees != null
-                      ? "PKR ${caseData.legalFees!.toStringAsFixed(0)}"
-                      : "N/A"),
-              _multiLineInfo(
-                  "Notes", caseData.caseNotes ?? "No notes available."),
-            ]),
-            if (caseData.files != null && caseData.files!.isNotEmpty) ...[
-              _buildSectionTitle("Attached Files"),
-              _fileList(caseData.files!),
-            ],
+            Center(
+              child: Text(
+                "Case Number: #${caseData.caseNumber}",
+                style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w700),
+              ),
+            ),
+
+            SizedBox(height: 14.h),
+
+            /// Quick Actions Card (Add Fees, Hearing, Client)
+            Container(
+              padding: EdgeInsets.all(14.w),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _action(Icons.account_balance_wallet_outlined, "Add Fees"),
+                  _action(Icons.event_available_outlined, "Add Hearing"),
+                  _action(Icons.person_add_alt_1_outlined, "Add Client"),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 22.h),
+
+            /// Case Status Section
+            _sectionTitle("Change Case Status"),
+            Text("Click and move Pending → Active → DisposedOf",
+                style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600)),
+            SizedBox(height: 10.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _statusStep("Pending", caseStatus.toLowerCase() == "pending"),
+                _statusLine(),
+                _statusStep("Active", caseStatus.toLowerCase() == "active"),
+                _statusLine(),
+                _statusStep(
+                    "DisposedOf", caseStatus.toLowerCase() == "disposedof"),
+              ],
+            ),
+
+            SizedBox(height: 24.h),
+
+            /// Case Basic Info
+            _sectionHeader("Case Basic Information", trailing: "Sticky Notes"),
+            _infoTile(
+                Icons.calendar_today_outlined, "Register Date: $formattedDate"),
+            _infoTile(Icons.confirmation_number_outlined,
+                "Case Number: ${caseData.caseNumber}"),
+            _infoTile(Icons.category_outlined,
+                "Case Type: ${caseData.caseType?.name ?? 'Not Added'}"),
+            _infoTile(Icons.layers_outlined,
+                "Case Stage: ${caseData.caseStage?.name ?? 'Not Added'}"),
+            _infoTile(Icons.flag_outlined,
+                "Case Status: ${caseData.caseStatus?.name ?? 'Not Added'}"),
+            _infoTile(Icons.price_change_outlined,
+                "Legal Fees: ${caseData.legalFees?.toStringAsFixed(0) ?? 'N/A'}"),
+
+            SizedBox(height: 18.h),
+
+            _dropdownTile(
+                "Case Study", caseData.caseNotes ?? "No notes added."),
+
+            SizedBox(height: 22.h),
+
+            _sectionTitle("Court Information"),
+            Wrap(
+              spacing: 10.w,
+              runSpacing: 10.h,
+              children: [
+                _courtCard(Icons.house_outlined, "Court Category",
+                    caseData.courtCategory?.name ?? "N/A"),
+                _courtCard(Icons.account_balance_outlined, "Court Name",
+                    caseData.courtName ?? "N/A"),
+                _courtCard(
+                    Icons.person_outline, "Judge", caseData.judgeName ?? "N/A"),
+              ],
+            ),
+
+            SizedBox(height: 24.h),
+
+            /// Other Info
+            _sectionTitle("Other Information"),
+            _iconInfo(Icons.insert_drive_file_outlined, "Related Files",
+                "${caseData.relatedFiles?.length ?? 0} file(s)"),
+            _iconInfo(Icons.calendar_month_outlined, "Created At",
+                DateFormat('dd MMM, yyyy').format(caseData.createdAt)),
+            if (caseData.updatedAt != null)
+              _iconInfo(Icons.update, "Last Updated",
+                  DateFormat('dd MMM, yyyy').format(caseData.updatedAt!)),
+
             SizedBox(height: 80.h),
           ],
         ),
       ),
-
-      // Floating Bottom Actions
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text("Edit Case"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  padding: EdgeInsets.symmetric(vertical: 12.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => EditCaseScreen(clientCase: caseData),
-                    ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.delete_outline),
-                label: const Text("Delete"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  padding: EdgeInsets.symmetric(vertical: 12.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                onPressed: () {
-                  _showDeleteDialog(context);
-                },
-              ),
-            ),
-          ],
-        ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.grey.shade900,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => EditCaseScreen(clientCase: caseData)),
+          );
+        },
+        icon: Icon(Icons.edit_outlined, color: Colors.grey.shade300),
+        label: Text("Edit Case", style: TextStyle(color: Colors.grey.shade300)),
       ),
     );
   }
 
-  // 🔹 Section Title
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: EdgeInsets.only(top: 16.h, bottom: 8.h),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 16.sp,
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
+  // ---------- Reusable UI Components ----------
 
-  // 🔹 Info Card Wrapper
-  Widget _infoCard(List<Widget> children) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(12.w),
-      margin: EdgeInsets.only(bottom: 10.h),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(14.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
-    );
-  }
+  Widget _action(IconData icon, String label) => Column(
+        children: [
+          CircleAvatar(
+            radius: 24.r,
+            backgroundColor: Colors.white,
+            child: Icon(icon, color: Colors.grey.shade900),
+          ),
+          SizedBox(height: 6.h),
+          Text(label,
+              style: TextStyle(color: Colors.grey.shade900, fontSize: 13)),
+        ],
+      );
 
-  // 🔹 Key-Value Row
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
-      child: Row(
+  Widget _sectionTitle(String text) => Padding(
+        padding: EdgeInsets.only(bottom: 6.h),
+        child: Text(text,
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp)),
+      );
+
+  Widget _sectionHeader(String text, {String? trailing}) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade700)),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: Colors.black87,
-                fontWeight: FontWeight.w500,
+          _sectionTitle(text),
+          if (trailing != null)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade100,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.push_pin_outlined,
+                      size: 16, color: Colors.indigo),
+                  SizedBox(width: 4.w),
+                  Text(trailing,
+                      style: const TextStyle(
+                          color: Colors.indigo, fontWeight: FontWeight.w600)),
+                ],
               ),
             ),
-          ),
         ],
-      ),
-    );
-  }
+      );
 
-  // 🔹 Multi-line info (for notes)
-  Widget _multiLineInfo(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _statusStep(String label, bool active) => Column(
         children: [
-          Text(label,
-              style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade700)),
+          Icon(Icons.check_circle,
+              color: active ? Colors.redAccent : Colors.grey, size: 22.sp),
           SizedBox(height: 4.h),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13.sp,
-              color: Colors.black87,
-              height: 1.4,
+          Text(label,
+              style: TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500)),
+        ],
+      );
+
+  Widget _statusLine() =>
+      Container(height: 2.h, width: 30.w, color: Colors.redAccent);
+
+  Widget _infoTile(IconData icon, String text) => Padding(
+        padding: EdgeInsets.symmetric(vertical: 4.h),
+        child: Row(
+          children: [
+            Icon(icon, size: 18.sp, color: Colors.grey.shade900),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey.shade700,
+                ),
+              ),
             ),
+          ],
+        ),
+      );
+
+  Widget _dropdownTile(String title, String content) => ExpansionTile(
+        title: Text(title,
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15.sp)),
+        children: [
+          Padding(
+            padding: EdgeInsets.all(12.w),
+            child: Text(content,
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 14.sp)),
           ),
         ],
-      ),
-    );
-  }
+      );
 
-  // 🔹 File List
-  Widget _fileList(List files) {
-    return Container(
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(14.r),
-      ),
-      child: Column(
-        children: files.map((file) {
-          return ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
-            title: Text(
-              file.fileName ?? "Untitled File",
-              style: TextStyle(fontSize: 13.sp),
-            ),
-            trailing: Icon(Icons.download_outlined, color: Colors.blueAccent),
-            onTap: () {
-              // handle file open/download
-            },
-          );
-        }).toList(),
-      ),
-    );
-  }
+  Widget _courtCard(IconData icon, String label, String value) => Container(
+        width: 180.w,
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14.r),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black12,
+                blurRadius: 6,
+                offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Icon(icon, color: Colors.indigo, size: 18.sp),
+            SizedBox(width: 6.w),
+            Text(label,
+                style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600)),
+          ]),
+          SizedBox(height: 6.h),
+          Text(value,
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600)),
+        ]),
+      );
 
-  // 🔹 Delete Dialog
-  void _showDeleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Delete Case"),
-        content: const Text("Are you sure you want to delete this case?"),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel")),
-          TextButton(
-            onPressed: () {
-              // delete logic
-              Navigator.pop(context);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text("Delete"),
+  Widget _iconInfo(IconData icon, String title, String value) => Padding(
+        padding: EdgeInsets.only(bottom: 10.h),
+        child: Row(children: [
+          CircleAvatar(
+            backgroundColor: Colors.blue.shade50,
+            child: Icon(icon, color: Colors.indigo),
           ),
-        ],
-      ),
-    );
-  }
+          SizedBox(width: 10.w),
+          Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(title,
+                  style:
+                      TextStyle(fontWeight: FontWeight.w600, fontSize: 14.sp)),
+              Text(value,
+                  style:
+                      TextStyle(color: Colors.grey.shade600, fontSize: 13.sp)),
+            ]),
+          ),
+        ]),
+      );
 }
