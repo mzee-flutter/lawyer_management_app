@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:right_case/data/api_exception.dart';
 import 'package:right_case/data/base_api_service.dart';
@@ -28,7 +29,8 @@ class NetworkApiServices extends BaseApiServices {
     http.Response response;
 
     try {
-      response = await requestFunction(headers);
+      response = await requestFunction(headers).timeout(Duration(seconds: 13),
+          onTimeout: () => throw FetchDataException("Request time out"));
 
       if (response.statusCode == 401) {
         final refreshToken = await _tokenStorage.getRefreshToken();
@@ -43,8 +45,16 @@ class NetworkApiServices extends BaseApiServices {
         response = await requestFunction(headers);
       }
       return _checkAndReturnApiResponse(response);
-    } on SocketException {
-      throw FetchDataException("No Internet Connection");
+    } on SocketException catch (e) {
+      debugPrint("SocketException: $e");
+      throw FetchDataException("Network error: ${e.message}");
+    } on http.ClientException catch (e) {
+      debugPrint("ClientException: $e");
+      throw FetchDataException("HTTP client error: ${e.message}");
+    } catch (e, stack) {
+      debugPrint("Unknown error: $e");
+      debugPrint(stack.toString());
+      throw FetchDataException("Unexpected error: $e");
     }
   }
 
@@ -87,7 +97,6 @@ class NetworkApiServices extends BaseApiServices {
     );
   }
 
-  /// ✅ New PATCH request added
   @override
   Future getPatchApiRequest(
     String url,

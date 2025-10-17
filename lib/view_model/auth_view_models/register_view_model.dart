@@ -49,7 +49,7 @@ class RegisterViewModel with ChangeNotifier {
 
       return true;
     } catch (e, stack) {
-      debugPrint('Error in RegisterViewModel: $e');
+      debugPrint('Error in RegisterViewModelModelModel: $e');
       debugPrint('Stack: $stack');
 
       SnakeBars.flutterToast('Registration failed. Try again.', context);
