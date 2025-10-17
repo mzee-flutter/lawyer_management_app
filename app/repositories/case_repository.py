@@ -156,8 +156,6 @@ class CourtCategoryRepository:
 
 
 
-
-
 class CaseTypeRepository:
 
     @staticmethod
@@ -214,9 +212,6 @@ class CaseStageRepository:
 
 
 #---------------------------------------------------#
-
-
-
 
 
 class CaseStatusRepository:

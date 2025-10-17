@@ -1,7 +1,8 @@
 from typing import Optional, List, Any
 from uuid import UUID
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from app.schemas.client_schema import ClientPublic
 
 
 # -----------------------------
@@ -124,13 +125,14 @@ class CaseFilePublic(BaseModel):
 # -----------------------------
 #  Case Schemas
 # -----------------------------
+
 class CaseBase(BaseModel):
     case_number: str
     registration_date: datetime
     court_name: Optional[str] = None
     judge_name: Optional[str] = None
     first_party_id: UUID
-    second_party_id:UUID
+    second_party_id: UUID
     opposite_party_name: Optional[str] = None
     court_category_id: UUID
     case_type_id: UUID
@@ -161,11 +163,17 @@ class CasePublic(CaseBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
+
+    # 🔗 Relationships
     court_category: Optional[CourtCategoryPublic] = None
     case_type: Optional[CaseTypePublic] = None
     case_stage: Optional[CaseStagePublic] = None
     case_status: Optional[CaseStatusPublic] = None
     files: Optional[List[CaseFilePublic]] = None
+
+    # ✅ New: Include client data
+    first_party: Optional[ClientPublic] = None
+    second_party: Optional[ClientPublic] = None
 
     class Config:
         from_attributes = True

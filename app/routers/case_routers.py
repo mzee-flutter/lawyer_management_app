@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from uuid import UUID
+from fastapi import Request
 from app.database.session import get_db
 from app.schemas.case_schema import (
     CaseCreate, CaseUpdate, CasePublic,
@@ -22,20 +23,22 @@ router = APIRouter(prefix="/api/v1/cases", tags=["Cases"])
 
 @router.post("/", response_model=CasePublic)
 def create_case(case_in: CaseCreate, db: Session = Depends(get_db)):
-    """Create a new case"""
     return CaseService.create_case(db, case_in)
+
 
 
 @router.get("/", response_model=list[CasePublic])
 def list_cases(
-    q: str | None = Query(None, description="Search cases by title or reference"),
+     q: str | None = Query(None, description="Search cases by title or reference"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     sort: str | None = Query(None, description="Sort field, e.g. created_at,desc"),
     db: Session = Depends(get_db),
-):
-    return CaseService.search_cases(db, q=q, page=page, size=size, sort=sort)
 
+    request: Request = None,
+   
+):
+    return CaseService.search_cases(db, request, q, page, size, sort)
 
 @router.get("/archived", response_model=list[CasePublic])
 def list_archived_cases(
@@ -122,27 +125,27 @@ def get_case_status_by_id(status_id: UUID, db: Session = Depends(get_db)):
 # 🔹 CASE FILE ROUTES
 # ---------------------------------------------------
 
-
 @router.post("/{case_id}/files", response_model=CaseFilePublic)
 def upload_case_file(
     case_id: UUID,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    request: Request = None, 
 ):
     """Upload a new file for a specific case"""
-    return CaseFileService.create_case_file(db, case_id, file)
+    return CaseFileService.create_case_file(db, case_id, file, request)
 
 
 @router.get("/{case_id}/files", response_model=list[CaseFilePublic])
-def get_case_files(case_id: UUID, db: Session = Depends(get_db)):
+def get_case_files(case_id: UUID, db: Session = Depends(get_db), request: Request = None):
     """List all files for a specific case"""
-    return CaseFileService.get_all_files_by_case(db, case_id)
+    return CaseFileService.get_all_files_by_case(db, case_id, request)
 
 
 @router.get("/files/{file_id}", response_model=CaseFilePublic)
-def get_case_file(file_id: UUID, db: Session = Depends(get_db)):
+def get_case_file(file_id: UUID, db: Session = Depends(get_db), request: Request = None):
     """Get a specific case file by ID"""
-    return CaseFileService.get_case_file_by_id(db, file_id)
+    return CaseFileService.get_case_file_by_id(db, file_id, request)
 
 
 @router.delete("/files/{file_id}", response_model=CaseFilePublic)
@@ -156,10 +159,8 @@ def delete_case_file(file_id: UUID, db: Session = Depends(get_db)):
 # ---------------------------------------------------
 
 @router.get("/{case_id}", response_model=CasePublic)
-def get_case(case_id: UUID, db: Session = Depends(get_db)):
-    """Get a case by its ID"""
-    return CaseService.get_case(db, case_id)
-
+def get_case(case_id: UUID, db: Session = Depends(get_db), request: Request = None):
+    return CaseService.get_case(db, case_id, request)
 
 @router.patch("/{case_id}", response_model=CasePublic)
 def update_case(case_id: UUID, case_in: CaseUpdate, db: Session = Depends(get_db)):

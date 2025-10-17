@@ -1,9 +1,12 @@
 from sqlalchemy.orm import Session
 import os
+import socket
 from fastapi import HTTPException, status
 import uuid
 from uuid import UUID
-from fastapi import UploadFile
+from fastapi import UploadFile, Request
+from datetime import datetime
+
 from app.repositories.case_repository import (
     CaseRepository,
     CourtCategoryRepository,
@@ -23,33 +26,99 @@ from app.schemas.case_schema import (
     CaseStagePublic,
     CaseStatusPublic,
 )
-from datetime import datetime
+
+
+# -------------------------
+# Helpers: detect server IP and build URLs
+# -------------------------
+def detect_server_ip() -> str:
+    """
+    Return the server's likely LAN IP (not 127.0.0.1).
+    Uses a UDP socket trick that does not actually send data.
+    """
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            # connect to an external IP — no packets are actually sent
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+            return ip
+    except Exception:
+        # fallback
+        return "127.0.0.1"
+
+
+def get_base_url(request: Request) -> str:
+    """
+    Return a base URL that clients can reach.
+    If request.base_url contains localhost/127.0.0.1, replace host with server LAN IP.
+    Keep the port from request if present, otherwise default to 8000.
+    """
+    # parse host and port from request.url
+    scheme = request.url.scheme or "http"
+    host = request.url.hostname or ""
+    port = request.url.port or 8000
+
+    # if host is localhost/127.0.0.1, replace with detected LAN IP
+    if host in ("127.0.0.1", "localhost", ""):
+        host = detect_server_ip()
+
+    return f"{scheme}://{host}:{port}".rstrip("/")
+
+
+def build_file_url(request: Request, file_path: str) -> str:
+    """
+    Converts a stored local file path into a full reachable URL for clients.
+    Example: "uploads/case_files/abc.png" -> "http://192.168.1.101:8000/uploads/case_files/abc.png"
+    """
+    if not file_path:
+        return file_path
+
+    base_url = get_base_url(request)
+
+    # normalize path separators
+    normalized = file_path.replace("\\", "/")
+
+    # if the stored value is a full url already, return it unchanged
+    if normalized.startswith("http://") or normalized.startswith("https://"):
+        return normalized
+
+    # Ensure it contains uploads/ path (if the DB stored a filename, attach uploads path)
+    if not normalized.startswith("uploads/"):
+        # common case: db stores full filesystem path like "uploads/case_files/uuid.png" or with directories
+        normalized = f"uploads/case_files/{os.path.basename(normalized)}"
+
+    return f"{base_url}/{normalized.lstrip('/')}"
 
 
 # ---------------------------------------------------
 # Case Service
 # ---------------------------------------------------
-
 class CaseService:
 
-    # ✅ Create a new case
     @staticmethod
     def create_case(db: Session, case_in: CaseCreate) -> CasePublic:
         case = CaseRepository.create(db, case_in)
         return CasePublic.model_validate(case)
 
-    # ✅ Get a case by ID
     @staticmethod
-    def get_case(db: Session, case_id) -> CasePublic:
+    def get_case(db: Session, case_id: UUID, request: Request) -> CasePublic:
         case = CaseRepository.get_by_id(db, case_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
-        return CasePublic.model_validate(case)
 
-    # ✅ Search active cases
+        case_data = CasePublic.model_validate(case)
+
+        # fix file URLs in 'files' (if present)
+        if getattr(case_data, "files", None):
+            for f in case_data.files:
+                f.file_url = build_file_url(request, f.file_url)
+
+        return case_data
+
     @staticmethod
     def search_cases(
         db: Session,
+        request: Request,
         q: str | None = None,
         page: int = 1,
         size: int = 10,
@@ -57,12 +126,21 @@ class CaseService:
     ) -> list[CasePublic]:
         skip = (page - 1) * size
         cases = CaseRepository.search(db, query=q, skip=skip, limit=size, sort=sort)
-        return [CasePublic.model_validate(c) for c in cases]
 
-    # ✅ Search archived cases
+        result = []
+        for c in cases:
+            case_data = CasePublic.model_validate(c)
+            if getattr(case_data, "files", None):
+                for f in case_data.files:
+                    f.file_url = build_file_url(request, f.file_url)
+            result.append(case_data)
+
+        return result
+
     @staticmethod
     def search_archived_cases(
         db: Session,
+        request: Request,
         q: str | None = None,
         page: int = 1,
         size: int = 10,
@@ -70,29 +148,32 @@ class CaseService:
     ) -> list[CasePublic]:
         skip = (page - 1) * size
         cases = CaseRepository.search_archived(db, query=q, skip=skip, limit=size, sort=sort)
-        return [CasePublic.model_validate(c) for c in cases]
 
-    # ✅ Update case
-    @staticmethod
-    def update_case(db: Session, case_id, case_in: CaseUpdate) -> CasePublic:
+        result = []
+        for c in cases:
+            case_data = CasePublic.model_validate(c)
+            if getattr(case_data, "files", None):
+                for f in case_data.files:
+                    f.file_url = build_file_url(request, f.file_url)
+            result.append(case_data)
+
+        return result
+
+    def update_case(db: Session, case_id: UUID, case_in: CaseUpdate) -> CasePublic:
         case = CaseRepository.get_by_id(db, case_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
         updated = CaseRepository.update(db, case, case_in)
         return CasePublic.model_validate(updated)
 
-    # ✅ Archive case
-    @staticmethod
-    def archive_case(db: Session, case_id) -> CasePublic:
+    def archive_case(db: Session, case_id: UUID) -> CasePublic:
         case = CaseRepository.get_by_id(db, case_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
         archived = CaseRepository.archive(db, case)
         return CasePublic.model_validate(archived)
 
-    # ✅ Restore case
-    @staticmethod
-    def restore_case(db: Session, case_id) -> CasePublic:
+    def restore_case(db: Session, case_id: UUID) -> CasePublic:
         case = CaseRepository.get_by_id(db, case_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
@@ -101,16 +182,14 @@ class CaseService:
         restored = CaseRepository.restore(db, case)
         return CasePublic.model_validate(restored)
 
-    # ✅ Delete case permanently
-    @staticmethod
-    def delete_case_permanently(db: Session, case_id) -> CasePublic:
+    def delete_case_permanently(db: Session, case_id: UUID) -> CasePublic:
         case = CaseRepository.get_by_id(db, case_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
-
         case_copy = CasePublic.model_validate(case)
         CaseRepository.delete(db, case)
         return case_copy
+
 
 
 # ---------------------------------------------------
@@ -203,44 +282,63 @@ class CaseFileService:
 
     @staticmethod
     def create_case_file(
-        db: Session, 
-        case_id: UUID, 
-        file: UploadFile, 
-        
-        ) -> CaseFilePublic:
-
-        # Ensure upload folder exists
+        db: Session,
+        case_id: UUID,
+        file: UploadFile,
+        request: Request,
+    ) -> CaseFilePublic:
         os.makedirs(CaseFileService.UPLOAD_DIR, exist_ok=True)
 
-        # Generate unique file name
         ext = os.path.splitext(file.filename)[1]
         unique_name = f"{uuid.uuid4()}{ext}"
         file_path = os.path.join(CaseFileService.UPLOAD_DIR, unique_name)
 
-        # Save the file
         with open(file_path, "wb") as buffer:
             buffer.write(file.file.read())
 
-        # Save file record in DB
         db_file = CaseFileRepository.create(db, {
             "case_id": case_id,
             "filename": file.filename,
             "file_url": file_path,
         })
 
-        return CaseFilePublic.model_validate(db_file)
+        public_url = build_file_url(request, file_path)
+
+        return CaseFilePublic(
+            id=db_file.id,
+            case_id=db_file.case_id,
+            filename=db_file.filename,
+            file_url=public_url,
+            uploaded_at=db_file.uploaded_at,
+        )
 
     @staticmethod
-    def get_case_file_by_id(db: Session, file_id: UUID) -> CaseFilePublic:
+    def get_all_files_by_case(db: Session, case_id: UUID, request: Request) -> list[CaseFilePublic]:
+        files = CaseFileRepository.get_all_by_case(db, case_id)
+        return [
+            CaseFilePublic(
+                id=f.id,
+                case_id=f.case_id,
+                filename=f.filename,
+                file_url=build_file_url(request, f.file_url),
+                uploaded_at=f.uploaded_at,
+            )
+            for f in files
+        ]
+
+    @staticmethod
+    def get_case_file_by_id(db: Session, file_id: UUID, request: Request) -> CaseFilePublic:
         file = CaseFileRepository.get_by_id(db, file_id)
         if not file:
             raise HTTPException(status_code=404, detail="Case file not found")
-        return CaseFilePublic.model_validate(file)
 
-    @staticmethod
-    def get_all_files_by_case(db: Session, case_id: UUID) -> list[CaseFilePublic]:
-        files = CaseFileRepository.get_all_by_case(db, case_id)
-        return [CaseFilePublic.model_validate(f) for f in files]
+        return CaseFilePublic(
+            id=file.id,
+            case_id=file.case_id,
+            filename=file.filename,
+            file_url=build_file_url(request, file.file_url),
+            uploaded_at=file.uploaded_at,
+        )
 
     @staticmethod
     def delete_case_file(db: Session, file_id: UUID) -> CaseFilePublic:
@@ -248,10 +346,14 @@ class CaseFileService:
         if not file:
             raise HTTPException(status_code=404, detail="Case file not found")
 
-        # Remove physical file if exists
         if os.path.exists(file.file_url):
             os.remove(file.file_url)
 
         file_copy = CaseFilePublic.model_validate(file)
         CaseFileRepository.delete(db, file)
         return file_copy
+
+
+
+
+        

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from app.database.base import Base
 from app.database.init_db import engine
 from contextlib import asynccontextmanager
@@ -28,6 +29,8 @@ app.include_router(auth_routers.router)
 app.include_router(client_routers.router)
 app.include_router(case_routers.router)
 
+
+app.mount("/uploads", StaticFiles(directory= "uploads"), name="uploads")
 
 
 
