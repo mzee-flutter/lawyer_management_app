@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/view/cases_screen_view/case_edit_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CaseDetailInfoScreenView extends StatelessWidget {
   final CaseModel caseData;
@@ -62,9 +64,16 @@ class CaseDetailInfoScreenView extends StatelessWidget {
               ),
             ),
 
+            SizedBox(height: 10.h),
+            Center(
+              child: Text(
+                "${caseData.firstParty?.name}",
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+
             SizedBox(height: 14.h),
 
-            /// Quick Actions Card (Add Fees, Hearing, Client)
             Container(
               padding: EdgeInsets.all(14.w),
               decoration: BoxDecoration(
@@ -81,28 +90,8 @@ class CaseDetailInfoScreenView extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: 22.h),
-
-            /// Case Status Section
-            _sectionTitle("Change Case Status"),
-            Text("Click and move Pending → Active → DisposedOf",
-                style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600)),
-            SizedBox(height: 10.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _statusStep("Pending", caseStatus.toLowerCase() == "pending"),
-                _statusLine(),
-                _statusStep("Active", caseStatus.toLowerCase() == "active"),
-                _statusLine(),
-                _statusStep(
-                    "DisposedOf", caseStatus.toLowerCase() == "disposedof"),
-              ],
-            ),
-
             SizedBox(height: 24.h),
 
-            /// Case Basic Info
             _sectionHeader("Case Basic Information", trailing: "Sticky Notes"),
             _infoTile(
                 Icons.calendar_today_outlined, "Register Date: $formattedDate"),
@@ -114,8 +103,8 @@ class CaseDetailInfoScreenView extends StatelessWidget {
                 "Case Stage: ${caseData.caseStage?.name ?? 'Not Added'}"),
             _infoTile(Icons.flag_outlined,
                 "Case Status: ${caseData.caseStatus?.name ?? 'Not Added'}"),
-            _infoTile(Icons.price_change_outlined,
-                "Legal Fees: ${caseData.legalFees?.toStringAsFixed(0) ?? 'N/A'}"),
+            // _infoTile(Icons.price_change_outlined,
+            //     "Legal Fees: ${caseData.legalFees?.toStringAsFixed(0) ?? 'N/A'}"),
 
             SizedBox(height: 18.h),
 
@@ -140,10 +129,8 @@ class CaseDetailInfoScreenView extends StatelessWidget {
 
             SizedBox(height: 24.h),
 
-            /// Other Info
             _sectionTitle("Other Information"),
-            _iconInfo(Icons.insert_drive_file_outlined, "Related Files",
-                "${caseData.relatedFiles?.length ?? 0} file(s)"),
+            buildCaseFilesSection(caseData.files, context),
             _iconInfo(Icons.calendar_month_outlined, "Created At",
                 DateFormat('dd MMM, yyyy').format(caseData.createdAt)),
             if (caseData.updatedAt != null)
@@ -341,3 +328,132 @@ class CaseDetailInfoScreenView extends StatelessWidget {
         ),
       );
 }
+
+Widget buildCaseFilesSection(List<CaseFileModel>? files, BuildContext context) {
+  if (files == null || files.isEmpty) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: const Text(
+        "No files uploaded yet.",
+        style: TextStyle(fontSize: 14),
+      ),
+    );
+  }
+
+  IconData _getFileIcon(String filename) {
+    final lower = filename.toLowerCase();
+    if (lower.endsWith(".pdf")) return Icons.picture_as_pdf_outlined;
+    if (lower.endsWith(".jpg") ||
+        lower.endsWith(".jpeg") ||
+        lower.endsWith(".png")) {
+      return Icons.image_outlined;
+    }
+    if (lower.endsWith(".doc") || lower.endsWith(".docx")) {
+      return Icons.description_outlined;
+    }
+    if (lower.endsWith(".xls") || lower.endsWith(".xlsx")) {
+      return Icons.table_chart_outlined;
+    }
+    if (lower.endsWith(".txt")) return Icons.notes_outlined;
+    return Icons.insert_drive_file_outlined;
+  }
+
+  void _openFilePreview(CaseFileModel file) async {
+    final filename = file.filename.toLowerCase();
+    final url = file.fileUrl;
+
+    if (filename.endsWith(".pdf")) {
+      // Open PDF viewer
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => Scaffold(
+              appBar: AppBar(title: Text(file.filename)),
+              body: PDFView(
+                filePath: url,
+              )),
+        ),
+      );
+    } else if (filename.endsWith(".jpg") ||
+        filename.endsWith(".jpeg") ||
+        filename.endsWith(".png")) {
+      // Open Image preview
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(
+              backgroundColor: Colors.black,
+              title: Text(file.filename),
+            ),
+            body: Center(
+              child: InteractiveViewer(
+                child: Image.network(url, fit: BoxFit.contain),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      // Fallback → Open in browser
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    }
+  }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "Case Files",
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey.shade900,
+        ),
+      ),
+      const SizedBox(height: 10),
+      ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: files.length,
+        itemBuilder: (context, index) {
+          final file = files[index];
+          return Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: ListTile(
+              leading: Icon(
+                _getFileIcon(file.filename),
+                color: Colors.indigo.shade700,
+                size: 30,
+              ),
+              title: Text(
+                file.filename,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                "Uploaded: ${DateFormat('dd MMM yyyy, hh:mm a').format(file.uploadedAt)}",
+                style: const TextStyle(fontSize: 12),
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.remove_red_eye_outlined),
+                onPressed: () => _openFilePreview(file),
+              ),
+            ),
+          );
+        },
+      ),
+    ],
+  );
+}
+
+/// just to test the endpoint of the cases that they return the full url of the files

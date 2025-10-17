@@ -1,6 +1,5 @@
 import 'package:right_case/models/client_models/client_model.dart';
 
-/// ✅ Root model for a Case (matches `CasePublic`)
 class CaseModel {
   final String id;
   final String caseNumber;
@@ -143,7 +142,6 @@ class CaseModel {
       data.map((e) => CaseModel.fromJson(e)).toList();
 }
 
-/// ✅ Court Category
 class CourtCategoryModel {
   final String id;
   final String name;
@@ -176,7 +174,6 @@ class CourtCategoryModel {
       };
 }
 
-/// ✅ Case Type
 class CaseTypeModel {
   final String id;
   final String name;
@@ -189,7 +186,6 @@ class CaseTypeModel {
   Map<String, dynamic> toJson() => {"id": id, "name": name};
 }
 
-/// ✅ Case Stage
 class CaseStageModel {
   final String id;
   final String name;
@@ -202,7 +198,6 @@ class CaseStageModel {
   Map<String, dynamic> toJson() => {"id": id, "name": name};
 }
 
-/// ✅ Case Status
 class CaseStatusModel {
   final String id;
   final String name;
@@ -215,7 +210,6 @@ class CaseStatusModel {
   Map<String, dynamic> toJson() => {"id": id, "name": name};
 }
 
-/// ✅ Case File
 class CaseFileModel {
   final String id;
   final String caseId;
