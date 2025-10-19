@@ -23,9 +23,7 @@ class LoginViewModel with ChangeNotifier {
     String password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('All fields are required ')));
+      SnakeBars.flutterToast('All fields are required ', context);
     }
 
     final existingUser = LoginRequestModel(email: email, password: password);
@@ -42,9 +40,7 @@ class LoginViewModel with ChangeNotifier {
       debugPrint('Error in LoginViewModel: $e');
       debugPrint(stack.toString());
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login Failed. Try Again!')));
+      SnakeBars.flutterToast('Login Failed. Try Again!', context);
       return false;
     } finally {
       _isLoading = false;

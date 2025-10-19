@@ -24,8 +24,9 @@ class CaseDetailInfoScreenView extends StatelessWidget {
         backgroundColor: Colors.grey.shade300,
         title: Text(
           "Case Preview",
+          textAlign: TextAlign.left,
           style: TextStyle(
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
             fontSize: 16.sp,
           ),
         ),

@@ -33,7 +33,7 @@ class CaseInfoCard extends StatelessWidget {
             margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             padding: EdgeInsets.all(14.w),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: Colors.grey.shade300,
               borderRadius: BorderRadius.circular(16.r),
               boxShadow: [
                 BoxShadow(
@@ -46,19 +46,88 @@ class CaseInfoCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🔹 Top Row — Court + Status
+                Center(
+                  child: RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade900,
+                      ),
+                      children: [
+                        TextSpan(text: clientCase.firstParty?.name),
+                        TextSpan(
+                            text: " v/s ",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20.sp,
+                              color: Colors.black,
+                            )),
+                        TextSpan(text: clientCase.secondParty?.name),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 12.h),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Text(
-                        clientCase.courtName ?? "Unknown Court",
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Case #: ${clientCase.caseNumber}",
+                          style:
+                              TextStyle(fontSize: 14.sp, color: Colors.black87),
                         ),
-                      ),
+
+                        SizedBox(height: 6.h),
+                        Text(
+                          "Added At: $formattedDate",
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        SizedBox(height: 6.h),
+                        // 🔹 Parties
+                        Text(
+                          "Parties: ${clientCase.oppositePartyName ?? 'N/A'}",
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+
+                        SizedBox(height: 4.h),
+
+                        if (clientCase.judgeName != null &&
+                            clientCase.judgeName!.isNotEmpty)
+                          Text(
+                            "Judge: ${clientCase.judgeName}",
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+
+                        SizedBox(height: 6.h),
+
+                        // 🔹 Description (one-liner)
+                        if (clientCase.caseNotes != null &&
+                            clientCase.caseNotes!.isNotEmpty)
+                          Text(
+                            clientCase.caseNotes!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                      ],
                     ),
                     if (clientCase.status != null &&
                         clientCase.status!.isNotEmpty)
@@ -80,65 +149,6 @@ class CaseInfoCard extends StatelessWidget {
                       ),
                   ],
                 ),
-
-                SizedBox(height: 8.h),
-
-                // 🔹 Case Number + Date
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Case #: ${clientCase.caseNumber}",
-                      style: TextStyle(fontSize: 14.sp, color: Colors.black87),
-                    ),
-                    Text(
-                      formattedDate,
-                      style: TextStyle(
-                          fontSize: 12.sp, color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 6.h),
-
-                // 🔹 Parties
-                Text(
-                  "Parties: ${clientCase.oppositePartyName ?? 'N/A'}",
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-
-                SizedBox(height: 4.h),
-
-                // 🔹 Judge (if available)
-                if (clientCase.judgeName != null &&
-                    clientCase.judgeName!.isNotEmpty)
-                  Text(
-                    "Judge: ${clientCase.judgeName}",
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-
-                SizedBox(height: 6.h),
-
-                // 🔹 Description (one-liner)
-                if (clientCase.caseNotes != null &&
-                    clientCase.caseNotes!.isNotEmpty)
-                  Text(
-                    clientCase.caseNotes!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-
-                SizedBox(height: 10.h),
 
                 // 🔹 Action Row
                 Row(
@@ -206,6 +216,7 @@ class CaseInfoCard extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'open':
       case 'running':
+      case 'active':
         return Colors.green;
       case 'decided':
         return Colors.blue;

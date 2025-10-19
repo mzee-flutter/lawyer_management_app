@@ -42,7 +42,13 @@ class CasesListScreenState extends State<CasesListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Cases"),
+        title: Text(
+          "Cases",
+          style: TextStyle(
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.grey.shade300,
       ),
       body: Consumer<CaseListViewModel>(

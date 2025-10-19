@@ -5,84 +5,29 @@ import 'package:right_case/models/case_models/case_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 
-class CaseFileSectionView extends StatelessWidget {
+class CaseAllFilesScreenView extends StatelessWidget {
   final List<CaseFileModel>? files;
 
-  const CaseFileSectionView({super.key, required this.files});
+  const CaseAllFilesScreenView({super.key, required this.files});
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = const Color(0xFF001F54); // Deep navy used in your app
-    final accentColor = const Color(0xFFB3D4FF); // Soft sky blue tone
-
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.grey.shade300,
+        title: Text(
+          "Case Files",
+          style: TextStyle(
+            color: Colors.grey.shade900,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // 🔹 Header Section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [themeColor, themeColor.withValues(alpha: 0.85)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(25),
-                  bottomRight: Radius.circular(25),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Back Button
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-
-                  // Title
-                  const Text(
-                    "Case Files",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-
-                  // Optional action (like Generate PDF)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.picture_as_pdf_outlined,
-                            color: Colors.white, size: 18),
-                        SizedBox(width: 6),
-                        Text(
-                          "Export PDF",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
             const SizedBox(height: 20),
 
             // 🔹 Body Section
@@ -143,7 +88,10 @@ class CaseFileSectionView extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => Scaffold(
-              appBar: AppBar(title: Text(file.filename)),
+              appBar: AppBar(
+                title: Text(file.filename),
+                backgroundColor: Colors.grey.shade300,
+              ),
               body: PDFView(filePath: url),
             ),
           ),
@@ -155,8 +103,10 @@ class CaseFileSectionView extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => Scaffold(
-              backgroundColor: Colors.black,
-              appBar: AppBar(title: Text(file.filename)),
+              appBar: AppBar(
+                title: Text(file.filename),
+                backgroundColor: Colors.grey.shade300,
+              ),
               body: Center(
                 child: InteractiveViewer(
                   child: Image.network(url, fit: BoxFit.contain),
@@ -233,7 +183,6 @@ class CaseFilesEmbeddedSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalFiles = files?.length ?? 0;
-
     return Container(
       margin: EdgeInsets.only(bottom: 8.r),
       decoration: BoxDecoration(
@@ -249,10 +198,9 @@ class CaseFilesEmbeddedSection extends StatelessWidget {
       ),
       child: ListTile(
         leading: CircleAvatar(
-          radius: 22,
           backgroundColor: Colors.white,
           child: Icon(
-            Icons.folder_open_rounded,
+            Icons.folder_copy_outlined,
             color: Colors.grey.shade700,
             size: 22,
           ),
@@ -265,13 +213,13 @@ class CaseFilesEmbeddedSection extends StatelessWidget {
           totalFiles > 0 ? "files($totalFiles)" : "No files uploaded yet",
           style: const TextStyle(fontSize: 12, color: Colors.black54),
         ),
-        trailing: Icon(Icons.chevron_right, color: Colors.grey.shade500),
+        trailing: Icon(Icons.chevron_right, color: Colors.grey.shade900),
         onTap: totalFiles > 0
             ? () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => CaseFileSectionView(files: files),
+                    builder: (_) => CaseAllFilesScreenView(files: files),
                   ),
                 );
               }
