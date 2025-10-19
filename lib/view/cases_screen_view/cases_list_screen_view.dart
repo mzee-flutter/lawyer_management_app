@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/resources/case_info_card.dart';
+
+import 'package:right_case/resources/case_resources/case_info_card.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
-import 'package:right_case/view/cases_screen_view/case_detail_info_screen_view.dart';
+
 import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
 
 class CasesListScreen extends StatefulWidget {
