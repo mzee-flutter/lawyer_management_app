@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/resources/case_resources/case_file_section_view.dart';
+import 'package:right_case/resources/client_resources/client_info_card.dart';
 import 'package:right_case/view/cases_screen_view/case_detail_info_screen_view.dart';
 import 'package:right_case/view/cases_screen_view/case_edit_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -137,8 +138,21 @@ class CaseDetailInfoScreenView extends StatelessWidget {
             if (caseData.updatedAt != null)
               _iconInfo(Icons.update, "Last Updated",
                   DateFormat('dd MMM, yyyy').format(caseData.updatedAt!)),
-
-            SizedBox(height: 80.h),
+            Divider(),
+            _sectionTitle("First Party Name"),
+            (caseData.firstParty != null)
+                ? ClientInfoCard(client: caseData.firstParty!)
+                : Container(
+                    child: Text("No related parties"),
+                  ),
+            Divider(),
+            _sectionTitle("Second Party Name"),
+            (caseData.firstParty != null)
+                ? ClientInfoCard(client: caseData.secondParty!)
+                : Container(
+                    child: Text("No related parties"),
+                  ),
+            // SizedBox(height: 80.h),
           ],
         ),
       ),
