@@ -118,23 +118,18 @@ class CaseInfoCard extends StatelessWidget {
                         // 🔹 Description (one-liner)
                         if (clientCase.caseNotes != null &&
                             clientCase.caseNotes!.isNotEmpty)
+                          Container(
+                            height: 18.h,
+                            width: 245.w,
+                            alignment: Alignment.center,
+                            child: Text(
+                              clientCase.caseNotes!,
 
-                          ///i need to fix this overflow of the note with case....
-                          Flexible(
-                            child: Container(
-                              height: 18.h,
-                              width: 246.w,
-                              color: Colors.white,
-                              alignment: Alignment.center,
-                              child: Text(
-                                clientCase.caseNotes!,
-
-                                // maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 13.sp,
-                                  color: Colors.grey.shade600,
-                                ),
+                              // maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                color: Colors.grey.shade600,
                               ),
                             ),
                           ),

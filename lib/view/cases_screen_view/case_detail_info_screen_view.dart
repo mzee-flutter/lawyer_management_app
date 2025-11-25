@@ -135,20 +135,20 @@ class CaseDetailInfoScreenView extends StatelessWidget {
             CaseFilesEmbeddedSection(files: caseData.files),
             _iconInfo(Icons.calendar_month_outlined, "Created At",
                 DateFormat('dd MMM, yyyy').format(caseData.createdAt)),
-            // if (caseData.updatedAt != null)
-            //   _iconInfo(Icons.update, "Last Updated",
-            //       DateFormat('dd MMM, yyyy').format(caseData.updatedAt!)),
-            // Divider(),
-            // _sectionTitle("First Party Name"),
-            // (caseData.firstParty != null)
-            //     ? ClientInfoCard(client: caseData.firstParty!)
-            //     : Text("No related parties"),
-            // Divider(),
-            // _sectionTitle("Second Party Name"),
-            // (caseData.firstParty != null)
-            //     ? ClientInfoCard(client: caseData.secondParty!)
-            //     : Text("No related parties"),
-            // SizedBox(height: 80.h),
+            if (caseData.updatedAt != null)
+              _iconInfo(Icons.update, "Last Updated",
+                  DateFormat('dd MMM, yyyy').format(caseData.updatedAt!)),
+            Divider(),
+
+            _sectionTitle("Attached Clients"),
+            (caseData.firstParty != null)
+                ? ClientInfoCard(client: caseData.firstParty!)
+                : Text("No related parties"),
+
+            (caseData.firstParty != null)
+                ? ClientInfoCard(client: caseData.secondParty!)
+                : Text("No related parties"),
+            SizedBox(height: 80.h),
           ],
         ),
       ),
