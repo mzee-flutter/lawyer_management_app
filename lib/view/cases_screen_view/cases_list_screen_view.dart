@@ -66,7 +66,7 @@ class CasesListScreenState extends State<CasesListScreen> {
                 )
               else if (caseListVM.filterCases.isEmpty)
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  // mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
                       height: 100.h,
