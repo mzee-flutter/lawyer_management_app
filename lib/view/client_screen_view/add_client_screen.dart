@@ -132,7 +132,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
         filled: true,
         fillColor: Colors.grey.shade300,
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.r),
             borderSide: BorderSide.none),
       ),
     );

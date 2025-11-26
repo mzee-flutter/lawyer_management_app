@@ -14,8 +14,11 @@ class ClientCreateRepo {
     final requestBody = client.toJson();
     try {
       final response = await _services.getPostApiRequest(
-          ClientURl.baseUrl, ClientURl.headers, requestBody);
-      final dbClient= ClientModel.fromJson(response);
+        ClientURl.baseUrl,
+        ClientURl.headers,
+        requestBody,
+      );
+      final dbClient = ClientModel.fromJson(response);
       return dbClient;
     } catch (e) {
       debugPrint("Error in ClientCreateRepo: $e");
