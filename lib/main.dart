@@ -10,7 +10,7 @@ import 'package:right_case/view_model/auth_view_models/logout_view_model.dart';
 import 'package:right_case/view_model/auth_view_models/refresh_acces_token_view_model.dart';
 import 'package:right_case/view_model/auth_view_models/register_view_model.dart';
 import 'package:right_case/view_model/calendar_view_model/calendar_view_model.dart';
-import 'package:right_case/view_model/cases_view_model/add_case_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_create_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/edit_case_view_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -58,7 +58,7 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => ClientListViewModel()),
             ChangeNotifierProvider(create: (_) => ClientCreateViewModel()),
             ChangeNotifierProvider(create: (_) => ClientUpdateViewModel()),
-            ChangeNotifierProvider(create: (_) => AddCaseViewModel()),
+            ChangeNotifierProvider(create: (_) => CaseCreateViewModel()),
             ChangeNotifierProvider(create: (_) => EditCaseViewModel()),
             ChangeNotifierProvider(create: (_) => LoginAndSignUpViewModel()),
             ChangeNotifierProvider(create: (_) => CalendarViewModel()),

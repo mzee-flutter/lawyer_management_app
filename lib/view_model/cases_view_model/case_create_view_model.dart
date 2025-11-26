@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
-import 'package:uuid/uuid.dart';
-
-class AddCaseViewModel with ChangeNotifier {
+class CaseCreateViewModel with ChangeNotifier {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descController = TextEditingController();
   final TextEditingController clientIdController = TextEditingController();

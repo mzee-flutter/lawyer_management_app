@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
-import 'package:right_case/view_model/cases_view_model/add_case_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_create_view_model.dart';
 
-class AddCaseScreen extends StatefulWidget {
-  const AddCaseScreen({super.key});
+class CaseCreateScreen extends StatefulWidget {
+  const CaseCreateScreen({super.key});
 
   @override
-  State<AddCaseScreen> createState() => _AddCaseScreenState();
+  State<CaseCreateScreen> createState() => _CaseCreateScreenState();
 }
 
-class _AddCaseScreenState extends State<AddCaseScreen> {
+class _CaseCreateScreenState extends State<CaseCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,27 +19,27 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
         title: const Text("Add Case"),
         backgroundColor: Colors.grey.shade300,
       ),
-      body: Consumer<AddCaseViewModel>(
-        builder: (context, addCaseVM, child) {
+      body: Consumer<CaseCreateViewModel>(
+        builder: (context, caseCreateVM, child) {
           return Padding(
             padding: EdgeInsets.all(16.0.r),
             child: ListView(
               children: [
                 CustomTextField.fieldLabel('Enter Case Title'),
-                CustomTextField(controller: addCaseVM.titleController),
+                CustomTextField(controller: caseCreateVM.titleController),
                 SizedBox(height: 12.h),
                 CustomTextField.fieldLabel('Enter Case Description'),
-                CustomTextField(controller: addCaseVM.descController),
+                CustomTextField(controller: caseCreateVM.descController),
                 SizedBox(height: 12.h),
                 CustomTextField.fieldLabel('Enter Client ID'),
-                CustomTextField(controller: addCaseVM.clientIdController),
+                CustomTextField(controller: caseCreateVM.clientIdController),
                 SizedBox(height: 12.h),
                 CustomTextField.fieldLabel('Select Case Status'),
                 DropdownButtonFormField<String>(
                   focusColor: Colors.grey.shade300,
                   dropdownColor: Colors.grey.shade300,
-                  value: addCaseVM.statusController.text.isNotEmpty
-                      ? addCaseVM.statusController.text
+                  value: caseCreateVM.statusController.text.isNotEmpty
+                      ? caseCreateVM.statusController.text
                       : null,
                   items: [
                     'None',
@@ -55,7 +55,7 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
                       .toList(),
                   onChanged: (value) {
                     if (value != null) {
-                      addCaseVM.statusController.text = value;
+                      caseCreateVM.statusController.text = value;
                     }
                   },
                   decoration: InputDecoration(
@@ -69,8 +69,8 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
                 SizedBox(height: 20.h),
                 ElevatedButton.icon(
                   onPressed: () {
-                    addCaseVM.submitCase(context);
-                    addCaseVM.clearFields();
+                    caseCreateVM.submitCase(context);
+                    caseCreateVM.clearFields();
                   },
                   icon: const Icon(Icons.cases_rounded, color: Colors.white),
                   label: const Text(

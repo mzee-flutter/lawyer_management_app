@@ -145,7 +145,7 @@ class CasesListScreenState extends State<CasesListScreen> {
           style: TextStyle(color: Colors.white),
         ),
         onPressed: () {
-          Navigator.pushNamed(context, RoutesName.addCaseScreen);
+          Navigator.pushNamed(context, RoutesName.caseCreateScreen);
         },
       ),
     );

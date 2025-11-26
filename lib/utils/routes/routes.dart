@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/view/calendar_view/calendar_screen_view.dart';
-import 'package:right_case/view/cases_screen_view/add_case_screen_view.dart';
+import 'package:right_case/view/cases_screen_view/case_create_screen.dart';
 import 'package:right_case/view/cases_screen_view/cases_list_screen_view.dart';
 import 'package:right_case/view/client_screen_view/add_client_screen.dart';
 import 'package:right_case/view/client_screen_view/client_archived_list_screen.dart';
@@ -41,8 +41,8 @@ class Routes {
       case RoutesName.casesListScreen:
         return MaterialPageRoute(builder: (_) => const CasesListScreen());
 
-      case RoutesName.addCaseScreen:
-        return MaterialPageRoute(builder: (_) => const AddCaseScreen());
+      case RoutesName.caseCreateScreen:
+        return MaterialPageRoute(builder: (_) => const CaseCreateScreen());
 
       case RoutesName.calendarScreen:
         return MaterialPageRoute(builder: (_) => const CalendarScreen());
