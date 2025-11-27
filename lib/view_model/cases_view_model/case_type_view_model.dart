@@ -8,8 +8,6 @@ class CaseTypeViewModel with ChangeNotifier {
   bool _loading = false;
   bool get loading => _loading;
 
-  VoidCallback? onLoadedCallback;
-
   List<CaseTypeModel> _caseTypes = [];
   List<CaseTypeModel> get caseTypes => _caseTypes;
 
@@ -21,6 +19,7 @@ class CaseTypeViewModel with ChangeNotifier {
 
   /// Fetch Case Types from API
   Future<void> fetchCaseTypes() async {
+    if (_caseTypes.isNotEmpty) return;
     try {
       _setLoading(true);
 
@@ -30,9 +29,6 @@ class CaseTypeViewModel with ChangeNotifier {
       debugPrint("Error in CaseTypeViewModel: $e");
     } finally {
       _setLoading(false);
-      if (onLoadedCallback != null) {
-        onLoadedCallback!();
-      }
     }
   }
 }

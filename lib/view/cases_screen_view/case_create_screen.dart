@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
 import 'package:right_case/view_model/cases_view_model/case_create_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_type_view_model.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 
 class CaseCreateScreen extends StatelessWidget {
   const CaseCreateScreen({super.key});
@@ -14,7 +13,6 @@ class CaseCreateScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<CaseCreateViewModel>(context);
-    final GlobalKey dropdownKey = GlobalKey();
 
     return Scaffold(
       appBar: AppBar(
@@ -79,28 +77,40 @@ class CaseCreateScreen extends StatelessWidget {
             _buildTextField(vm.oppositePartyNameController),
             SizedBox(height: 12.h),
 
+            // inside your column children where you had the case type
             _buildLabels("Case Type*"),
-
-            GestureDetector(
-              onTap: () async {
-                await context.read<CaseTypeViewModel>().fetchCaseTypes();
+            Consumer<CaseTypeViewModel>(
+              builder: (context, vm, child) {
+                return CaseTypeDropdown(
+                  label: "Case Type",
+                  vm: vm,
+                  onSelected: (id) {
+                    context.read<CaseCreateViewModel>().caseTypeId = id;
+                  },
+                );
               },
-              child: Consumer<CaseTypeViewModel>(
-                builder: (context, caseTypeVM, child) {
-                  return _customDropDownButtonFormField(
-                    (value) {},
-                    onTap: () {},
-                    item: caseTypeVM.caseTypes.map((type) {
-                      return DropdownMenuItem(
-                        value: type.id,
-                        child: Text(type.name),
-                      );
-                    }).toList(),
-                    isLoading: caseTypeVM.loading,
-                  );
-                },
-              ),
             ),
+
+            // GestureDetector(
+            //   onTap: () async {
+            //     await context.read<CaseTypeViewModel>().fetchCaseTypes();
+            //   },
+            //   child: Consumer<CaseTypeViewModel>(
+            //     builder: (context, caseTypeVM, child) {
+            //       return _customDropDownButtonFormField(
+            //         (value) {},
+            //         onTap: () {},
+            //         item: caseTypeVM.caseTypes.map((type) {
+            //           return DropdownMenuItem(
+            //             value: type.id,
+            //             child: Text(type.name),
+            //           );
+            //         }).toList(),
+            //         isLoading: caseTypeVM.loading,
+            //       );
+            //     },
+            //   ),
+            // ),
 
             SizedBox(height: 12.h),
 
@@ -274,6 +284,134 @@ class CaseCreateScreen extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class CaseTypeDropdown extends StatefulWidget {
+  final String label;
+  final CaseTypeViewModel vm;
+  final void Function(String id) onSelected;
+
+  const CaseTypeDropdown({
+    super.key,
+    required this.label,
+    required this.vm,
+    required this.onSelected,
+  });
+
+  @override
+  State<CaseTypeDropdown> createState() => _CaseTypeDropdownState();
+}
+
+class _CaseTypeDropdownState extends State<CaseTypeDropdown> {
+  final GlobalKey _fieldKey = GlobalKey();
+  OverlayEntry? _overlay;
+  String? _selectedName;
+
+  Future<void> _handleTap() async {
+    // If already loading → do nothing
+    if (widget.vm.loading) return;
+
+    // Fetch only when list empty
+    if (widget.vm.caseTypes.isEmpty) {
+      await widget.vm.fetchCaseTypes();
+    }
+
+    if (widget.vm.caseTypes.isNotEmpty) {
+      _showOverlay();
+    }
+  }
+
+  void _showOverlay() {
+    final box = _fieldKey.currentContext!.findRenderObject() as RenderBox;
+    final pos = box.localToGlobal(Offset.zero);
+    final size = box.size;
+
+    _overlay = OverlayEntry(
+      builder: (_) => Positioned(
+        left: pos.dx + size.width - 160, // align right
+        top: pos.dy + size.height, // dropdown below field
+        width: 160, // narrow popup like sketch
+        child: Material(
+          elevation: 3,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: ListView(
+              shrinkWrap: true,
+              children: widget.vm.caseTypes.map((type) {
+                return InkWell(
+                  onTap: () {
+                    _removeOverlay();
+                    setState(() => _selectedName = type.name);
+                    widget.onSelected(type.id);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                    child: Text(
+                      type.name,
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlay!);
+  }
+
+  void _removeOverlay() {
+    _overlay?.remove();
+    _overlay = null;
+  }
+
+  @override
+  void dispose() {
+    _removeOverlay();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _handleTap,
+      child: Container(
+        key: _fieldKey,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                _selectedName ?? widget.label,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+
+            // Loader from ViewModel
+            widget.vm.loading
+                ? const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.arrow_drop_down),
+          ],
+        ),
+      ),
     );
   }
 }
