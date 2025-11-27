@@ -1,102 +1,12 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:provider/provider.dart';
-// import 'package:right_case/resources/custom_text_fields.dart';
-// import 'package:right_case/view_model/cases_view_model/case_create_view_model.dart';
-//
-// class CaseCreateScreen extends StatefulWidget {
-//   const CaseCreateScreen({super.key});
-//
-//   @override
-//   State<CaseCreateScreen> createState() => _CaseCreateScreenState();
-// }
-//
-// class _CaseCreateScreenState extends State<CaseCreateScreen> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Add Case"),
-//         backgroundColor: Colors.grey.shade300,
-//       ),
-//       body: Consumer<CaseCreateViewModel>(
-//         builder: (context, caseCreateVM, child) {
-//           return Padding(
-//             padding: EdgeInsets.all(16.0.r),
-//             child: ListView(
-//               children: [
-//                 CustomTextField.fieldLabel('Enter Case Title'),
-//                 CustomTextField(controller: caseCreateVM.titleController),
-//                 SizedBox(height: 12.h),
-//                 CustomTextField.fieldLabel('Enter Case Description'),
-//                 CustomTextField(controller: caseCreateVM.descController),
-//                 SizedBox(height: 12.h),
-//                 CustomTextField.fieldLabel('Enter Client ID'),
-//                 CustomTextField(controller: caseCreateVM.clientIdController),
-//                 SizedBox(height: 12.h),
-//                 CustomTextField.fieldLabel('Select Case Status'),
-//                 DropdownButtonFormField<String>(
-//                   focusColor: Colors.grey.shade300,
-//                   dropdownColor: Colors.grey.shade300,
-//                   value: caseCreateVM.statusController.text.isNotEmpty
-//                       ? caseCreateVM.statusController.text
-//                       : null,
-//                   items: [
-//                     'None',
-//                     'Running',
-//                     'Decided',
-//                     'Date Awaited',
-//                     'Abandoned'
-//                   ]
-//                       .map((status) => DropdownMenuItem(
-//                             value: status == 'None' ? '' : status,
-//                             child: Text(status),
-//                           ))
-//                       .toList(),
-//                   onChanged: (value) {
-//                     if (value != null) {
-//                       caseCreateVM.statusController.text = value;
-//                     }
-//                   },
-//                   decoration: InputDecoration(
-//                     border: OutlineInputBorder(
-//                       borderRadius: BorderRadius.circular(8.r),
-//                     ),
-//                     contentPadding:
-//                         EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
-//                   ),
-//                 ),
-//                 SizedBox(height: 20.h),
-//                 ElevatedButton.icon(
-//                   onPressed: () {
-//                     caseCreateVM.submitCase(context);
-//                     caseCreateVM.clearFields();
-//                   },
-//                   icon: const Icon(Icons.cases_rounded, color: Colors.white),
-//                   label: const Text(
-//                     'Add Case',
-//                     style: TextStyle(color: Colors.white),
-//                   ),
-//                   style: ElevatedButton.styleFrom(
-//                     backgroundColor: Colors.grey.shade800,
-//                     minimumSize: const Size(double.infinity, 48),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
 import 'package:right_case/view_model/cases_view_model/case_create_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_type_view_model.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class CaseCreateScreen extends StatelessWidget {
   const CaseCreateScreen({super.key});
@@ -104,6 +14,7 @@ class CaseCreateScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<CaseCreateViewModel>(context);
+    final GlobalKey dropdownKey = GlobalKey();
 
     return Scaffold(
       appBar: AppBar(
@@ -151,12 +62,16 @@ class CaseCreateScreen extends StatelessWidget {
             _buildLabels("First Party"),
             _customDropDownButtonFormField(
               (value) => vm.firstPartyId = value.toString(),
+              onTap: () {},
+              item: [],
             ),
             SizedBox(height: 12.h),
 
             _buildLabels("Opposite Party"),
             _customDropDownButtonFormField(
               (value) => vm.secondPartyId = value.toString(),
+              onTap: () {},
+              item: [],
             ),
 
             SizedBox(height: 12.h),
@@ -165,7 +80,28 @@ class CaseCreateScreen extends StatelessWidget {
             SizedBox(height: 12.h),
 
             _buildLabels("Case Type*"),
-            _customDropDownButtonFormField((value) => {}),
+
+            GestureDetector(
+              onTap: () async {
+                await context.read<CaseTypeViewModel>().fetchCaseTypes();
+              },
+              child: Consumer<CaseTypeViewModel>(
+                builder: (context, caseTypeVM, child) {
+                  return _customDropDownButtonFormField(
+                    (value) {},
+                    onTap: () {},
+                    item: caseTypeVM.caseTypes.map((type) {
+                      return DropdownMenuItem(
+                        value: type.id,
+                        child: Text(type.name),
+                      );
+                    }).toList(),
+                    isLoading: caseTypeVM.loading,
+                  );
+                },
+              ),
+            ),
+
             SizedBox(height: 12.h),
 
             // Notes
@@ -192,6 +128,8 @@ class CaseCreateScreen extends StatelessWidget {
             _buildLabels("Court Category"),
             _customDropDownButtonFormField(
               (value) => vm.courtCategoryId = value.toString(),
+              onTap: () {},
+              item: [],
             ),
             SizedBox(height: 12.h),
 
@@ -203,24 +141,24 @@ class CaseCreateScreen extends StatelessWidget {
             CustomTextField(controller: vm.judgeNameController),
             SizedBox(height: 12.h),
 
-            // Case Stage
-            DropdownButtonFormField(
-              decoration: InputDecoration(labelText: "Case Stage"),
-              items: [],
-              onChanged: (val) => vm.caseStageId = val.toString(),
+            _buildLabels("Case Stage"),
+            _customDropDownButtonFormField(
+              (value) => vm.caseStageId = value.toString(),
+              onTap: () {},
+              item: [],
             ),
-
-            // Case Status
-            DropdownButtonFormField(
-              decoration: InputDecoration(labelText: "Case Status"),
-              items: [],
-              onChanged: (val) => vm.caseStatusId = val.toString(),
-            ),
-
-            // Legal Fees
             SizedBox(height: 12.h),
-            CustomTextField.fieldLabel('Enter Legal Fee'),
-            CustomTextField(controller: vm.legalFeesController),
+
+            _buildLabels("Case Status"),
+            _customDropDownButtonFormField(
+              (value) => vm.caseStatusId = value.toString(),
+              onTap: () {},
+              item: [],
+            ),
+            SizedBox(height: 12.h),
+
+            _buildLabels("Enter Legal Fee"),
+            _buildTextField(vm.legalFeesController),
 
             SizedBox(height: 30),
 
@@ -289,22 +227,53 @@ class CaseCreateScreen extends StatelessWidget {
   }
 
   Widget _customDropDownButtonFormField(
-      void Function(dynamic newValue) onChange) {
-    return DropdownButtonFormField(
-        iconDisabledColor: Colors.grey.shade900,
-        decoration: InputDecoration(
-          fillColor: Colors.grey.shade300,
-          filled: true,
-          disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: BorderSide.none,
+    void Function(dynamic newValue) onChange, {
+    required void Function()? onTap,
+    required List<DropdownMenuItem<dynamic>>? item,
+    bool isLoading = false,
+  }) {
+    return Stack(
+      children: [
+        DropdownButtonFormField(
+          iconDisabledColor: Colors.grey.shade900,
+          decoration: InputDecoration(
+            fillColor: Colors.grey.shade300,
+            filled: true,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(
+                8.r,
+              ),
+              borderSide: BorderSide.none,
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.r),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.r),
+              borderSide: BorderSide.none,
+            ),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: BorderSide.none,
-          ),
+          items: item,
+          onChanged: onChange,
+          onTap: onTap,
         ),
-        items: [],
-        onChanged: onChange);
+
+        // LOADER OVERLAY INSIDE DROPDOWN FIELD
+        if (isLoading)
+          Positioned.fill(
+            child: Container(
+              alignment: Alignment.centerRight,
+              padding: EdgeInsets.only(right: 12),
+              color: Colors.transparent,
+              child: SizedBox(
+                height: 20.h,
+                width: 20.w,
+                child: CupertinoActivityIndicator(),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }

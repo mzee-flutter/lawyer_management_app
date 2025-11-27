@@ -12,6 +12,7 @@ import 'package:right_case/view_model/auth_view_models/register_view_model.dart'
 import 'package:right_case/view_model/calendar_view_model/calendar_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_create_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_type_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/edit_case_view_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:right_case/view_model/client_view_model/client_archive_view_model.dart';
@@ -75,6 +76,7 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(
                 create: (_) => ClientArchivedListViewModel()),
             ChangeNotifierProvider(create: (_) => ClientRestoreViewModel()),
+            ChangeNotifierProvider(create: (_) => CaseTypeViewModel()),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
