@@ -17,17 +17,17 @@ class CaseTypeViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  String? selectedCaseTypeId;
-  String? selectedCaseTypeName;
+  String? selectedId;
+  String? selectedName;
 
-  void selectCaseType(String id, String name) {
-    selectedCaseTypeId = id;
-    selectedCaseTypeName = name;
+  void selectItem(String id, String name) {
+    selectedId = id;
+    selectedName = name;
     notifyListeners();
   }
 
   /// Fetch Case Types from API
-  Future<void> fetchCaseTypes() async {
+  Future<void> fetchItems() async {
     if (_caseTypes.isNotEmpty) return;
     try {
       _setLoading(true);
