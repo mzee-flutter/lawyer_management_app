@@ -78,40 +78,14 @@ class CaseCreateScreen extends StatelessWidget {
             SizedBox(height: 12.h),
 
             // inside your column children where you had the case type
+
             _buildLabels("Case Type*"),
-            Consumer<CaseTypeViewModel>(
-              builder: (context, vm, child) {
-                return CaseTypeDropdown(
-                  label: "Case Type",
-                  vm: vm,
-                  onSelected: (id) {
-                    context.read<CaseCreateViewModel>().caseTypeId = id;
-                  },
-                );
+            CustomDropdownFormField(
+              label: "Select Case Type",
+              onSelected: (id) {
+                context.read<CaseCreateViewModel>().caseTypeId = id;
               },
             ),
-
-            // GestureDetector(
-            //   onTap: () async {
-            //     await context.read<CaseTypeViewModel>().fetchCaseTypes();
-            //   },
-            //   child: Consumer<CaseTypeViewModel>(
-            //     builder: (context, caseTypeVM, child) {
-            //       return _customDropDownButtonFormField(
-            //         (value) {},
-            //         onTap: () {},
-            //         item: caseTypeVM.caseTypes.map((type) {
-            //           return DropdownMenuItem(
-            //             value: type.id,
-            //             child: Text(type.name),
-            //           );
-            //         }).toList(),
-            //         isLoading: caseTypeVM.loading,
-            //       );
-            //     },
-            //   ),
-            // ),
-
             SizedBox(height: 12.h),
 
             // Notes
@@ -139,7 +113,9 @@ class CaseCreateScreen extends StatelessWidget {
             _customDropDownButtonFormField(
               (value) => vm.courtCategoryId = value.toString(),
               onTap: () {},
-              item: [],
+              item: [
+                DropdownMenuItem(child: Text("this is the CourtCategory"))
+              ],
             ),
             SizedBox(height: 12.h),
 
@@ -155,7 +131,7 @@ class CaseCreateScreen extends StatelessWidget {
             _customDropDownButtonFormField(
               (value) => vm.caseStageId = value.toString(),
               onTap: () {},
-              item: [],
+              item: [DropdownMenuItem(child: Text("Cause is the CaseStage"))],
             ),
             SizedBox(height: 12.h),
 
@@ -288,91 +264,164 @@ class CaseCreateScreen extends StatelessWidget {
   }
 }
 
-class CaseTypeDropdown extends StatefulWidget {
+class CustomDropdownFormField extends StatefulWidget {
   final String label;
-  final CaseTypeViewModel vm;
   final void Function(String id) onSelected;
 
-  const CaseTypeDropdown({
+  const CustomDropdownFormField({
     super.key,
     required this.label,
-    required this.vm,
     required this.onSelected,
   });
 
   @override
-  State<CaseTypeDropdown> createState() => _CaseTypeDropdownState();
+  State<CustomDropdownFormField> createState() =>
+      _CustomDropdownFormFieldState();
 }
 
-class _CaseTypeDropdownState extends State<CaseTypeDropdown> {
-  final GlobalKey _fieldKey = GlobalKey();
+class _CustomDropdownFormFieldState extends State<CustomDropdownFormField> {
+  final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlay;
-  String? _selectedName;
-
-  Future<void> _handleTap() async {
-    // If already loading → do nothing
-    if (widget.vm.loading) return;
-
-    // Fetch only when list empty
-    if (widget.vm.caseTypes.isEmpty) {
-      await widget.vm.fetchCaseTypes();
-    }
-
-    if (widget.vm.caseTypes.isNotEmpty) {
-      _showOverlay();
-    }
-  }
-
-  void _showOverlay() {
-    final box = _fieldKey.currentContext!.findRenderObject() as RenderBox;
-    final pos = box.localToGlobal(Offset.zero);
-    final size = box.size;
-
-    _overlay = OverlayEntry(
-      builder: (_) => Positioned(
-        left: pos.dx + size.width - 160, // align right
-        top: pos.dy + size.height, // dropdown below field
-        width: 160, // narrow popup like sketch
-        child: Material(
-          elevation: 3,
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: ListView(
-              shrinkWrap: true,
-              children: widget.vm.caseTypes.map((type) {
-                return InkWell(
-                  onTap: () {
-                    _removeOverlay();
-                    setState(() => _selectedName = type.name);
-                    widget.onSelected(type.id);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 12),
-                    child: Text(
-                      type.name,
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    Overlay.of(context).insert(_overlay!);
-  }
+  bool _isOpen = false;
 
   void _removeOverlay() {
     _overlay?.remove();
     _overlay = null;
+    _isOpen = false;
+  }
+
+  void _showOverlay(BuildContext context, Size fieldSize, Offset fieldOffset) {
+    // if already open, close
+    if (_isOpen) {
+      _removeOverlay();
+      return;
+    }
+
+    final vm = context.read<CaseTypeViewModel>();
+    // final maxHeight = 193.0.h;
+    // Calculate available space from the bottom of the field to the bottom of the screen
+    final screenHeight = MediaQuery.of(context).size.height;
+    final bottomPadding =
+        MediaQuery.of(context).padding.bottom; // for safe area
+    final availableHeight = screenHeight -
+        fieldOffset.dy -
+        fieldSize.height -
+        bottomPadding -
+        6.h; // 6 is your offset
+
+    final maxHeight =
+        availableHeight > 150 ? availableHeight : 150; // minimum height 150
+
+    _overlay = OverlayEntry(
+      builder: (context) {
+        return Stack(
+          children: [
+            // Modal barrier to block rest of UI and close on tap
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _removeOverlay,
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                ),
+              ),
+            ),
+
+            // The anchored dropdown (follows the target)
+            CompositedTransformFollower(
+              link: _layerLink,
+              showWhenUnlinked: false,
+              offset: Offset(0, fieldSize.height + 6), // below the field
+              child: Material(
+                elevation: 6,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: fieldSize.width, // same width as field
+                  constraints: BoxConstraints(
+                    maxHeight: maxHeight as double,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: _buildList(context, vm),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    Overlay.of(context).insert(_overlay!);
+    _isOpen = true;
+  }
+
+  Widget _buildList(BuildContext context, CaseTypeViewModel vm) {
+    final items = vm.caseTypes;
+    final selectedId = vm.selectedCaseTypeId;
+    if (items.isEmpty) {
+      return SizedBox(
+        height: 80.h,
+        child: Center(child: Text("No items")),
+      );
+    }
+
+    return Scrollbar(
+      child: ListView.separated(
+        shrinkWrap: true,
+        padding: EdgeInsets.zero,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final type = items[index];
+          final bool isSelected = selectedId == type.id;
+          return InkWell(
+            onTap: () {
+              _removeOverlay();
+              vm.selectCaseType(type.id, type.name);
+              widget.onSelected(type.id);
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.r, vertical: 14.r),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.grey.shade200 : Colors.white,
+                borderRadius: BorderRadius.circular(
+                  8.r,
+                ),
+              ),
+              child: Text(
+                type.name,
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? Colors.blue.shade700 : Colors.black,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _onTapField(BuildContext context, RenderBox renderBox) async {
+    final vm = context.read<CaseTypeViewModel>();
+
+    // Avoid multiple taps
+    if (vm.loading) return;
+
+    // fetch only if empty (vm handles internal caching)
+    if (vm.caseTypes.isEmpty) {
+      await vm.fetchCaseTypes();
+    }
+
+    // if still empty, don't open
+    if (vm.caseTypes.isEmpty) return;
+
+    // show overlay anchored to the field
+    final size = renderBox.size;
+    final offset = renderBox.localToGlobal(Offset.zero);
+    _showOverlay(context, size, offset);
   }
 
   @override
@@ -383,33 +432,44 @@ class _CaseTypeDropdownState extends State<CaseTypeDropdown> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _handleTap,
-      child: Container(
-        key: _fieldKey,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                _selectedName ?? widget.label,
-                style: const TextStyle(fontSize: 16),
+    // We wrap the field with CompositedTransformTarget so the follower can attach.
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: () {
+          final renderBox =
+              context.findRenderObject() as RenderBox?; // target render box
+          if (renderBox != null) {
+            _onTapField(context, renderBox);
+          }
+        },
+        child: Consumer<CaseTypeViewModel>(
+          builder: (context, vm, child) {
+            return Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.r, vertical: 14.r),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(8.r),
               ),
-            ),
-
-            // Loader from ViewModel
-            widget.vm.loading
-                ? const SizedBox(
-                    height: 18,
-                    width: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.arrow_drop_down),
-          ],
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      vm.selectedCaseTypeName ?? widget.label,
+                      style: TextStyle(fontSize: 16.sp),
+                    ),
+                  ),
+                  vm.loading
+                      ? SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.arrow_drop_down),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
