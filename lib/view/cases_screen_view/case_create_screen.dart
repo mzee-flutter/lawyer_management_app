@@ -86,10 +86,15 @@ class CaseCreateScreen extends StatelessWidget {
                   (BuildContext context, CaseTypeViewModel caseTypeVM, child) {
                 return CustomDropdownFormField(
                   label: "Select Case Type",
-                  items: caseTypeVM.caseTypes,
+                  items: caseTypeVM.items,
                   getId: (item) => item.id,
                   getLabel: (item) => item.name,
-                  onSelected: (String id) {},
+                  onSelected: (String id) {
+                    caseTypeVM.selectItem(
+                      id,
+                      caseTypeVM.items.firstWhere((type) => type.id == id).name,
+                    );
+                  },
                   viewModel: caseTypeVM,
                 );
               },

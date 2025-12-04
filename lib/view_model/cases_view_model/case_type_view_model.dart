@@ -9,9 +9,8 @@ class CaseTypeViewModel with ChangeNotifier {
   bool get loading => _loading;
 
   List<CaseTypeModel> _caseTypes = [];
-  List<CaseTypeModel> get caseTypes => _caseTypes;
+  List<CaseTypeModel> get items => _caseTypes;
 
-  /// Set loading true/false
   void _setLoading(bool value) {
     _loading = value;
     notifyListeners();

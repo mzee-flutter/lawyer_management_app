@@ -93,7 +93,7 @@ class _CustomDropdownFormFieldState<T>
   }
 
   Widget _buildList(BuildContext context, dynamic vm) {
-    final items = widget.items;
+    final items = vm.items;
     final selectedId = vm.selectedId;
 
     if (items.isEmpty) {
@@ -122,7 +122,10 @@ class _CustomDropdownFormFieldState<T>
             },
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 12.r, vertical: 14.r),
-              color: isSelected ? Colors.grey.shade200 : Colors.white,
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.grey.shade200 : Colors.white,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
               child: Text(
                 label,
                 style: TextStyle(
@@ -143,11 +146,11 @@ class _CustomDropdownFormFieldState<T>
 
     if (vm.loading == true) return;
 
-    if (widget.items.isEmpty && vm.fetchItems != null) {
+    if (vm.items.isEmpty) {
       await vm.fetchItems();
     }
 
-    if (widget.items.isEmpty) return;
+    if (vm.items.isEmpty) return;
 
     final size = renderBox.size;
     final offset = renderBox.localToGlobal(Offset.zero);
@@ -184,9 +187,9 @@ class _CustomDropdownFormFieldState<T>
                   ),
                   v.loading == true
                       ? SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          height: 18.h,
+                          width: 18.w,
+                          child: CircularProgressIndicator(strokeWidth: 2.w),
                         )
                       : Icon(Icons.arrow_drop_down),
                 ],
