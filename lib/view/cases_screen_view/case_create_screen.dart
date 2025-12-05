@@ -6,7 +6,10 @@ import 'package:provider/provider.dart';
 import 'package:right_case/resources/custom_dropdown_form_field.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
 import 'package:right_case/view_model/cases_view_model/case_create_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_stage_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_status_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_type_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/court_type_view_model.dart';
 
 class CaseCreateScreen extends StatelessWidget {
   const CaseCreateScreen({super.key});
@@ -121,14 +124,24 @@ class CaseCreateScreen extends StatelessWidget {
                 Expanded(child: Divider(indent: 5.w))
               ],
             ),
-
-            _buildLabels("Court Category"),
-            _customDropDownButtonFormField(
-              (value) => vm.courtCategoryId = value.toString(),
-              onTap: () {},
-              item: [
-                DropdownMenuItem(child: Text("this is the CourtCategory"))
-              ],
+            _buildLabels("Court Category*"),
+            Consumer<CourtTypeViewModel>(
+              builder: (BuildContext context, courtTypeVM, child) {
+                return CustomDropdownFormField(
+                    label: "Court Category",
+                    items: courtTypeVM.items,
+                    getId: (item) => item.id,
+                    getLabel: (item) => item.name,
+                    onSelected: (String id) {
+                      courtTypeVM.selectItem(
+                        id,
+                        courtTypeVM.items
+                            .firstWhere((court) => court.id == id)
+                            .name,
+                      );
+                    },
+                    viewModel: courtTypeVM);
+              },
             ),
             SizedBox(height: 12.h),
 
@@ -141,19 +154,45 @@ class CaseCreateScreen extends StatelessWidget {
             SizedBox(height: 12.h),
 
             _buildLabels("Case Stage"),
-            _customDropDownButtonFormField(
-              (value) => vm.caseStageId = value.toString(),
-              onTap: () {},
-              item: [DropdownMenuItem(child: Text("Cause is the CaseStage"))],
+            Consumer<CaseStageViewModel>(
+              builder: (BuildContext context, caseStageVM, child) {
+                return CustomDropdownFormField(
+                    label: "Case Stage",
+                    items: caseStageVM.items,
+                    getId: (item) => item.id,
+                    getLabel: (item) => item.name,
+                    onSelected: (String id) {
+                      caseStageVM.selectItem(
+                        id,
+                        caseStageVM.items
+                            .firstWhere((stage) => stage.id == id)
+                            .name,
+                      );
+                    },
+                    viewModel: caseStageVM);
+              },
             ),
             SizedBox(height: 12.h),
 
             _buildLabels("Case Status"),
-            _customDropDownButtonFormField(
-              (value) => vm.caseStatusId = value.toString(),
-              onTap: () {},
-              item: [],
-            ),
+            Consumer<CaseStatusViewModel>(
+                builder: (BuildContext context, caseStatusVM, child) {
+              return CustomDropdownFormField(
+                label: "Case Status",
+                items: caseStatusVM.items,
+                getId: (item) => item.id,
+                getLabel: (item) => item.name,
+                onSelected: (String id) {
+                  caseStatusVM.selectItem(
+                    id,
+                    caseStatusVM.items
+                        .firstWhere((status) => status.id == id)
+                        .name,
+                  );
+                },
+                viewModel: caseStatusVM,
+              );
+            }),
             SizedBox(height: 12.h),
 
             _buildLabels("Enter Legal Fee"),
