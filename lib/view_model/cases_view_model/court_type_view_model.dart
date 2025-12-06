@@ -10,23 +10,32 @@ class CourtTypeViewModel with ChangeNotifier {
   bool get loading => _loading;
 
   List<CourtCategoryModel> _courtType = [];
-  List<CourtCategoryModel> get items => _courtType;
+  List<CourtCategoryModel> get courtType => _courtType;
 
   void _setLoading(bool value) {
     _loading = value;
     notifyListeners();
   }
 
-  String? selectedId;
-  String? selectedName;
+  String? selectedCourtId;
+  String? selectedCourtName;
+  String? selectedSubCourtId;
+  String? selectedSubCourtName;
 
-  void selectItem(String id, String name) {
-    selectedId = id;
-    selectedName = name;
+  void selectCourtType(String id, String name) {
+    selectedCourtId = id;
+    selectedCourtName = name;
+    selectedSubCourtName = null;
     notifyListeners();
   }
 
-  Future<void> fetchItems() async {
+  void selectSubCourtType(String subId, String subName) {
+    selectedSubCourtId = subId;
+    selectedSubCourtName = subName;
+    notifyListeners();
+  }
+
+  Future<void> fetchCourtType() async {
     if (_courtType.isNotEmpty) return;
     try {
       _setLoading(true);
@@ -40,7 +49,3 @@ class CourtTypeViewModel with ChangeNotifier {
     }
   }
 }
-
-///Today we have just done the repo and view models for all the dropdown fields...
-///i just have to just wire up the view models with UI
-///and also register all the view models in the main files

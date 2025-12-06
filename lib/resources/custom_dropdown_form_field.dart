@@ -187,7 +187,7 @@ class _CustomDropdownFormFieldState<T>
                   ),
                   v.loading == true
                       ? SizedBox(
-                          height: 18.h,
+                          height: 16.h,
                           width: 18.w,
                           child: CircularProgressIndicator(strokeWidth: 2.w),
                         )

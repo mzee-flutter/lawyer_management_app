@@ -1,14 +1,15 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/resources/custom_dropdown_form_field.dart';
+import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/resources/custom_text_fields.dart';
 import 'package:right_case/view_model/cases_view_model/case_create_view_model.dart';
+import 'package:flutter/material.dart';
 import 'package:right_case/view_model/cases_view_model/case_stage_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_status_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_type_view_model.dart';
+import 'package:right_case/resources/custom_dropdown_form_field.dart';
 import 'package:right_case/view_model/cases_view_model/court_type_view_model.dart';
 
 class CaseCreateScreen extends StatelessWidget {
@@ -125,24 +126,30 @@ class CaseCreateScreen extends StatelessWidget {
               ],
             ),
             _buildLabels("Court Category*"),
-            Consumer<CourtTypeViewModel>(
-              builder: (BuildContext context, courtTypeVM, child) {
-                return CustomDropdownFormField(
-                    label: "Court Category",
-                    items: courtTypeVM.items,
-                    getId: (item) => item.id,
-                    getLabel: (item) => item.name,
-                    onSelected: (String id) {
-                      courtTypeVM.selectItem(
-                        id,
-                        courtTypeVM.items
-                            .firstWhere((court) => court.id == id)
-                            .name,
-                      );
-                    },
-                    viewModel: courtTypeVM);
+            CourtTypeDropdownField(
+              label: "Select court category",
+              onSelected: (id) {
+                context.read<CourtTypeViewModel>().selectedCourtId = id;
               },
             ),
+            // Consumer<CourtTypeViewModel>(
+            //   builder: (BuildContext context, courtTypeVM, child) {
+            //     return CourtTypeDropdownField(
+            //         label: "Court Category",
+            //         items: courtTypeVM.items,
+            //         getId: (item) => item.id,
+            //         getLabel: (item) => item.name,
+            //         onSelected: (String id) {
+            //           courtTypeVM.selectItem(
+            //             id,
+            //             courtTypeVM.items
+            //                 .firstWhere((court) => court.id == id)
+            //                 .name,
+            //           );
+            //         },
+            //         viewModel: courtTypeVM);
+            //   },
+            // ),
             SizedBox(height: 12.h),
 
             CustomTextField.fieldLabel('Enter Court Name'),
@@ -157,19 +164,20 @@ class CaseCreateScreen extends StatelessWidget {
             Consumer<CaseStageViewModel>(
               builder: (BuildContext context, caseStageVM, child) {
                 return CustomDropdownFormField(
-                    label: "Case Stage",
-                    items: caseStageVM.items,
-                    getId: (item) => item.id,
-                    getLabel: (item) => item.name,
-                    onSelected: (String id) {
-                      caseStageVM.selectItem(
-                        id,
-                        caseStageVM.items
-                            .firstWhere((stage) => stage.id == id)
-                            .name,
-                      );
-                    },
-                    viewModel: caseStageVM);
+                  label: "Case Stage",
+                  items: caseStageVM.items,
+                  getId: (item) => item.id,
+                  getLabel: (item) => item.name,
+                  onSelected: (String id) {
+                    caseStageVM.selectItem(
+                      id,
+                      caseStageVM.items
+                          .firstWhere((stage) => stage.id == id)
+                          .name,
+                    );
+                  },
+                  viewModel: caseStageVM,
+                );
               },
             ),
             SizedBox(height: 12.h),
@@ -312,6 +320,294 @@ class CaseCreateScreen extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class CourtTypeDropdownField extends StatefulWidget {
+  final String label;
+  final void Function(String id) onSelected;
+
+  const CourtTypeDropdownField({
+    super.key,
+    required this.label,
+    required this.onSelected,
+  });
+
+  @override
+  State<CourtTypeDropdownField> createState() => _CourtTypeDropdownFieldState();
+}
+
+class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlay;
+  bool _isOpen = false;
+
+  // Track expanded items
+  final Set<String> _expandedItems = {};
+
+  void _removeOverlay() {
+    _overlay?.remove();
+    _overlay = null;
+    _isOpen = false;
+  }
+
+  void _showOverlay(BuildContext context, Size fieldSize, Offset fieldOffset) {
+    if (_isOpen) {
+      _removeOverlay();
+      return;
+    }
+
+    final screenHeight = MediaQuery.of(context).size.height;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final availableHeight =
+        screenHeight - fieldOffset.dy - fieldSize.height - bottomPadding - 6.h;
+    final maxHeight = availableHeight > 150 ? availableHeight : 150;
+
+    _overlay = OverlayEntry(
+      builder: (context) {
+        return Stack(
+          children: [
+            // Modal barrier
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _removeOverlay,
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                ),
+              ),
+            ),
+
+            // Dropdown anchored
+            CompositedTransformFollower(
+              link: _layerLink,
+              showWhenUnlinked: false,
+              offset: Offset(0, fieldSize.height + 6),
+              child: Material(
+                elevation: 6,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: fieldSize.width,
+                  constraints: BoxConstraints(maxHeight: maxHeight.toDouble()),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: StatefulBuilder(
+                    builder: (context, setOverlayState) {
+                      void toggleExpanded(String id) {
+                        setState(() {
+                          if (_expandedItems.contains(id)) {
+                            _expandedItems.remove(id);
+                          } else {
+                            _expandedItems.add(id);
+                          }
+                        });
+                        setOverlayState(() {}); // rebuild overlay
+                      }
+
+                      return Scrollbar(
+                        child: ListView(
+                          padding: EdgeInsets.zero,
+                          children: _buildCourtTilesWithToggle(toggleExpanded),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    Overlay.of(context).insert(_overlay!);
+    _isOpen = true;
+  }
+
+  List<Widget> _buildCourtTilesWithToggle(void Function(String) toggleExpanded,
+      {double indent = 0}) {
+    final vm = context.read<CourtTypeViewModel>();
+    final items = vm.courtType;
+    final selectedId = vm.selectedCourtId;
+
+    return items.map((item) {
+      bool isSelected = selectedId == item.id;
+      bool isExpanded = _expandedItems.contains(item.id);
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () {
+              toggleExpanded(item.id);
+            },
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                  horizontal: 12.r + indent, vertical: 14.r),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.grey.shade200 : Colors.white,
+                borderRadius: BorderRadius.circular(
+                  8.r,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? Colors.blue.shade700 : Colors.black,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    isExpanded
+                        ? Icons.keyboard_arrow_down
+                        : Icons.keyboard_arrow_right,
+                    size: 18.r,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Divider(height: 1.h, color: Colors.grey.shade300),
+
+          // Subcategories
+          if (isExpanded)
+            ...item.subcategories!.map((sub) =>
+                _buildSubTile(sub, selectedId, indent + 20, toggleExpanded))
+        ],
+      );
+    }).toList();
+  }
+
+  Widget _buildSubTile(CourtCategoryModel sub, String? selectedId,
+      double indent, void Function(String) toggleExpanded) {
+    final isSelected = selectedId == sub.id;
+    final hasChildren =
+        sub.subcategories != null && sub.subcategories!.isNotEmpty;
+    final isExpanded = _expandedItems.contains(sub.id);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: hasChildren
+              ? () {
+                  toggleExpanded(sub.id);
+                }
+              : () {
+                  _removeOverlay();
+                  context
+                      .read<CourtTypeViewModel>()
+                      .selectCourtType(sub.id, sub.name);
+                  widget.onSelected(sub.id);
+                },
+          child: Container(
+            width: double.infinity,
+            padding:
+                EdgeInsets.symmetric(horizontal: 12.r + indent, vertical: 14.r),
+            color: isSelected ? Colors.grey.shade200 : Colors.white,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    sub.name,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected ? Colors.blue.shade700 : Colors.black,
+                    ),
+                  ),
+                ),
+                if (hasChildren)
+                  Icon(
+                    isExpanded
+                        ? Icons.keyboard_arrow_down
+                        : Icons.keyboard_arrow_right,
+                    size: 18.r,
+                  ),
+              ],
+            ),
+          ),
+        ),
+        Divider(height: 1.h, color: Colors.grey.shade300),
+        if (hasChildren && isExpanded)
+          ...sub.subcategories!.map((child) =>
+              _buildSubTile(child, selectedId, indent + 20, toggleExpanded)),
+      ],
+    );
+  }
+
+  Future<void> _onTapField(BuildContext context, RenderBox renderBox) async {
+    final vm = context.read<CourtTypeViewModel>();
+
+    if (vm.loading) return;
+
+    if (vm.courtType.isEmpty) {
+      await vm.fetchCourtType();
+    }
+
+    if (vm.courtType.isEmpty) return;
+
+    final size = renderBox.size;
+    final offset = renderBox.localToGlobal(Offset.zero);
+    _showOverlay(context, size, offset);
+  }
+
+  @override
+  void dispose() {
+    _removeOverlay();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: () {
+          final renderBox = context.findRenderObject() as RenderBox?;
+          if (renderBox != null) {
+            _onTapField(context, renderBox);
+          }
+        },
+        child: Consumer<CourtTypeViewModel>(
+          builder: (context, vm, child) {
+            return Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.r, vertical: 14.r),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      vm.selectedCourtName ?? widget.label,
+                      style: TextStyle(fontSize: 16.sp),
+                    ),
+                  ),
+                  vm.loading
+                      ? SizedBox(
+                          height: 16.h,
+                          width: 18.w,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.arrow_drop_down),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }
