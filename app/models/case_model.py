@@ -5,26 +5,20 @@ from app.database.base import Base
 import uuid
 
 
-from sqlalchemy import Column, String, ForeignKey, DateTime, func, Text, Numeric, JSON
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
-from app.database.base import Base
-import uuid
-
 
 class Case(Base):
     __tablename__ = "cases"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
     case_number = Column(String, unique=True, nullable=False)
     registration_date = Column(DateTime(timezone=True), nullable=False)
     court_name = Column(String, nullable=True)
     judge_name = Column(String, nullable=True)
 
-    # ✅ Client relations
-    first_party_id = Column(UUID(as_uuid=True), ForeignKey("client.id"), nullable=False)
-    second_party_id= Column(UUID(as_uuid=True), ForeignKey("client.id"), nullable= False)
-    opposite_party_name = Column(String, nullable=True)
+    # NEW — text based party names
+    first_party_name = Column(String, nullable=False)
+    opposite_party_name = Column(String, nullable=False)
 
     # Reference tables
     court_category_id = Column(UUID(as_uuid=True), ForeignKey("court_categories.id"), nullable=False)
@@ -41,14 +35,42 @@ class Case(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     archived_at = Column(DateTime(timezone=True), nullable=True)
 
-    # ✅ Relationships
-    first_party = relationship("Client", back_populates="cases", foreign_keys=[first_party_id])
-    second_party= relationship("Client", back_populates="cases", foreign_keys=[second_party_id])
+    # Relationship: related clients
+    related_clients = relationship(
+        "CaseRelatedClient",
+        back_populates="case",
+        cascade="all, delete-orphan"
+    )
+
+    # Relationship: uploaded files
+    files = relationship(
+        "CaseFile",
+        backref="case",
+        cascade="all, delete-orphan"
+    )
+
     court_category = relationship("CourtCategory")
     case_type = relationship("CaseType")
     case_stage = relationship("CaseStage")
     case_status = relationship("CaseStatus")
-    files = relationship("CaseFile", backref="case", cascade="all, delete-orphan")
+
+    
+
+
+
+# Attachment table for other related people
+class CaseRelatedClient(Base):
+    __tablename__ = "case_related_clients"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+    case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id", ondelete="CASCADE"))
+    client_id = Column(UUID(as_uuid=True), ForeignKey("client.id", ondelete="SET NULL"))
+
+    role = Column(String, nullable=True)
+
+    client = relationship("Client")
+    case = relationship("Case", back_populates="related_clients")
 
 
 
@@ -85,7 +107,7 @@ class CaseStatus(Base):
 class CaseFile(Base):
     __tablename__ = "case_files"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id"), nullable=False)
+    case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id", ondelete="CASCADE"))
     filename = Column(String, nullable=False)
     file_url = Column(String, nullable=False)
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())

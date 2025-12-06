@@ -20,12 +20,11 @@ class Client(Base):
     archived_at = Column(DateTime(timezone=True), nullable=True)
 
     
-    cases = relationship(
-        "Case",
-        back_populates="first_party",
-        foreign_keys="[Case.first_party_id]",
-        cascade="all, delete-orphan"
-    )
+    # cases = relationship(
+    #     "Case",
+    #     back_populates="first_party",
+    #     foreign_keys="[Case.first_party_id]"
+    # )
     # tasks = relationship("Task", back_populates="client", cascade="all, delete-orphan")
     # documents = relationship("Document", back_populates="client", cascade="all, delete-orphan")
     # notes_rel = relationship("Note", back_populates="client", cascade="all, delete-orphan")

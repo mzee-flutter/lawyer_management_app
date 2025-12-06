@@ -131,13 +131,15 @@ class CaseBase(BaseModel):
     registration_date: datetime
     court_name: Optional[str] = None
     judge_name: Optional[str] = None
-    first_party_id: UUID
-    second_party_id: UUID
-    opposite_party_name: Optional[str] = None
+
+    first_party_name: str
+    opposite_party_name: str
+
     court_category_id: UUID
     case_type_id: UUID
     case_stage_id: UUID
     case_status_id: UUID
+
     case_notes: Optional[str] = None
     related_files: Optional[List[Any]] = None
     legal_fees: Optional[float] = None
@@ -149,6 +151,11 @@ class CaseCreate(CaseBase):
 
 
 class CaseUpdate(BaseModel):
+    court_name: Optional[str] = None
+    judge_name: Optional[str] = None
+    first_party_name: Optional[str] = None
+    opposite_party_name: Optional[str] = None
+
     case_stage_id: Optional[UUID] = None
     case_status_id: Optional[UUID] = None
     case_notes: Optional[str] = None
@@ -164,16 +171,38 @@ class CasePublic(CaseBase):
     updated_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
 
-    # 🔗 Relationships
     court_category: Optional[CourtCategoryPublic] = None
     case_type: Optional[CaseTypePublic] = None
     case_stage: Optional[CaseStagePublic] = None
     case_status: Optional[CaseStatusPublic] = None
-    files: Optional[List[CaseFilePublic]] = None
 
-    # ✅ New: Include client data
-    first_party: Optional[ClientPublic] = None
-    second_party: Optional[ClientPublic] = None
+    files: Optional[List[CaseFilePublic]] = None
+    related_clients: Optional[List["CaseRelatedClientPublic"]] = None
 
     class Config:
         from_attributes = True
+
+
+
+
+# -----------------------------
+#  CaseRelaedClients Schemas
+# -----------------------------
+
+class CaseRelatedClientBase(BaseModel):
+    client_id: UUID
+    role: Optional[str] = None
+
+
+class CaseRelatedClientCreate(CaseRelatedClientBase):
+    pass
+
+
+class CaseRelatedClientPublic(BaseModel):
+    id: UUID
+    client: ClientPublic
+    role: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
