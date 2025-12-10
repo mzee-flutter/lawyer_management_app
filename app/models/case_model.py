@@ -64,8 +64,8 @@ class CaseRelatedClient(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id", ondelete="CASCADE"))
-    client_id = Column(UUID(as_uuid=True), ForeignKey("client.id", ondelete="SET NULL"))
+    case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+    client_id = Column(UUID(as_uuid=True), ForeignKey("client.id", ondelete="SET NULL"), nullable= True)
 
     role = Column(String, nullable=True)
 

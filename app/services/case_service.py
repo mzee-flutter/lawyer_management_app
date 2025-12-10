@@ -14,6 +14,7 @@ from app.repositories.case_repository import (
     CaseStageRepository,
     CaseStatusRepository,
     CaseFileRepository,
+    CaseRelatedClientRepository,
 )
 from app.schemas.case_schema import (
     CaseCreate,
@@ -25,7 +26,9 @@ from app.schemas.case_schema import (
     CaseTypePublic,
     CaseStagePublic,
     CaseStatusPublic,
-)
+    CaseRelatedClientCreate,
+    CaseRelatedClientPublic
+    )
 
 
 # -------------------------
@@ -190,6 +193,87 @@ class CaseService:
         CaseRepository.delete(db, case)
         return case_copy
 
+
+
+# ---------------------------------------------------
+# Case Related Clients Service
+# ---------------------------------------------------
+class CaseRelatedClientService:
+
+    @staticmethod
+    def add_related_client(
+        db: Session,
+        case_id: UUID,
+        data: CaseRelatedClientCreate
+    ) -> CaseRelatedClientPublic:
+
+        # Ensure case exists
+        case = CaseRepository.get_by_id(db, case_id)
+        if not case:
+            raise HTTPException(status_code=404, detail="Case not found")
+
+        # Create record
+        linked = CaseRelatedClientRepository.add_related_client(db, case_id, data)
+
+        # Return DTO
+        return CaseRelatedClientPublic.model_validate(linked)
+
+    @staticmethod
+    def get_all_related_clients(
+        db: Session,
+        case_id: UUID
+    ) -> list[CaseRelatedClientPublic]:
+
+        case = CaseRepository.get_by_id(db, case_id)
+        if not case:
+            raise HTTPException(status_code=404, detail="Case not found")
+
+        clients = CaseRelatedClientRepository.get_all_for_case(db, case_id)
+
+        return [CaseRelatedClientPublic.model_validate(rc) for rc in clients]
+
+    @staticmethod
+    def get_related_client(
+        db: Session,
+        related_id: UUID
+    ) -> CaseRelatedClientPublic:
+
+        rc = CaseRelatedClientRepository.get_by_id(db, related_id)
+        if not rc:
+            raise HTTPException(status_code=404, detail="Related client not found")
+
+        return CaseRelatedClientPublic.model_validate(rc)
+
+    @staticmethod
+    def update_related_client(
+        db: Session,
+        related_id: UUID,
+        role: str | None
+    ) -> CaseRelatedClientPublic:
+
+        rc = CaseRelatedClientRepository.get_by_id(db, related_id)
+        if not rc:
+            raise HTTPException(status_code=404, detail="Related client not found")
+
+        updated = CaseRelatedClientRepository.update(db, rc, role)
+
+        return CaseRelatedClientPublic.model_validate(updated)
+
+    @staticmethod
+    def delete_related_client(
+        db: Session,
+        related_id: UUID
+    ) -> CaseRelatedClientPublic:
+
+        rc = CaseRelatedClientRepository.get_by_id(db, related_id)
+        if not rc:
+            raise HTTPException(status_code=404, detail="Related client not found")
+
+        rc_copy = CaseRelatedClientPublic.model_validate(rc)
+
+        CaseRelatedClientRepository.delete(db, rc)
+
+        return rc_copy
 
 
 # ---------------------------------------------------

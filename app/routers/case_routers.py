@@ -7,12 +7,14 @@ from app.schemas.case_schema import (
     CaseCreate, CaseUpdate, CasePublic,
     CourtCategoryPublic, CaseTypePublic,
     CaseStagePublic, CaseStatusPublic,
-    CaseFileCreate, CaseFilePublic
-)
+    CaseFileCreate, CaseFilePublic, CaseRelatedClientPublic,
+    CaseRelatedClientCreate,
+    )
 from app.services.case_service import (
     CaseService, CourtCategoryService,
     CaseTypeService, CaseStageService,
-    CaseStatusService, CaseFileService
+    CaseStatusService, CaseFileService,
+    CaseRelatedClientService
 )
 
 router = APIRouter(prefix="/api/v1/cases", tags=["Cases"])
@@ -184,3 +186,55 @@ def restore_case(case_id: UUID, db: Session = Depends(get_db)):
 def delete_case_permanently(case_id: UUID, db: Session = Depends(get_db)):
     """Permanently delete a case"""
     return CaseService.delete_case_permanently(db, case_id)
+
+
+
+# ---------------------------------------------------
+# Related Clients Routes
+# ---------------------------------------------------
+
+@router.post("/{case_id}/related-clients", response_model=CaseRelatedClientPublic)
+def add_related_client(
+    case_id: UUID,
+    data: CaseRelatedClientCreate,
+    db: Session = Depends(get_db)
+):
+    """Attach a client to a case"""
+    return CaseRelatedClientService.add_related_client(db, case_id, data)
+
+
+@router.get("/{case_id}/related-clients", response_model=list[CaseRelatedClientPublic])
+def list_related_clients(
+    case_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """Get all related clients attached to a case"""
+    return CaseRelatedClientService.get_all_related_clients(db, case_id)
+
+
+@router.get("/related-clients/{related_id}", response_model=CaseRelatedClientPublic)
+def get_related_client(
+    related_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """Get a single related client entry"""
+    return CaseRelatedClientService.get_related_client(db, related_id)
+
+
+@router.put("/related-clients/{related_id}", response_model=CaseRelatedClientPublic)
+def update_related_client(
+    related_id: UUID,
+    role: str | None = None,
+    db: Session = Depends(get_db)
+):
+    """Update related client role"""
+    return CaseRelatedClientService.update_related_client(db, related_id, role)
+
+
+@router.delete("/related-clients/{related_id}", response_model=CaseRelatedClientPublic)
+def delete_related_client(
+    related_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """Remove a related client from the case"""
+    return CaseRelatedClientService.delete_related_client(db, related_id)
