@@ -6,27 +6,30 @@ class CaseModel {
   final DateTime registrationDate;
   final String? courtName;
   final String? judgeName;
-  final String firstPartyId;
-  final String secondPartyId;
+
+  final String firstPartyName;
   final String? oppositePartyName;
+
   final String courtCategoryId;
   final String caseTypeId;
   final String caseStageId;
   final String caseStatusId;
+
   final String? caseNotes;
-  final List<dynamic>? relatedFiles;
   final double? legalFees;
   final String? status;
+
   final DateTime createdAt;
   final DateTime? updatedAt;
   final DateTime? archivedAt;
+
   final CourtCategoryModel? courtCategory;
   final CaseTypeModel? caseType;
   final CaseStageModel? caseStage;
   final CaseStatusModel? caseStatus;
+
   final List<CaseFileModel>? files;
-  final ClientModel? firstParty;
-  final ClientModel? secondParty;
+  final List<RelatedClientModel>? relatedClients;
 
   CaseModel({
     required this.id,
@@ -34,15 +37,13 @@ class CaseModel {
     required this.registrationDate,
     this.courtName,
     this.judgeName,
-    required this.firstPartyId,
-    required this.secondPartyId,
+    required this.firstPartyName,
     this.oppositePartyName,
     required this.courtCategoryId,
     required this.caseTypeId,
     required this.caseStageId,
     required this.caseStatusId,
     this.caseNotes,
-    this.relatedFiles,
     this.legalFees,
     this.status,
     required this.createdAt,
@@ -53,8 +54,7 @@ class CaseModel {
     this.caseStage,
     this.caseStatus,
     this.files,
-    this.firstParty,
-    this.secondParty,
+    this.relatedClients,
   });
 
   factory CaseModel.fromJson(Map<String, dynamic> json) {
@@ -64,16 +64,14 @@ class CaseModel {
       registrationDate: DateTime.parse(json["registration_date"]),
       courtName: json["court_name"],
       judgeName: json["judge_name"],
-      firstPartyId: json["first_party_id"],
-      secondPartyId: json["second_party_id"],
+      firstPartyName: json["first_party_name"],
       oppositePartyName: json["opposite_party_name"],
       courtCategoryId: json["court_category_id"],
       caseTypeId: json["case_type_id"],
       caseStageId: json["case_stage_id"],
       caseStatusId: json["case_status_id"],
       caseNotes: json["case_notes"],
-      relatedFiles: json["related_files"],
-      legalFees: (json["legal_fees"] != null)
+      legalFees: json["legal_fees"] != null
           ? (json["legal_fees"] as num).toDouble()
           : null,
       status: json["status"],
@@ -100,48 +98,118 @@ class CaseModel {
           ? List<CaseFileModel>.from(
               json["files"].map((x) => CaseFileModel.fromJson(x)))
           : null,
-      firstParty: json["first_party"] != null
-          ? ClientModel.fromJson(json["first_party"])
-          : null,
-      secondParty: json["second_party"] != null
-          ? ClientModel.fromJson(json["second_party"])
+      relatedClients: json["related_clients"] != null
+          ? List<RelatedClientModel>.from(json["related_clients"]
+              .map((x) => RelatedClientModel.fromJson(x)))
           : null,
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "case_number": caseNumber,
-        "registration_date": registrationDate.toIso8601String(),
-        "court_name": courtName,
-        "judge_name": judgeName,
-        "first_party_id": firstPartyId,
-        "second_party_id": secondPartyId,
-        "opposite_party_name": oppositePartyName,
-        "court_category_id": courtCategoryId,
-        "case_type_id": caseTypeId,
-        "case_stage_id": caseStageId,
-        "case_status_id": caseStatusId,
-        "case_notes": caseNotes,
-        "related_files": relatedFiles,
-        "legal_fees": legalFees,
-        "status": status,
-        "created_at": createdAt.toIso8601String(),
-        "updated_at": updatedAt?.toIso8601String(),
-        "archived_at": archivedAt?.toIso8601String(),
-        "court_category": courtCategory?.toJson(),
-        "case_type": caseType?.toJson(),
-        "case_stage": caseStage?.toJson(),
-        "case_status": caseStatus?.toJson(),
-        "files": files?.map((x) => x.toJson()).toList(),
-        "first_party": firstParty?.toJson(),
-        "second_party": secondParty?.toJson(),
-      };
-
-  static List<CaseModel> listFromJson(List<dynamic> data) =>
-      data.map((e) => CaseModel.fromJson(e)).toList();
+  CaseModel copyWith({
+    String? id,
+    String? caseNumber,
+    DateTime? registrationDate,
+    String? courtName,
+    String? judgeName,
+    String? firstPartyName,
+    String? oppositePartyName,
+    String? courtCategoryId,
+    String? caseTypeId,
+    String? caseStageId,
+    String? caseStatusId,
+    String? caseNotes,
+    double? legalFees,
+    String? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? archivedAt,
+    CourtCategoryModel? courtCategory,
+    CaseTypeModel? caseType,
+    CaseStageModel? caseStage,
+    CaseStatusModel? caseStatus,
+    List<CaseFileModel>? files,
+    List<RelatedClientModel>? relatedClients,
+  }) {
+    return CaseModel(
+      id: id ?? this.id,
+      caseNumber: caseNumber ?? this.caseNumber,
+      registrationDate: registrationDate ?? this.registrationDate,
+      courtName: courtName ?? this.courtName,
+      judgeName: judgeName ?? this.judgeName,
+      firstPartyName: firstPartyName ?? this.firstPartyName,
+      oppositePartyName: oppositePartyName ?? this.oppositePartyName,
+      courtCategoryId: courtCategoryId ?? this.courtCategoryId,
+      caseTypeId: caseTypeId ?? this.caseTypeId,
+      caseStageId: caseStageId ?? this.caseStageId,
+      caseStatusId: caseStatusId ?? this.caseStatusId,
+      caseNotes: caseNotes ?? this.caseNotes,
+      legalFees: legalFees ?? this.legalFees,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      archivedAt: archivedAt ?? this.archivedAt,
+      courtCategory: courtCategory ?? this.courtCategory,
+      caseType: caseType ?? this.caseType,
+      caseStage: caseStage ?? this.caseStage,
+      caseStatus: caseStatus ?? this.caseStatus,
+      files: files ?? this.files,
+      relatedClients: relatedClients ?? this.relatedClients,
+    );
+  }
 }
 
+///--------------------------
+class RelatedClientModel {
+  final String id;
+  final ClientModel client;
+  final String role;
+  final bool isSynced;
+
+  RelatedClientModel({
+    required this.id,
+    required this.client,
+    required this.role,
+    required this.isSynced,
+  });
+
+  factory RelatedClientModel.fromJson(Map<String, dynamic> json) {
+    return RelatedClientModel(
+      id: json["id"],
+      client: ClientModel.fromJson(json["client"]),
+      role: json["role"],
+      isSynced: true, // server data is ALWAYS synced
+    );
+  }
+
+  RelatedClientModel copyWith({
+    String? id,
+    ClientModel? client,
+    String? role,
+    bool? isSynced,
+  }) {
+    return RelatedClientModel(
+      id: id ?? this.id,
+      client: client ?? this.client,
+      role: role ?? this.role,
+      isSynced: isSynced ?? this.isSynced,
+    );
+  }
+}
+
+class RelatedClientRequestModel {
+  final String clientId;
+  final String role;
+  RelatedClientRequestModel({
+    required this.clientId,
+    required this.role,
+  });
+
+  Map<String, dynamic> toJson() => {
+        "client_id": clientId,
+        "role": role,
+      };
+}
+
+///----------------------------------
 class CourtCategoryModel {
   final String id;
   final String name;
