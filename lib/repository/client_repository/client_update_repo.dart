@@ -14,11 +14,14 @@ class ClientUpdateRepo {
     final requestBody = client.toJson();
     try {
       final response = await _services.getPatchApiRequest(
-          "${ClientURl.baseUrl}$id", ClientURl.headers, requestBody);
+        "${ClientURl.baseUrl}$id",
+        ClientURl.headers,
+        requestBody,
+      );
       final dbClient = ClientModel.fromJson(response);
       return dbClient;
     } catch (e) {
-      debugPrint("Error in ClientCreateRepo: $e");
+      debugPrint("Error in ClientUpdateRepo: $e");
       rethrow;
     }
   }

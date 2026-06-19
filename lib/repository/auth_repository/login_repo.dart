@@ -6,14 +6,19 @@ import 'package:right_case/view_model/services/token_storage_service.dart';
 import 'package:right_case/models/auth_models/login_request_model.dart';
 import 'package:right_case/resources/URLs/auth_urls.dart';
 
+
 class LoginRepository {
   final BaseApiServices _services = NetworkApiServices();
+
   final TokenStorageService _tokenStorage = TokenStorageService();
 
   Future<AuthModel> loginUser(LoginRequestModel user) async {
-    final header = {'Content-Type': 'application/json'};
+    final header = {
+      'Content-Type': 'application/json',
+    };
     final requestBody = user.toJson();
     try {
+
       final response = await _services.getPostApiRequest(
         "${AuthURL.baseURl}/login",
         header,
@@ -34,6 +39,19 @@ class LoginRepository {
     } catch (e) {
       debugPrint(e.toString());
       rethrow;
+    }
+  }
+
+  Future<void> registerFCMToken(String userId, String token) async {
+    try {
+      await _services.getPostApiRequest(
+        "${AuthURL.baseURl}/fcm-token",
+        {"Content-Type": "application/json"},
+        {"fcm_token": token},
+      );
+      debugPrint("✅ FCM token sent to backend");
+    } catch (e) {
+      debugPrint("❌ Failed to send FCM token: $e");
     }
   }
 }
