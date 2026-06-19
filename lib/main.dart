@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:right_case/utils/navigation/navigation_service.dart';
 import 'package:right_case/utils/routes/routes.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/view_model/auth_view_models/login_user_info_view_model.dart';
@@ -10,45 +12,56 @@ import 'package:right_case/view_model/auth_view_models/logout_view_model.dart';
 import 'package:right_case/view_model/auth_view_models/refresh_acces_token_view_model.dart';
 import 'package:right_case/view_model/auth_view_models/register_view_model.dart';
 import 'package:right_case/view_model/calendar_view_model/calendar_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_archive_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_archived_list_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_create_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_permanent_delete_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_restore_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_stage_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_status_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_type_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_update_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/court_type_view_model.dart';
-import 'package:right_case/view_model/cases_view_model/edit_case_view_model.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/hearing_create_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/hearing_delete_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/hearing_list_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/hearing_update_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/single_case_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_archive_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_archived_list_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_create_view_model.dart';
+import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_permanent_delete_view_model.dart';
 import 'package:right_case/view_model/client_view_model/client_restore_view_model.dart';
-
 import 'package:right_case/view_model/client_view_model/client_update_view_model.dart';
-import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
-
+import 'package:right_case/view_model/services/firebase_notification_service.dart';
 import 'package:right_case/view_model/services/login_and_signup_view_model.dart';
 import 'package:right_case/view_model/splash_view_model.dart';
+
+@pragma('vm:entry-print')
+Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  await Hive.initFlutter();
-
-  // Hive.registerAdapter(ClientModelAdapter());
-  // Hive.registerAdapter(CaseModelAdapter());
-
-  // await Hive.openBox<ClientModel>('clients');
-  // await Hive.openBox<CaseModel>('cases');
-  // await Hive.openBox('authBox');
+  await FirebaseNotificationService().init();
+  FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
 
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -63,7 +76,7 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => ClientCreateViewModel()),
             ChangeNotifierProvider(create: (_) => ClientUpdateViewModel()),
             ChangeNotifierProvider(create: (_) => CaseCreateViewModel()),
-            ChangeNotifierProvider(create: (_) => EditCaseViewModel()),
+            ChangeNotifierProvider(create: (_) => CaseUpdateViewModel()),
             ChangeNotifierProvider(create: (_) => LoginAndSignUpViewModel()),
             ChangeNotifierProvider(create: (_) => CalendarViewModel()),
             ChangeNotifierProvider(create: (_) => SplashViewModel()),
@@ -83,8 +96,19 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => CaseStageViewModel()),
             ChangeNotifierProvider(create: (_) => CaseStatusViewModel()),
             ChangeNotifierProvider(create: (_) => CourtTypeViewModel()),
+            ChangeNotifierProvider(create: (_) => CaseArchiveViewModel()),
+            ChangeNotifierProvider(
+                create: (_) => CasePermanentDeleteViewModel()),
+            ChangeNotifierProvider(create: (_) => CaseArchivedListViewModel()),
+            ChangeNotifierProvider(create: (_) => CaseRestoreViewModel()),
+            ChangeNotifierProvider(create: (_) => HearingListViewModel()),
+            ChangeNotifierProvider(create: (_) => HearingDeleteViewModel()),
+            ChangeNotifierProvider(create: (_) => HearingCreateViewModel()),
+            ChangeNotifierProvider(create: (_) => HearingUpdateViewModel()),
+            ChangeNotifierProvider(create: (_) => SingleCaseViewModel()),
           ],
           child: MaterialApp(
+            navigatorKey: NavigationService.navigatorKey,
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               primarySwatch: Colors.blue,
