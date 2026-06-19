@@ -21,10 +21,8 @@ class Client(Base):
 
     
     cases = relationship(
-        "Case",
-        back_populates="first_party",
-        foreign_keys="[Case.first_party_id]",
-        cascade="all, delete-orphan"
+        "CaseRelatedClient",
+        backref="client",
     )
     # tasks = relationship("Task", back_populates="client", cascade="all, delete-orphan")
     # documents = relationship("Document", back_populates="client", cascade="all, delete-orphan")

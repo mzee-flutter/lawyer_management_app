@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, asc, desc
-from app.models.case_model import Case, CourtCategory, CaseType, CaseStage, CaseStatus, CaseFile
-from app.schemas.case_schema import CaseCreate, CaseFileCreate, CaseUpdate
+from app.models.case_model import Case, CourtCategory, CaseType, CaseStage, CaseStatus, CaseFile, CaseRelatedClient
+from app.schemas.case_schema import CaseCreate, CaseFileCreate, CaseUpdate, CaseRelatedClientCreate, CaseRelatedClientPublic
+
 from datetime import datetime, timezone
 from uuid import UUID
 import uuid
@@ -130,8 +131,48 @@ class CaseRepository:
 
 
 
+class CaseRelatedClientRepository:
+
+    # Attach a client to a case
+    @staticmethod
+    def add_related_client(db: Session, case_id: UUID, data: CaseRelatedClientCreate):
+        related_client = CaseRelatedClient(
+            id=uuid.uuid4(),
+            case_id=case_id,
+            client_id=data.client_id,
+            role=data.role
+        )
+        db.add(related_client)
+        db.commit()
+        db.refresh(related_client)
+        return related_client
+
+    # Get all related clients of a case
+    @staticmethod
+    def get_all_for_case(db: Session, case_id: UUID) -> list[CaseRelatedClient]:
+        return db.query(CaseRelatedClient).filter(CaseRelatedClient.case_id == case_id).all()
+
+    # Get one related client
+    @staticmethod
+    def get_by_id(db: Session, related_client_id: UUID):
+        return db.query(CaseRelatedClient).filter(CaseRelatedClient.id == related_client_id).first()
+
+    # Update related client's role
+    @staticmethod
+    def update(db: Session, related_client: CaseRelatedClient, role: str | None):
+        related_client.role = role
+        db.commit()
+        db.refresh(related_client)
+        return related_client
+
+    # Remove a related client entry (does NOT delete client)
+    @staticmethod
+    def delete(db: Session, related_client: CaseRelatedClient):
+        db.delete(related_client)
+        db.commit()
 
 
+#---------------------------------------------------#
 
 class CourtCategoryRepository:
 
