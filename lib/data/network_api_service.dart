@@ -7,6 +7,7 @@ import 'package:right_case/data/base_api_service.dart';
 import 'package:right_case/repository/auth_repository/refresh_access_token_repo.dart';
 import 'package:right_case/view_model/services/token_storage_service.dart';
 
+
 class NetworkApiServices extends BaseApiServices {
   final TokenStorageService _tokenStorage = TokenStorageService();
   late final RefreshAccessTokenRepo _refreshRepo;
@@ -45,6 +46,8 @@ class NetworkApiServices extends BaseApiServices {
         response = await requestFunction(headers);
       }
       return _checkAndReturnApiResponse(response);
+    } on ApiException {
+      rethrow;
     } on SocketException catch (e) {
       debugPrint("SocketException: $e");
       throw FetchDataException("Network error: ${e.message}");
@@ -54,7 +57,7 @@ class NetworkApiServices extends BaseApiServices {
     } catch (e, stack) {
       debugPrint("Unknown error: $e");
       debugPrint(stack.toString());
-      throw FetchDataException("Unexpected error: $e");
+      throw FetchDataException("Something went wrong");
     }
   }
 
@@ -110,20 +113,55 @@ class NetworkApiServices extends BaseApiServices {
   }
 
   dynamic _checkAndReturnApiResponse(http.Response response) {
+    dynamic responseData;
+    try {
+      responseData = jsonDecode(response.body);
+    } catch (_) {
+      responseData = null;
+    }
+
     switch (response.statusCode) {
-      case 200 || 201:
-        return jsonDecode(response.body);
+      case 200:
+      case 201:
+        return responseData;
 
       case 400:
-        throw BadRequestException("Bad request");
+        final message = responseData is Map && responseData["detail"] != null
+            ? responseData["detail"]
+            : "Bad request";
+        throw BadRequestException(message);
 
       case 401:
       case 403:
         throw UnauthorizedRequestException("Unauthorized");
 
+      case 409:
+        final message = responseData is Map && responseData["detail"] != null
+            ? responseData["detail"]
+            : "Conflict";
+        throw FetchDataException(message);
+
       case 500:
       default:
-        throw FetchDataException("Error occurred: ${response.statusCode}");
+        throw FetchDataException(
+          responseData?["detail"] ?? "Error occurred: ${response.statusCode}",
+        );
     }
+  }
+
+  String extractErrorMessage(dynamic responseBody) {
+    if (responseBody is Map && responseBody['detail'] != null) {
+      final detail = responseBody['detail'];
+
+      if (detail is String) {
+        return detail;
+      }
+
+      if (detail is List) {
+        return detail.map((e) => e['msg'] ?? 'Invalid input').join(', ');
+      }
+    }
+
+    return 'Something went wrong';
   }
 }
