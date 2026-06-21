@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:right_case/models/case_models/case_create_model.dart';
+import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/repository/case_repository/case_create_repo.dart';
 
 class CaseCreateViewModel with ChangeNotifier {
@@ -7,21 +8,23 @@ class CaseCreateViewModel with ChangeNotifier {
   final TextEditingController caseNumberController = TextEditingController();
   final TextEditingController courtNameController = TextEditingController();
   final TextEditingController judgeNameController = TextEditingController();
+  final TextEditingController firstPartyNameController =
+      TextEditingController();
   final TextEditingController oppositePartyNameController =
       TextEditingController();
   final TextEditingController caseNotesController = TextEditingController();
   final TextEditingController legalFeesController = TextEditingController();
 
-  // UUID fields selected from dropdowns
-  String? firstPartyId;
-  String? secondPartyId;
-  String? courtCategoryId;
-  String? caseTypeId;
-  String? caseStageId;
-  String? caseStatusId;
-
   // Registration Date
-  DateTime? registrationDate;
+  DateTime? _registrationDate;
+  DateTime? get registrationDate => _registrationDate;
+
+  void setRegistrationDate(DateTime? date) {
+    if (date != null) {
+      _registrationDate = date;
+    }
+    notifyListeners();
+  }
 
   bool _loading = false;
   bool get loading => _loading;
@@ -31,21 +34,19 @@ class CaseCreateViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> createCase(BuildContext context) async {
-    if (firstPartyId == null || secondPartyId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please select both parties")),
-      );
-      return;
-    }
-
-    final model = CaseCreateModel(
+  Future<CaseModel> createCase({
+    required String courtCategoryId,
+    required String caseTypeId,
+    required String caseStageId,
+    required String caseStatusId,
+    required context, // only for snackbar/navigation
+  }) async {
+    final createCase = CaseCreateModel(
       caseNumber: caseNumberController.text.trim(),
       registrationDate: registrationDate ?? DateTime.now(),
       courtName: courtNameController.text.trim(),
       judgeName: judgeNameController.text.trim(),
-      firstPartyId: firstPartyId,
-      secondPartyId: secondPartyId,
+      firstPartyName: firstPartyNameController.text.trim(),
       oppositePartyName: oppositePartyNameController.text.trim(),
       courtCategoryId: courtCategoryId,
       caseTypeId: caseTypeId,
@@ -59,18 +60,36 @@ class CaseCreateViewModel with ChangeNotifier {
 
     try {
       setLoading(true);
-      await _caseCreateRepo.createCase(model);
+      final dbCase = await _caseCreateRepo.createCase(createCase);
 
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Case created successfully")),
-      );
+      return dbCase;
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      debugPrint("Error in CaseCreateViewModel: ${e.toString()}");
+      rethrow;
     } finally {
       setLoading(false);
     }
+  }
+
+  void resetForm() {
+    caseNumberController.clear();
+    courtNameController.clear();
+    judgeNameController.clear();
+    firstPartyNameController.clear();
+    oppositePartyNameController.clear();
+    caseNotesController.clear();
+    legalFeesController.clear();
+  }
+
+  @override
+  void dispose() {
+    caseNumberController.dispose();
+    courtNameController.dispose();
+    judgeNameController.dispose();
+    firstPartyNameController.dispose();
+    oppositePartyNameController.dispose();
+    caseNotesController.dispose();
+    legalFeesController.dispose();
+    super.dispose();
   }
 }

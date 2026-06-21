@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:right_case/models/case_models/case_model.dart';
-import 'package:right_case/models/client_models/client_model.dart';
+
 import 'package:right_case/repository/case_repository/cases_list_repo.dart';
-import 'package:right_case/repository/client_repository/client_list_repo.dart';
 
 class CaseListViewModel extends ChangeNotifier {
   final CasesListRepo _casesListRepo = CasesListRepo();
   final TextEditingController searchController = TextEditingController();
   final FocusNode searchFocusNode = FocusNode();
+
+  bool _isButtonIsVisible = true;
+  bool get isButtonIsVisible => _isButtonIsVisible;
 
   String _searchQuery = '';
   String get searchQuery => _searchQuery;
@@ -57,27 +60,57 @@ class CaseListViewModel extends ChangeNotifier {
     _caseList = cases;
     notifyListeners();
   }
-  //
-  // void addClient(ClientModel client) {
-  //   _clientList.insert(0, client);
-  //   notifyListeners();
-  // }
-  //
-  // void updateClient(ClientModel updateClient) {
-  //   final index = _clientList.indexWhere((c) => c.id == updateClient.id);
-  //   if (index != -1) {
-  //     _clientList[index] = updateClient;
-  //     notifyListeners();
-  //   }
-  // }
-  //
-  // void removeClient(ClientModel archiveClient) {
-  //   final index = _clientList.indexWhere((c) => c.id == archiveClient.id);
-  //   if (index != -1) {
-  //     _clientList.removeAt(index);
-  //     notifyListeners();
-  //   }
-  // }
+
+  CaseModel? getCaseById(String caseId) {
+    return _caseList.where((c) => c.id == caseId).firstOrNull;
+  }
+
+  void addCase(CaseModel caseData) {
+    _caseList.insert(0, caseData);
+    notifyListeners();
+  }
+
+  void updateCase(CaseModel dbCase) {
+    final index = _caseList.indexWhere((c) => c.id == dbCase.id);
+    if (index != -1) {
+      _caseList[index] = dbCase;
+      notifyListeners();
+    }
+  }
+
+  void removeCase(CaseModel archiveCase) {
+    final index = _caseList.indexWhere((c) => c.id == archiveCase.id);
+    if (index != -1) {
+      _caseList.removeAt(index);
+      notifyListeners();
+    }
+  }
+
+  /// This method is use for the upward syncing of files
+  void updateCaseFiles({
+    required String caseId,
+    required List<CaseFileModel> files,
+  }) {
+    final index = _caseList.indexWhere((c) => c.id == caseId);
+    if (index != -1) {
+      _caseList[index] = _caseList[index].copyWith(files: files);
+      notifyListeners();
+    }
+  }
+
+  /// This method is use for the upward syncing of relatedClients
+  void updateRelatedClients({
+    required String caseId,
+    required List<RelatedClientModel> relatedClients,
+  }) {
+    final index = _caseList.indexWhere((c) => c.id == caseId);
+    if (index != -1) {
+      _caseList[index] = _caseList[index].copyWith(
+        relatedClients: relatedClients,
+      );
+      notifyListeners();
+    }
+  }
 
   /// Fetch page 1 (loadMore=false) or next page (loadMore=true).
   Future<void> fetchCaseList({
@@ -105,7 +138,7 @@ class CaseListViewModel extends ChangeNotifier {
       );
 
       /// If backend returned nothing, stop further calls
-      if (cases.isEmpty) {
+      if (cases.length < _size) {
         _hasMore = false;
       }
       if (isRefresh) {
@@ -127,6 +160,15 @@ class CaseListViewModel extends ChangeNotifier {
       } else {
         _setLoading(false);
       }
+    }
+  }
+
+  void handleScroll(ScrollDirection direction) {
+    final bool shouldBeVisible = direction == ScrollDirection.forward;
+
+    if (_isButtonIsVisible != shouldBeVisible) {
+      _isButtonIsVisible = shouldBeVisible;
+      notifyListeners();
     }
   }
 

@@ -25,6 +25,15 @@ class CaseTypeViewModel with ChangeNotifier {
     notifyListeners();
   }
 
+  void trySelectById(String? id) {
+    if (id == null || _caseTypes.isEmpty) return;
+
+    final match = _caseTypes.where((e) => e.id == id).toList();
+    if (match.isNotEmpty) {
+      selectItem(match.first.id, match.first.name);
+    }
+  }
+
   /// Fetch Case Types from API
   Future<void> fetchItems() async {
     if (_caseTypes.isNotEmpty) return;
@@ -38,5 +47,10 @@ class CaseTypeViewModel with ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  void reset() {
+    selectedId = null;
+    notifyListeners();
   }
 }
