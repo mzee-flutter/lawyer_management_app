@@ -36,3 +36,8 @@ class TimeOutException extends ApiException {
   @override
   String toString() => message;
 }
+
+class NotFoundException extends ApiException {
+  NotFoundException([String? message])
+      : super(message!, "Resource Not Found: ");
+}
