@@ -1,25 +1,81 @@
-import 'package:flutter/cupertino.dart';
-import 'package:right_case/utils/routes/routes_names.dart';
+import 'package:all/all.dart';
+import 'package:right_case/utils/routes/notification_router.dart';
+import 'package:right_case/view/cases_screen_view/hearing_list_screen_view.dart';
+import 'package:right_case/view/home_screen_view.dart';
+import 'package:right_case/view/sign_in_screen_view.dart';
 import 'package:right_case/view_model/services/token_storage_service.dart';
 
 class SplashViewModel with ChangeNotifier {
   final TokenStorageService _tokenStorage = TokenStorageService();
 
-  Future<void> getInitialRoute(context) async {
-    final hasSession = await _tokenStorage.hasValidSession();
-    // final accessToken = await _tokenStorage.getAccessToken();
-    // final expiry = await _tokenStorage.getAccessTokenExpiry();
-    // print("accessToken: $accessToken");
-    // print("expiry: $expiry");
-    // print("now: ${DateTime.now().millisecondsSinceEpoch}");
-    // print("valid Session: $hasSession");
+  Future<void> getInitialRouting(BuildContext context) async {
+    final bool isLoggedIn = await _tokenStorage.hasValidSession();
 
-    await Future.delayed(Duration(seconds: 3));
+    if (!isLoggedIn) {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (_) => SignInScreen()));
+      return;
+    }
 
-    if (hasSession) {
-      Navigator.pushReplacementNamed(context, RoutesName.homeScreen);
+    if (NotificationRouter.pendingPayload != null) {
+      final payload = NotificationRouter.pendingPayload;
+
+      NotificationRouter.pendingPayload = null;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomeScreen(),
+          ),
+        );
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HearingListScreenView(
+              caseId: payload!.caseId,
+              hearingId: payload.hearingId,
+            ),
+          ),
+        );
+      });
     } else {
-      Navigator.pushReplacementNamed(context, RoutesName.signInScreen);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomeScreen(),
+          ),
+        );
+      });
     }
   }
+
+  // Future<void> getInitialRoute(BuildContext context) async {
+  //   final hasSession = await _tokenStorage.hasValidSession();
+  //   // final accessToken = await _tokenStorage.getAccessToken();
+  //   // final expiry = await _tokenStorage.getAccessTokenExpiry();
+  //   // print("accessToken: $accessToken");
+  //   // print("expiry: $expiry");
+  //   // print("now: ${DateTime.now().millisecondsSinceEpoch}");
+  //   // print("valid Session: $hasSession");
+  //
+  //   await Future.delayed(const Duration(seconds: 3));
+  //
+  //   debugPrint("Pending notification: ${NotificationRouter.pendingPayload}");
+  //
+  //   if (NotificationRouter.pendingPayload != null) {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       NotificationRouter.handlePendingNavigation(context);
+  //     });
+  //     return;
+  //   }
+  //
+  //   if (hasSession) {
+  //     Navigator.pushReplacementNamed(context, RoutesName.homeScreen);
+  //   } else {
+  //     Navigator.pushReplacementNamed(context, RoutesName.signInScreen);
+  //   }
+  // }
 }
