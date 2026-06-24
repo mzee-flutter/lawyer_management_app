@@ -19,8 +19,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
   @override
   void initState() {
     super.initState();
-    final clientListVM =
-        Provider.of<ClientListViewModel>(context, listen: false);
+    final clientListVM = context.read<ClientListViewModel>();
 
     // initial fetch
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -30,14 +29,14 @@ class _ClientsScreenState extends State<ClientsScreen> {
     ///This is another way to control the scrolling and fetching more clients
     ///We have another way of doing this in ClientArchivedListScreen both works same.
     _scrollController.addListener(() {
-      final vm = Provider.of<ClientListViewModel>(context, listen: false);
+      final clientListVM = context.read<ClientListViewModel>();
       if (_scrollController.position.pixels >=
               _scrollController.position.maxScrollExtent * 0.85 &&
-          !vm.isLoadingMore &&
-          vm.hasMore &&
-          !vm.isLoading) {
-        vm.fetchClientList(loadMore: true);
+          clientListVM.canLoadMore &&
+          !clientListVM.isLoading) {
+        clientListVM.fetchClientList(loadMore: true);
       }
+      clientListVM.handleScroll(_scrollController.position.userScrollDirection);
     });
   }
 
@@ -138,10 +137,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         backgroundColor: Colors.white,
                         strokeWidth: 2.w,
                         onRefresh: () async {
-                          await clientListVM.fetchClientList(
-                            loadMore: false,
-                            isRefresh: true,
-                          );
+                          await clientListVM.refresh();
                           if (context.mounted) {
                             SnakeBars.flutterToast(
                                 "Clients Refreshed", context);
@@ -179,19 +175,33 @@ class _ClientsScreenState extends State<ClientsScreen> {
             );
           },
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          backgroundColor: Colors.grey.shade800,
-          onPressed: () {
-            Navigator.pushNamed(context, RoutesName.addClientScreen);
+        floatingActionButton: Selector<ClientListViewModel, bool>(
+          selector: (_, vm) => vm.isButtonIsVisible,
+          builder: (context, isVisible, child) {
+            return AnimatedSlide(
+              offset: isVisible ? Offset.zero : const Offset(0, 2),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: AnimatedOpacity(
+                opacity: isVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: FloatingActionButton.extended(
+                  backgroundColor: Colors.grey.shade800,
+                  onPressed: () {
+                    Navigator.pushNamed(context, RoutesName.addClientScreen);
+                  },
+                  icon: const Icon(
+                    Icons.person_add,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    'Add Client',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            );
           },
-          icon: const Icon(
-            Icons.person_add,
-            color: Colors.white,
-          ),
-          label: const Text(
-            'Add Client',
-            style: TextStyle(color: Colors.white),
-          ),
         ),
       ),
     );

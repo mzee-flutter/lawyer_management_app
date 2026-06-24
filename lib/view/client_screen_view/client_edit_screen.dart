@@ -56,14 +56,15 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
                 CustomTextField.fieldLabel(
                     'Enter Client Mobile Number(Optional)'),
                 CustomTextField(
-                    controller: editViewModel.phoneController,
-                    keyboardType: TextInputType.phone,
-                    maxLength: 12,
-                    inputFormatter: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(12),
-                      SpaceAfterFourDigitsFormatter(),
-                    ]),
+                  controller: editViewModel.phoneController,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 12,
+                  inputFormatter: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(12),
+                    SpaceAfterFourDigitsFormatter(),
+                  ],
+                ),
                 SizedBox(height: 12.h),
                 CustomTextField.fieldLabel('Enter Client CNIC*'),
                 CustomTextField(controller: editViewModel.cnicController),

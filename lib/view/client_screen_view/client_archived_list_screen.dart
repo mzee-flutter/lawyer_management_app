@@ -18,10 +18,9 @@ class _ClientArchivedListScreenState extends State<ClientArchivedListScreen> {
   @override
   void initState() {
     super.initState();
-    final clientListVM =
-        Provider.of<ClientArchivedListViewModel>(context, listen: false);
+    final clientArchivedListVM = context.read<ClientArchivedListViewModel>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      clientListVM.fetchArchivedClients();
+      clientArchivedListVM.fetchArchivedClients();
     });
   }
 
@@ -39,8 +38,8 @@ class _ClientArchivedListScreenState extends State<ClientArchivedListScreen> {
         title: const Text("Archive Clients"),
       ),
       body: Consumer<ClientArchivedListViewModel>(
-        builder: (BuildContext context, clientListVM, Widget? child) {
-          if (clientListVM.isFirstLoading) {
+        builder: (BuildContext context, clientArchivedListVM, Widget? child) {
+          if (clientArchivedListVM.isFirstLoading) {
             // Show full loader on first fetch
             return Center(
               child: CircularProgressIndicator(
@@ -50,7 +49,7 @@ class _ClientArchivedListScreenState extends State<ClientArchivedListScreen> {
             );
           }
 
-          if (clientListVM.archiveClientList.isEmpty) {
+          if (clientArchivedListVM.archiveClientList.isEmpty) {
             return Center(
               child: Padding(
                 padding: EdgeInsets.all(16.r),
@@ -65,8 +64,9 @@ class _ClientArchivedListScreenState extends State<ClientArchivedListScreen> {
           return NotificationListener<ScrollNotification>(
             onNotification: (scrollInfo) {
               if (_isScrollNearToEnd(scrollInfo)) {
-                if (!clientListVM.isMoreLoading && clientListVM.hasMore) {
-                  clientListVM.fetchArchivedClients(loadMore: true);
+                if (!clientArchivedListVM.isMoreLoading &&
+                    clientArchivedListVM.hasMore) {
+                  clientArchivedListVM.fetchArchivedClients(loadMore: true);
                 }
               }
               return false;
@@ -76,7 +76,7 @@ class _ClientArchivedListScreenState extends State<ClientArchivedListScreen> {
               backgroundColor: Colors.white,
               strokeWidth: 2.w,
               onRefresh: () async {
-                await clientListVM.fetchArchivedClients(
+                await clientArchivedListVM.fetchArchivedClients(
                   loadMore: false,
                   isRefresh: true,
                 );
@@ -86,11 +86,12 @@ class _ClientArchivedListScreenState extends State<ClientArchivedListScreen> {
               },
               child: ListView.builder(
                 padding: EdgeInsets.all(12.r),
-                itemCount: clientListVM.archiveClientList.length +
-                    (clientListVM.isMoreLoading ? 1 : 0),
+                itemCount: clientArchivedListVM.archiveClientList.length +
+                    (clientArchivedListVM.isMoreLoading ? 1 : 0),
                 itemBuilder: (context, index) {
-                  if (index < clientListVM.archiveClientList.length) {
-                    final client = clientListVM.archiveClientList[index];
+                  if (index < clientArchivedListVM.archiveClientList.length) {
+                    final client =
+                        clientArchivedListVM.archiveClientList[index];
                     return ArchivedClientInfoCard(client: client);
                   } else {
                     // Loader at bottom for loadMore
