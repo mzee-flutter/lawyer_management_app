@@ -3,6 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:right_case/models/notification_payload.dart';
+import 'package:right_case/models/stored_notification_model.dart';
 import 'package:right_case/utils/navigation/navigation_service.dart';
 import 'package:right_case/utils/routes/routes.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
@@ -37,11 +39,26 @@ import 'package:right_case/view_model/client_view_model/client_restore_view_mode
 import 'package:right_case/view_model/client_view_model/client_update_view_model.dart';
 import 'package:right_case/view_model/services/firebase_notification_service.dart';
 import 'package:right_case/view_model/services/login_and_signup_view_model.dart';
+import 'package:right_case/view_model/services/notification_history_view_model.dart';
+import 'package:right_case/view_model/services/notification_storage_service.dart';
 import 'package:right_case/view_model/splash_view_model.dart';
 
 @pragma('vm:entry-print')
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+
+  final notification = message.notification;
+  if (notification != null) {
+    final payload = NotificationPayload.fromMap(message.data);
+    final localNotification = StoredNotificationModel(
+      id: message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      title: notification.title ?? "",
+      body: notification.body ?? "",
+      payload: payload,
+      timestamp: DateTime.now(),
+    );
+    await NotificationStorageService.saveNotification(localNotification);
+  }
 }
 
 void main() async {
@@ -106,6 +123,9 @@ class MyAppState extends State<MyApp> {
             ChangeNotifierProvider(create: (_) => HearingCreateViewModel()),
             ChangeNotifierProvider(create: (_) => HearingUpdateViewModel()),
             ChangeNotifierProvider(create: (_) => SingleCaseViewModel()),
+            ChangeNotifierProvider(
+              create: (_) => NotificationHistoryViewModel(),
+            ),
           ],
           child: MaterialApp(
             navigatorKey: NavigationService.navigatorKey,
