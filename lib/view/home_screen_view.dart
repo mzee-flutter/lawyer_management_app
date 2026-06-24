@@ -1,15 +1,33 @@
-import 'package:flutter/material.dart';
+import 'package:badges/badges.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import 'package:right_case/utils/routes/routes_names.dart';
-
 import 'package:right_case/view/cases_screen_view/case_create_screen.dart';
 import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
-import 'drawer_view.dart';
 
-class HomeScreen extends StatelessWidget {
+import '../view_model/services/notification_history_view_model.dart';
+import 'drawer_view.dart';
+import 'notification_history_screen_view.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => HomeScreenState();
+}
+
+class HomeScreenState extends State<HomeScreen> {
+  final int num10 = 10;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      context.read<NotificationHistoryViewModel>().fetchInboxNotification();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,15 +36,52 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         // automaticallyImplyLeading: false,
         backgroundColor: Colors.grey.shade300,
-        title: Text('LexTrack',
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-            )),
+        title: Text(
+          'RightCase',
+          style: TextStyle(
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
+          Consumer<NotificationHistoryViewModel>(
+            builder: (context, notificationHistoryVM, child) {
+              final count = notificationHistoryVM.unreadCount;
+              return Padding(
+                padding: const EdgeInsets.only(right: 12.0),
+                child: Badge(
+                  badgeContent: Text(
+                    count > 9 ? "9+" : count.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  ),
+                  showBadge: count > 0,
+                  position: count > 9
+                      ? BadgePosition.custom(end: 1, top: 6)
+                      : BadgePosition.custom(end: 5, top: 7),
+                  child: IconButton(
+                    icon: Icon(
+                      count > 0
+                          ? Icons.notifications_active_outlined
+                          : Icons.notifications_none_outlined,
+                      color: Colors.grey.shade800,
+                      size: 24,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationHistoryScreenView(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.account_circle),
@@ -84,16 +139,18 @@ class HomeScreen extends StatelessWidget {
                         ),
                         _QuickActionButton(
                           label: 'Court',
-                          icon: Icons.gavel_rounded,
+                          icon: Icons.balance_rounded,
                           onTap: () {},
                         ),
                       ],
                     ),
                   ),
                   SizedBox(height: 10.h),
-                  Text("Cases Schedule",
-                      style: TextStyle(
-                          fontSize: 18.sp, fontWeight: FontWeight.bold)),
+                  Text(
+                    "Cases Schedule",
+                    style:
+                        TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 10.h),
                   _buildSummaryCards(context),
                   SizedBox(height: 20.h),
