@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/view/calendar_view/calendar_screen_view.dart';
 import 'package:right_case/view/cases_screen_view/case_create_screen.dart';
+import 'package:right_case/view/cases_screen_view/cases_archived_list_screen.dart';
 import 'package:right_case/view/cases_screen_view/cases_list_screen_view.dart';
 import 'package:right_case/view/client_screen_view/add_client_screen.dart';
 import 'package:right_case/view/client_screen_view/client_archived_list_screen.dart';
 import 'package:right_case/view/client_screen_view/clients_screen_view.dart';
 import 'package:right_case/view/forgot_password_screen_view.dart';
 import 'package:right_case/view/home_screen_view.dart';
+import 'package:right_case/view/notification_history_screen_view.dart';
 import 'package:right_case/view/sign_in_screen_view.dart';
 import 'package:right_case/view/sign_up_screen_view.dart';
 import 'package:right_case/view/splash_screen_view.dart';
@@ -46,6 +48,13 @@ class Routes {
 
       case RoutesName.calendarScreen:
         return MaterialPageRoute(builder: (_) => const CalendarScreen());
+
+      case RoutesName.archivedCasesScreen:
+        return MaterialPageRoute(
+            builder: (_) => const CasesArchivedListScreen());
+      case RoutesName.notificationHistoryScreenView:
+        return MaterialPageRoute(
+            builder: (_) => NotificationHistoryScreenView());
 
       default:
         return MaterialPageRoute(
