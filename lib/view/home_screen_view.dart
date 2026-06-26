@@ -2,11 +2,12 @@ import 'package:badges/badges.dart';
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/utils/routes/routes_names.dart';
-import 'package:right_case/view/cases_screen_view/case_create_screen.dart';
-import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
+import 'package:right_case/view/critical_agenda_section.dart';
+import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/today_and_upcoming_hearing_view_model.dart';
 
+import '../utils/routes/routes_names.dart';
 import '../view_model/services/notification_history_view_model.dart';
+import 'cases_screen_view/case_create_screen.dart';
 import 'drawer_view.dart';
 import 'notification_history_screen_view.dart';
 
@@ -25,7 +26,10 @@ class HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      context.read<NotificationHistoryViewModel>().fetchInboxNotification();
+      if (mounted) {
+        context.read<NotificationHistoryViewModel>().fetchInboxNotification();
+        context.read<AgendaViewModel>().loadAgenda();
+      }
     });
   }
 
@@ -34,7 +38,6 @@ class HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       drawer: DrawerView(),
       appBar: AppBar(
-        // automaticallyImplyLeading: false,
         backgroundColor: Colors.grey.shade300,
         title: Text(
           'RightCase',
@@ -89,208 +92,137 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(bottom: 200.h),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(15.r),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Quick Actions',
-                      style: TextStyle(
-                          fontSize: 18.sp, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 5.h),
-                  Container(
-                    height: 100.h,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _QuickActionButton(
-                          label: 'Clients',
-                          icon: Icons.group,
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, RoutesName.clientsScreen);
-                          },
-                        ),
-                        _QuickActionButton(
-                          label: 'Cases',
-                          icon: Icons.cases_rounded,
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, RoutesName.casesListScreen);
-                          },
-                        ),
-                        _QuickActionButton(
-                          label: 'Calender',
-                          icon: Icons.calendar_month_rounded,
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, RoutesName.calendarScreen);
-                          },
-                        ),
-                        _QuickActionButton(
-                          label: 'Court',
-                          icon: Icons.balance_rounded,
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  Text(
-                    "Cases Schedule",
-                    style:
-                        TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10.h),
-                  _buildSummaryCards(context),
-                  SizedBox(height: 20.h),
-                  SizedBox(height: 10.h),
-                  // _buildScheduleList(),
-                ],
-              ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 8,
+              color: Colors.black12,
+              offset: Offset(0, -2),
             ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 8,
-                    color: Colors.black12,
-                    offset: Offset(0, -2),
-                  ),
-                ],
-              ),
-              padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.w),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _QuickActionButton(
-                    label: 'Add Client',
-                    icon: Icons.person_add,
-                    onTap: () {
-                      Navigator.pushNamed(context, RoutesName.addClientScreen);
-                    },
-                  ),
-                  _QuickActionButton(
-                    label: 'Add Case',
-                    icon: Icons.cases_rounded,
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => CaseCreateScreen()));
-                    },
-                  ),
-                  _QuickActionButton(
-                    label: 'Add Task',
-                    icon: Icons.playlist_add_check,
-                    onTap: () {},
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryCards(context) {
-    return Consumer<CaseListViewModel>(
-      builder: (context, caseVM, child) {
-        return GridView.count(
-          crossAxisCount: 3,
-          shrinkWrap: true,
-          crossAxisSpacing: 12.w,
-          mainAxisSpacing: 12.h,
-          physics: const NeverScrollableScrollPhysics(),
+          ],
+        ),
+        padding: EdgeInsets.only(
+          top: 12.h,
+          right: 24.w,
+          bottom: MediaQuery.of(context).padding.bottom +
+              8.h, // Handles notch devices seamlessly
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _DashboardCard(
-              title: "Today's Cases",
-              icon: Icons.today_rounded,
-              onTap: () {},
+            _QuickActionButton(
+              label: 'Add Client',
+              icon: Icons.person_add,
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.addClientScreen);
+              },
             ),
-            _DashboardCard(
-              title: "Tomorrow's Cases",
-              icon: Icons.event_available_rounded,
-              onTap: () {},
-            ),
-            _DashboardCard(
-              title: "Running Cases",
-              icon: Icons.hourglass_top_rounded,
-              onTap: () {},
-            ),
-            _DashboardCard(
-              title: 'Decided Cases',
-              icon: Icons.check_circle_outline_rounded,
-              onTap: () {},
-            ),
-            _DashboardCard(
-              title: 'Date Awaited Cases',
+            _QuickActionButton(
+              label: 'Add Case',
               icon: Icons.cases_rounded,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CaseCreateScreen()),
+                );
+              },
             ),
-            _DashboardCard(
-              title: 'Abandoned Cases',
-              icon: Icons.block_rounded,
+            _QuickActionButton(
+              label: 'Add Task',
+              icon: Icons.playlist_add_check,
               onTap: () {},
             ),
           ],
-        );
-      },
-    );
-  }
-}
-
-class _DashboardCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _DashboardCard({
-    required this.title,
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Card(
-        color: Colors.grey.shade300,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
         ),
-        elevation: 2,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: Colors.grey.shade800,
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => context.read<AgendaViewModel>().refresh(),
+        child: CustomScrollView(
+          physics:
+              const AlwaysScrollableScrollPhysics(), // Ensures pull-to-refresh works even when the list is small
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Quick Actions',
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Container(
+                      height: 95.h,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _QuickActionButton(
+                            label: 'Clients',
+                            icon: Icons.group,
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, RoutesName.clientsScreen);
+                            },
+                          ),
+                          _QuickActionButton(
+                            label: 'Cases',
+                            icon: Icons.cases_rounded,
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, RoutesName.casesListScreen);
+                            },
+                          ),
+                          _QuickActionButton(
+                            label: 'Calender',
+                            icon: Icons.calendar_month_rounded,
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, RoutesName.calendarScreen);
+                            },
+                          ),
+                          _QuickActionButton(
+                            label: 'Court',
+                            icon: Icons.balance_rounded,
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      "Critical Agenda",
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            SizedBox(height: 5.h),
-            Text(
-              textAlign: TextAlign.center,
-              title,
-              style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
+              sliver: SliverToBoxAdapter(
+                child: Consumer<AgendaViewModel>(
+                  builder: (context, agendaVM, child) {
+                    return CriticalAgendaSection(
+                      viewModel: agendaVM,
+                    );
+                  },
+                ),
+              ),
             ),
           ],
         ),
@@ -313,22 +245,29 @@ class _QuickActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize:
+          MainAxisSize.min, // Prevents vertical cell stretching inside rows
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         InkWell(
           onTap: onTap,
+          borderRadius:
+              BorderRadius.circular(25.r), // Bounds visual feedback ring splash
           child: Material(
             elevation: 4,
             shape: const CircleBorder(),
             child: CircleAvatar(
-              radius: 25.r,
+              radius: 24.r,
               backgroundColor: Colors.white,
-              child: Icon(icon, size: 24.sp, color: Colors.grey.shade800),
+              child: Icon(icon, size: 22.sp, color: Colors.grey.shade800),
             ),
           ),
         ),
         SizedBox(height: 6.h),
-        Text(label, style: TextStyle(fontSize: 12.sp))
+        Text(
+          label,
+          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500),
+        )
       ],
     );
   }
