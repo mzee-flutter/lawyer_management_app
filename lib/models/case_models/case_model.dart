@@ -240,6 +240,8 @@ class CourtCategoryModel {
         "parent_id": parentId,
         "subcategories": subcategories?.map((x) => x.toJson()).toList(),
       };
+
+  bool get hasChildren => subcategories != null && subcategories!.isNotEmpty;
 }
 
 class CaseTypeModel {

@@ -24,8 +24,8 @@ class StoredNotificationModel {
       "title": title,
       "body": body,
       "payload": {
-        "caseId": payload.caseId,
-        "hearingId": payload.hearingId,
+        "case_id": payload.caseId,
+        "hearing_id": payload.hearingId,
       },
       "timestamp": timestamp.toIso8601String(),
       "isRead": isRead,
@@ -34,14 +34,16 @@ class StoredNotificationModel {
 
   factory StoredNotificationModel.fromMap(Map<String, dynamic> map) {
     return StoredNotificationModel(
-      id: map["id"] ?? '',
-      title: map["title"] ?? '',
-      body: map["body"] ?? '',
+      id: map['id'] ?? '',
+      title: map['title'] ?? '',
+      body: map['body'] ?? '',
       payload: NotificationPayload.fromMap(
-        Map<String, dynamic>.from(map["payload"]),
+        Map<String, dynamic>.from(map['payload'] ?? {}),
       ),
-      timestamp: DateTime.parse(map["timestamp"]),
-      isRead: map["isRead"] ?? false,
+      timestamp: map['timestamp'] != null
+          ? DateTime.parse(map['timestamp'])
+          : DateTime.now(),
+      isRead: map['isRead'] ?? false,
     );
   }
 
