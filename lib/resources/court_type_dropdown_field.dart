@@ -107,6 +107,7 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
                   ),
                   child: StatefulBuilder(
                     builder: (sbContext, setOverlayState) {
+                      // ── read outside itemBuilder so the tree is stable per rebuild
                       final vm = sbContext.read<CourtTypeViewModel>();
                       final flattenedItems = _buildFlattenedItems(vm.courtType);
 
@@ -130,17 +131,14 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
                               final item = flattenedItems[index];
                               final CourtCategoryModel node = item['node'];
                               final int depth = item['depth'];
-
-                              final hasChildren = node.subcategories != null &&
-                                  node.subcategories!.isNotEmpty;
-                              final isExpanded =
+                              final bool hasChildren =
+                                  node.subcategories != null &&
+                                      node.subcategories!.isNotEmpty;
+                              final bool isExpanded =
                                   _expandedNodeIds.contains(node.id);
 
-                              // ─────────────────────────────────────────
-                              // FIX 1: Depth-aware selection highlight.
-                              // Only the DEEPEST selected leaf is shown as
-                              // selected; ancestor rows are never falsely lit.
-                              // ─────────────────────────────────────────
+                              // ── FIX: depth-aware highlight; only the deepest
+                              //    selected id lights up, ancestors stay neutral ──
                               final bool isCurrentlySelected = switch (depth) {
                                 0 => vm.selectedCourtId == node.id &&
                                     vm.selectedSubCourtId == null,
@@ -183,7 +181,7 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
                                       : Colors.white;
                                 }
                               } else {
-                                // depth == 2 (Layer 3)
+                                // depth == 2 → Layer 3
                                 leftPadding = 38.w;
                                 cardBgColor = isCurrentlySelected
                                     ? Colors.blue.shade50.withValues(alpha: 0.5)
@@ -203,25 +201,19 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
                               return InkWell(
                                 onTap: () {
                                   if (hasChildren) {
-                                    // Parent node: toggle expand / collapse only
                                     setOverlayState(() {
                                       _expandedNodeIds.contains(node.id)
                                           ? _expandedNodeIds.remove(node.id)
                                           : _expandedNodeIds.add(node.id);
                                     });
                                   } else {
-                                    // ───────────────────────────────────
-                                    // FIX 2: Depth-aware VM update.
-                                    // The overlay is the single source of
-                                    // truth — parent onSelected() callback
-                                    // must NOT call VM methods again.
-                                    // ───────────────────────────────────
+                                    // ── depth-aware VM update; overlay is sole writer ──
                                     switch (depth) {
                                       case 0:
                                         vm.selectCourtType(node.id, node.name);
                                       case 1:
                                         vm.selectSubCategoryById(node.id);
-                                      default: // depth 2 +
+                                      default:
                                         vm.selectSubSubCategoryById(node.id);
                                     }
                                     widget.onSelected(node.id);
