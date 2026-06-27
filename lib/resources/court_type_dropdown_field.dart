@@ -19,34 +19,26 @@ class CourtTypeDropdownField extends StatefulWidget {
 }
 
 class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
+  final ValueNotifier<bool> _isNotifierOpen = ValueNotifier<bool>(false);
   final ScrollController _dropdownScrollController = ScrollController();
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlay;
-
-  /// Tracks active expanded node IDs inside the overlay canvas view state
   final Set<String> _expandedNodeIds = {};
 
   void _removeOverlay() {
     _overlay?.remove();
     _overlay = null;
-    context.read<CourtTypeViewModel>().toggleCourtTypeDropdownOpening(false);
+    _isNotifierOpen.value = false;
   }
 
-  /// RECURSIVE ENGINE: Linearizes your tree matrix.
-  /// Only goes deeper if the user explicitly clicked/expanded the parent folder branch.
   List<Map<String, dynamic>> _buildFlattenedItems(
     List<CourtCategoryModel> nodes, {
     int depth = 0,
     String? parentId,
   }) {
-    List<Map<String, dynamic>> flatList = [];
-    for (var node in nodes) {
-      flatList.add({
-        'node': node,
-        'depth': depth,
-        'parentId': parentId,
-      });
-
+    final List<Map<String, dynamic>> flatList = [];
+    for (final node in nodes) {
+      flatList.add({'node': node, 'depth': depth, 'parentId': parentId});
       final hasChildren =
           node.subcategories != null && node.subcategories!.isNotEmpty;
       if (hasChildren && _expandedNodeIds.contains(node.id)) {
@@ -60,32 +52,22 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
     return flatList;
   }
 
-  /// LINEAGE TRACER ENGINE (Rule 2 Fix): Deep scans your whole tree list down
-  /// to find the selected node, then maps all its historical direct ancestral parent
-  /// folder IDs to [_expandedNodeIds] so they display pre-expanded.
   bool _traceAndExpandLineage(List<CourtCategoryModel> nodes, String targetId) {
-    for (var node in nodes) {
-      if (node.id == targetId) {
-        return true; // Match target found
-      }
-
+    for (final node in nodes) {
+      if (node.id == targetId) return true;
       final hasChildren =
           node.subcategories != null && node.subcategories!.isNotEmpty;
-      if (hasChildren) {
-        final bool isTargetInSubtree =
-            _traceAndExpandLineage(node.subcategories!, targetId);
-        if (isTargetInSubtree) {
-          _expandedNodeIds.add(
-              node.id); // Ancestor parent identified! Add to expansion pool.
-          return true;
-        }
+      if (hasChildren &&
+          _traceAndExpandLineage(node.subcategories!, targetId)) {
+        _expandedNodeIds.add(node.id);
+        return true;
       }
     }
     return false;
   }
 
   void _showOverlay(BuildContext context, Size fieldSize, Offset fieldOffset) {
-    if (context.read<CourtTypeViewModel>().isOpen) {
+    if (_isNotifierOpen.value) {
       _removeOverlay();
       return;
     }
@@ -94,21 +76,19 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     final availableHeight =
         screenHeight - fieldOffset.dy - fieldSize.height - bottomPadding - 12.h;
-    final maxHeight = availableHeight > 320 ? availableHeight : 320;
+    final maxHeight = availableHeight > 320 ? availableHeight : 320.0;
 
     _overlay = OverlayEntry(
-      builder: (context) {
+      builder: (overlayContext) {
         return Stack(
           children: [
-            // Safe Modal Dismiss Tap Barrier
             Positioned.fill(
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: _removeOverlay,
-                child: Container(color: Colors.transparent),
+                child: const ColoredBox(color: Colors.transparent),
               ),
             ),
-            // Track Layer Target Positioning Follower
             CompositedTransformFollower(
               link: _layerLink,
               showWhenUnlinked: false,
@@ -119,19 +99,19 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
                 borderRadius: BorderRadius.circular(12.r),
                 child: Container(
                   width: fieldSize.width,
-                  constraints: BoxConstraints(maxHeight: maxHeight.toDouble()),
+                  constraints: BoxConstraints(maxHeight: maxHeight),
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(12.r),
                     border: Border.all(color: Colors.grey.shade300, width: 1.w),
                   ),
                   child: StatefulBuilder(
-                    builder: (context, setOverlayState) {
-                      final vm = context.read<CourtTypeViewModel>();
+                    builder: (sbContext, setOverlayState) {
+                      final vm = sbContext.read<CourtTypeViewModel>();
                       final flattenedItems = _buildFlattenedItems(vm.courtType);
 
                       return Theme(
-                        data: Theme.of(context).copyWith(
+                        data: Theme.of(sbContext).copyWith(
                           scrollbarTheme: ScrollbarThemeData(
                             thumbColor:
                                 WidgetStateProperty.all(Colors.grey.shade400),
@@ -146,7 +126,7 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
                             shrinkWrap: true,
                             padding: EdgeInsets.symmetric(vertical: 6.h),
                             itemCount: flattenedItems.length,
-                            itemBuilder: (context, index) {
+                            itemBuilder: (_, index) {
                               final item = flattenedItems[index];
                               final CourtCategoryModel node = item['node'];
                               final int depth = item['depth'];
@@ -155,8 +135,19 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
                                   node.subcategories!.isNotEmpty;
                               final isExpanded =
                                   _expandedNodeIds.contains(node.id);
-                              final bool isCurrentlySelected =
-                                  vm.selectedSubCourtId == node.id;
+
+                              // ─────────────────────────────────────────
+                              // FIX 1: Depth-aware selection highlight.
+                              // Only the DEEPEST selected leaf is shown as
+                              // selected; ancestor rows are never falsely lit.
+                              // ─────────────────────────────────────────
+                              final bool isCurrentlySelected = switch (depth) {
+                                0 => vm.selectedCourtId == node.id &&
+                                    vm.selectedSubCourtId == null,
+                                1 => vm.selectedSubCourtId == node.id &&
+                                    vm.selectedSubSubCourtId == null,
+                                _ => vm.selectedSubSubCourtId == node.id,
+                              };
 
                               double leftPadding = 12.w;
                               Color cardBgColor = Colors.white;
@@ -164,19 +155,15 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
                                   color: Colors.black87, fontSize: 14.sp);
                               String displayPrefix = "";
 
-                              // Rule 3 Implementation: If it doesn't have children, it is a select-safe action leaf node!
-                              final bool isSelectableLeafNode = !hasChildren;
-
                               if (depth == 0) {
-                                // Level 1: Root Base Header Categories
                                 leftPadding = 12.w;
                                 cardBgColor = Colors.grey[300]!;
                                 textStyle = TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14.sp);
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.sp,
+                                );
                               } else if (depth == 1) {
-                                // Level 2: Sub-category Layer
                                 leftPadding = 24.w;
                                 cardBgColor = Colors.grey[200]!;
                                 textStyle = TextStyle(
@@ -188,18 +175,15 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
                                       : FontWeight.w600,
                                   fontSize: 13.5.sp,
                                 );
-                                if (isSelectableLeafNode) {
+                                if (!hasChildren) {
                                   displayPrefix = "↳  ";
-                                  if (isCurrentlySelected) {
-                                    cardBgColor = Colors.blue.shade50
-                                        .withValues(alpha: 0.5);
-                                  } else {
-                                    cardBgColor = Colors
-                                        .white; // Dynamic fallback if level-2 acts as a leaf node
-                                  }
+                                  cardBgColor = isCurrentlySelected
+                                      ? Colors.blue.shade50
+                                          .withValues(alpha: 0.5)
+                                      : Colors.white;
                                 }
-                              } else if (depth == 2) {
-                                // Level 3: Deep Sub-sub category Layer
+                              } else {
+                                // depth == 2 (Layer 3)
                                 leftPadding = 38.w;
                                 cardBgColor = isCurrentlySelected
                                     ? Colors.blue.shade50.withValues(alpha: 0.5)
@@ -219,22 +203,27 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
                               return InkWell(
                                 onTap: () {
                                   if (hasChildren) {
-                                    // It has subcategories: Tapping toggles open/collapse states
+                                    // Parent node: toggle expand / collapse only
                                     setOverlayState(() {
-                                      if (_expandedNodeIds.contains(node.id)) {
-                                        _expandedNodeIds.remove(node.id);
-                                      } else {
-                                        _expandedNodeIds.add(node.id);
-                                      }
+                                      _expandedNodeIds.contains(node.id)
+                                          ? _expandedNodeIds.remove(node.id)
+                                          : _expandedNodeIds.add(node.id);
                                     });
                                   } else {
-                                    // Rule 3 Complete Fix: Terminal Safe Leaf Node Found - Select and dismiss!
-                                    vm.selectSubCourtType(node.id, node.name);
-
-                                    final parent = vm.findParentOfSub(node.id);
-                                    vm.selectedCourtId = parent?.id;
-                                    vm.selectedCourtName = parent?.name;
-
+                                    // ───────────────────────────────────
+                                    // FIX 2: Depth-aware VM update.
+                                    // The overlay is the single source of
+                                    // truth — parent onSelected() callback
+                                    // must NOT call VM methods again.
+                                    // ───────────────────────────────────
+                                    switch (depth) {
+                                      case 0:
+                                        vm.selectCourtType(node.id, node.name);
+                                      case 1:
+                                        vm.selectSubCategoryById(node.id);
+                                      default: // depth 2 +
+                                        vm.selectSubSubCategoryById(node.id);
+                                    }
                                     widget.onSelected(node.id);
                                     _removeOverlay();
                                   }
@@ -288,22 +277,27 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
     );
 
     Overlay.of(context).insert(_overlay!);
-    context.read<CourtTypeViewModel>().toggleCourtTypeDropdownOpening(true);
+    _isNotifierOpen.value = true;
   }
 
   Future<void> _onTapField(BuildContext context, RenderBox renderBox) async {
     final vm = context.read<CourtTypeViewModel>();
     if (vm.loading) return;
 
-    if (vm.courtType.isEmpty) {
-      await vm.fetchCourtType();
-    }
+    if (vm.courtType.isEmpty) await vm.fetchCourtType();
     if (vm.courtType.isEmpty) return;
 
-    // Rule 2 Complete Fix: Pre-expansion line execution sequence
+    // ─────────────────────────────────────────────────────────────────
+    // FIX 3: Trace from the DEEPEST selected ID so every ancestor folder
+    // (Layer 1 and Layer 2) is expanded before the overlay opens.
+    // Old code only used selectedSubCourtId, which never expanded the
+    // Layer-2 folder needed to reveal a Layer-3 item.
+    // ─────────────────────────────────────────────────────────────────
     _expandedNodeIds.clear();
-    if (vm.selectedSubCourtId != null) {
-      _traceAndExpandLineage(vm.courtType, vm.selectedSubCourtId!);
+    final deepestId =
+        vm.selectedSubSubCourtId ?? vm.selectedSubCourtId ?? vm.selectedCourtId;
+    if (deepestId != null) {
+      _traceAndExpandLineage(vm.courtType, deepestId);
     }
 
     final size = renderBox.size;
@@ -320,81 +314,86 @@ class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
 
   @override
   Widget build(BuildContext context) {
-    final courtTypeVM = context.watch<CourtTypeViewModel>();
     return CompositedTransformTarget(
       link: _layerLink,
       child: GestureDetector(
         onTap: () {
           final renderBox = context.findRenderObject() as RenderBox?;
-          if (renderBox != null) {
-            _onTapField(context, renderBox);
-          }
+          if (renderBox != null) _onTapField(context, renderBox);
         },
         child: Consumer<CourtTypeViewModel>(
-          builder: (context, vm, child) {
-            final displayText =
-                vm.selectedSubCourtName ?? vm.selectedCourtName ?? widget.label;
-            final hasSelectedValue =
-                vm.selectedSubCourtId != null || vm.selectedCourtId != null;
+          builder: (_, courtTypeVM, __) {
+            final displayText = courtTypeVM.selectedSubSubCourtName ??
+                courtTypeVM.selectedSubCourtName ??
+                courtTypeVM.selectedCourtName ??
+                widget.label;
+            final hasSelection = courtTypeVM.selectedSubSubCourtId != null ||
+                courtTypeVM.selectedSubCourtId != null ||
+                courtTypeVM.selectedCourtId != null;
 
-            return Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: courtTypeVM.isOpen
-                      ? Colors.grey.shade600
-                      : Colors.grey.shade300,
-                  width: courtTypeVM.isOpen ? 1.5.w : 1.w,
-                ),
-                boxShadow: courtTypeVM.isOpen
-                    ? [
-                        BoxShadow(
-                          color: Colors.blueAccent.withValues(alpha: 0.08),
-                          blurRadius: 6.r,
-                          offset: const Offset(0, 3),
-                        )
-                      ]
-                    : null,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      displayText,
-                      style: TextStyle(
-                        fontSize: 15.sp,
-                        color: hasSelectedValue
-                            ? Colors.black87
-                            : Colors.grey.shade500,
-                        fontWeight: hasSelectedValue
-                            ? FontWeight.w500
-                            : FontWeight.w400,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+            return ValueListenableBuilder<bool>(
+              valueListenable: _isNotifierOpen,
+              builder: (_, isOpen, __) {
+                return Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color:
+                          isOpen ? Colors.grey.shade600 : Colors.grey.shade300,
+                      width: isOpen ? 1.5.w : 1.w,
                     ),
+                    boxShadow: isOpen
+                        ? [
+                            BoxShadow(
+                              color: Colors.blueAccent.withValues(alpha: 0.08),
+                              blurRadius: 6.r,
+                              offset: const Offset(0, 3),
+                            )
+                          ]
+                        : null,
                   ),
-                  SizedBox(width: 8.w),
-                  vm.loading
-                      ? SizedBox(
-                          height: 16.r,
-                          width: 16.r,
-                          child: CircularProgressIndicator(
-                            color: Colors.blue.shade700,
-                            strokeWidth: 2.w,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          displayText,
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            color: hasSelection
+                                ? Colors.black87
+                                : Colors.grey.shade500,
+                            fontWeight: hasSelection
+                                ? FontWeight.w500
+                                : FontWeight.w400,
                           ),
-                        )
-                      : Icon(
-                          courtTypeVM.isOpen
-                              ? Icons.keyboard_arrow_up_rounded
-                              : Icons.keyboard_arrow_down_rounded,
-                          color: Colors.black87,
-                          size: 20.r,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                ],
-              ),
+                      ),
+                      SizedBox(width: 8.w),
+                      courtTypeVM.loading
+                          ? SizedBox(
+                              height: 16.r,
+                              width: 16.r,
+                              child: CircularProgressIndicator(
+                                color: Colors.blue.shade700,
+                                strokeWidth: 2.w,
+                              ),
+                            )
+                          : Icon(
+                              isOpen
+                                  ? Icons.keyboard_arrow_up_rounded
+                                  : Icons.keyboard_arrow_down_rounded,
+                              color: Colors.black87,
+                              size: 20.r,
+                            ),
+                    ],
+                  ),
+                );
+              },
             );
           },
         ),
