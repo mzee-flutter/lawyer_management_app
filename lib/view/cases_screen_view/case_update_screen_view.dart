@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -39,23 +38,20 @@ class CaseUpdateScreenViewState extends State<CaseUpdateScreenView> {
       final caseStageVM = context.read<CaseStageViewModel>();
       final caseStatusVM = context.read<CaseStatusViewModel>();
 
-      // ── 1. Hard-reset every VM so stale state from a previous edit
-      //       never bleeds into this screen.
+      // 1. Hard-reset — no stale state from a previous edit
       courtVM.reset();
       caseTypeVM.reset();
       caseStageVM.reset();
       caseStatusVM.reset();
 
-      // ── 2. Fill text controllers immediately (sync, no flicker).
+      // 2. Fill text controllers immediately (sync, no flicker)
       caseUpdateVM.initializeCaseFields(widget.caseData);
 
-      // ── 3. FIX: Show the court category name RIGHT NOW so the field is
-      //       never blank while the network fetch is in-flight.
-      //       Step 5 will overwrite this with the precise depth selection.
+      // 3. Show court name right away while the fetch is in-flight
       final cat = widget.caseData.courtCategory;
       if (cat != null) courtVM.selectCourtType(cat.id, cat.name);
 
-      // ── 4. Parallel fetch — court data guard skips if already cached.
+      // 4. Parallel fetch
       await Future.wait([
         courtVM.fetchCourtType(),
         caseTypeVM.fetchItems(),
@@ -65,29 +61,13 @@ class CaseUpdateScreenViewState extends State<CaseUpdateScreenView> {
 
       if (!mounted) return;
 
-      // ── 5. Depth-aware court pre-selection now that the full tree is
-      //       available.  selectSubSubCategoryById / selectSubCategoryById
-      //       both set ALL ancestor IDs internally, so the overlay's
-      //       lineage tracer will expand every parent folder correctly.
-      if (cat != null) {
-        if (cat.parentId == null) {
-          // Layer 1 – root court
-          courtVM.selectCourtType(cat.id, cat.name);
-        } else {
-          final parent =
-              courtVM.courtType.firstWhereOrNull((e) => e.id == cat.parentId);
+      // 5. Depth-aware court pre-selection — autoSelectById searches the
+      //    full tree (L3 → L2 → L1) so it always finds the right node
+      //    regardless of depth. The old firstWhereOrNull only searched
+      //    the flat root list and silently returned null for L3 cases.
+      if (cat != null) courtVM.autoSelectById(cat.id);
 
-          if (parent != null && parent.parentId == null) {
-            // Layer 2 – sub-category
-            courtVM.selectSubCategoryById(cat.id);
-          } else if (parent != null && parent.parentId != null) {
-            // Layer 3 – sub-sub-category
-            courtVM.selectSubSubCategoryById(cat.id);
-          }
-        }
-      }
-
-      // ── 6. Pre-select the remaining dropdowns.
+      // 6. Pre-select remaining dropdowns
       caseTypeVM.trySelectById(widget.caseData.caseTypeId);
       caseStageVM.trySelectById(widget.caseData.caseStageId);
       caseStatusVM.trySelectById(widget.caseData.caseStatusId);
