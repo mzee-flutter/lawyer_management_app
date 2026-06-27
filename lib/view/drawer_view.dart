@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/view_model/auth_view_models/login_view_model.dart';
@@ -77,6 +78,19 @@ class DrawerView extends StatelessWidget {
                             context, RoutesName.archivedClientsScreen);
                       },
                     );
+                  },
+                ),
+
+                ListTile(
+                  leading: Icon(
+                    Icons.cases_rounded,
+                    color: Colors.blue,
+                  ),
+                  title: Text("Archived Cases"),
+                  subtitle: Text("Restore it from here..."),
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context, RoutesName.archivedCasesScreen);
                   },
                 ),
 
