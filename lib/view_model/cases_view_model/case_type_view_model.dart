@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/repository/case_repository/case_type_repo.dart';
 
-class CaseTypeViewModel with ChangeNotifier {
+class CaseTypeViewModel extends ChangeNotifier {
   final CaseTypeRepo _caseTypeRepo = CaseTypeRepo();
 
   bool _loading = false;
