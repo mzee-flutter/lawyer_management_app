@@ -1,7 +1,7 @@
 import 'package:another_flushbar/flushbar.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:flutter/material.dart';
 
 class SnakeBars {
   static flutterToast(String message, context) {
@@ -25,10 +25,14 @@ class SnakeBars {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Center(
-          child: Text(message),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+          ),
         ),
+        behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(8.r),
         ),
         duration: const Duration(seconds: 3),
       ),

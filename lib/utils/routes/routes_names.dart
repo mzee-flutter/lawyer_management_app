@@ -9,7 +9,7 @@ class RoutesName {
   static const String addClientScreen = "add_client_screen";
   static const String casesListScreen = 'cases_list_screen';
   static const String caseCreateScreen = "case_create_screen";
-  static const String calendarScreen = 'calendar_screen';
+  static const String calendarScreen = 'calendar_screen_view';
   static const String archivedCasesScreen = "archived_case_screen";
   static const String notificationHistoryScreenView =
       "notification_history_screen_view";
