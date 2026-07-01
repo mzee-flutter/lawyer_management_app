@@ -41,3 +41,8 @@ class NotFoundException extends ApiException {
   NotFoundException([String? message])
       : super(message!, "Resource Not Found: ");
 }
+
+class DuplicateAutoTaskException extends ApiException {
+  DuplicateAutoTaskException([String? message])
+      : super(message!, "Can't add duplicate task");
+}
