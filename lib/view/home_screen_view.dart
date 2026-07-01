@@ -6,7 +6,6 @@ import 'package:right_case/view/critical_agenda_section.dart';
 import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/today_and_upcoming_hearing_view_model.dart';
 
 import '../utils/routes/routes_names.dart';
-import '../utils/snakebars_and_popUps/snake_bars.dart';
 import '../view_model/services/notification_history_view_model.dart';
 import 'cases_screen_view/case_create_screen.dart';
 import 'drawer_view.dart';
@@ -241,10 +240,7 @@ class HomeScreenState extends State<HomeScreen> {
               label: 'Add Task',
               icon: Icons.playlist_add_check_outlined,
               onTap: () {
-                SnakeBars.scaffoldMessenger(
-                  "This hearing record has been deleted or removed",
-                  context,
-                );
+                Navigator.pushNamed(context, RoutesName.legalTaskScreenView);
               },
               isPrimary: true, // Gold accent for the primary CTA
             ),
@@ -390,7 +386,9 @@ class _QuickActionsRow extends StatelessWidget {
             _QuickActionTile(
               label: 'Court',
               icon: Icons.balance_outlined,
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.courtPortalScreenView);
+              },
             ),
           ],
         ),
