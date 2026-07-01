@@ -87,12 +87,25 @@ class NetworkApiServices extends BaseApiServices {
   }
 
   @override
-  Future getGetApiRequest(String url, Map<String, dynamic>? header) async {
-    // Cast custom input maps safely down to Map<String, String> if present
+  Future getGetApiRequest(
+    String url,
+    Map<String, dynamic>? header, {
+    Map<String, dynamic>? query, // Existing optional named parameter
+  }) async {
     final Map<String, String>? stringHeaders =
         header?.map((k, v) => MapEntry(k, v.toString()));
+
     return _sendRequest(
-      (headers) => http.get(Uri.parse(url), headers: headers),
+      (headers) {
+        var uri = Uri.parse(url);
+        if (query != null && query.isNotEmpty) {
+          final Map<String, dynamic> stringQuery =
+              query.map((k, v) => MapEntry(k, v.toString()));
+
+          uri = uri.replace(queryParameters: stringQuery);
+        }
+        return http.get(uri, headers: headers);
+      },
       customHeaders: stringHeaders,
     );
   }
@@ -179,7 +192,7 @@ class NetworkApiServices extends BaseApiServices {
             : "Requested resource not found.");
 
       case 409:
-        throw FetchDataException(serverErrorMessage);
+        throw DuplicateAutoTaskException(serverErrorMessage);
 
       case 500:
       default:
