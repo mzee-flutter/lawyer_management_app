@@ -13,4 +13,7 @@ class RoutesName {
   static const String archivedCasesScreen = "archived_case_screen";
   static const String notificationHistoryScreenView =
       "notification_history_screen_view";
+
+  static const String courtPortalScreenView = "court_portal_screen_view";
+  static const String legalTaskScreenView = "legal_task_screen_view";
 }

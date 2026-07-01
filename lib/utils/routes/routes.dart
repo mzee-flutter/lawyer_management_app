@@ -7,8 +7,10 @@ import 'package:right_case/view/cases_screen_view/cases_list_screen_view.dart';
 import 'package:right_case/view/client_screen_view/add_client_screen.dart';
 import 'package:right_case/view/client_screen_view/client_archived_list_screen.dart';
 import 'package:right_case/view/client_screen_view/clients_screen_view.dart';
+import 'package:right_case/view/court_portal_screen_view.dart';
 import 'package:right_case/view/forgot_password_screen_view.dart';
 import 'package:right_case/view/home_screen_view.dart';
+import 'package:right_case/view/legal_task_screen_view.dart';
 import 'package:right_case/view/notification_history_screen_view.dart';
 import 'package:right_case/view/sign_in_screen_view.dart';
 import 'package:right_case/view/sign_up_screen_view.dart';
@@ -52,9 +54,16 @@ class Routes {
       case RoutesName.archivedCasesScreen:
         return MaterialPageRoute(
             builder: (_) => const CasesArchivedListScreen());
+
       case RoutesName.notificationHistoryScreenView:
         return MaterialPageRoute(
             builder: (_) => NotificationHistoryScreenView());
+
+      case RoutesName.courtPortalScreenView:
+        return MaterialPageRoute(builder: (_) => CourtPortalScreen());
+
+      case RoutesName.legalTaskScreenView:
+        return MaterialPageRoute(builder: (_) => TaskBoardScreen());
 
       default:
         return MaterialPageRoute(
