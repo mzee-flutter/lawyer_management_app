@@ -1,130 +1,269 @@
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
-
-import 'package:flutter/material.dart';
 import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/hearing_create_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/hearing_list_view_model.dart';
 
+// ── Design tokens ─────────────────────────────────────────────
+class _RC {
+  static const navy = Color(0xFF1A2744);
+  static const gold = Color(0xFFC8952A);
+  static const background = Color(0xFFF7F5F1);
+  static const surface = Color(0xFFFFFFFF);
+
+  static const textPrimary = Color(0xFF111827);
+  static const textSecondary = Color(0xFF6B7280);
+  static const textTertiary = Color(0xFF9CA3AF);
+  static const textOnDark = Color(0xFFFFFFFF);
+
+  static const divider = Color(0xFFE5E1D8);
+
+  static BoxShadow get card => BoxShadow(
+        color: Colors.black.withValues(alpha: 0.055),
+        blurRadius: 10,
+        offset: const Offset(0, 3),
+      );
+
+  static InputDecoration fieldDecoration(
+      String hint, IconData icon, BuildContext context) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: _RC.textTertiary, fontSize: 13.sp),
+      prefixIcon: Icon(icon, size: 18.sp, color: _RC.textSecondary),
+      filled: true,
+      fillColor: _RC.background,
+      contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: _RC.divider, width: 0.5),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: _RC.divider, width: 0.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: _RC.navy, width: 1.5),
+      ),
+    );
+  }
+}
+
 class HearingCreateScreenView extends StatelessWidget {
   final String caseId;
-  const HearingCreateScreenView({
-    super.key,
-    required this.caseId,
-  });
+  const HearingCreateScreenView({super.key, required this.caseId});
 
   @override
   Widget build(BuildContext context) {
-    final hearingCreateVM = context.watch<HearingCreateViewModel>();
+    final vm = context.watch<HearingCreateViewModel>();
     final hearingListVM = context.read<HearingListViewModel>();
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      backgroundColor: _RC.background,
       appBar: AppBar(
-        title: Text(
-          "Add Case Hearing",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16.sp,
-          ),
+        backgroundColor: _RC.navy,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Add Hearing',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: _RC.textOnDark,
+              ),
+            ),
+            Text(
+              'Schedule a new court hearing',
+              style: TextStyle(fontSize: 11.sp, color: Colors.white54),
+            ),
+          ],
         ),
-        backgroundColor: Colors.grey.shade300,
       ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 10.w,
-          vertical: 10.w,
-        ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildLabels("Select Next Hearing Date"),
-            ListTile(
-              titleAlignment: ListTileTitleAlignment.center,
-              tileColor: Colors.grey.shade300,
-              shape: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.r),
-                borderSide: BorderSide.none,
-              ),
-              title: Text(
-                hearingCreateVM.hearingDateTime == null
-                    ? "Select Next Hearing Date"
-                    : hearingCreateVM.hearingDateTime
-                        .toString()
-                        .split(" ")
-                        .first,
-              ),
-              trailing: Icon(Icons.calendar_month),
+            // ── Date picker card ─────────────────────────────
+            _SectionLabel('Hearing date'),
+            SizedBox(height: 6.h),
+            GestureDetector(
               onTap: () async {
-                final date = await showDatePicker(
+                final picked = await showDatePicker(
                   context: context,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                  initialDate: DateTime.now(),
-                );
-
-                hearingCreateVM.setHearingDateTime(date);
-              },
-            ),
-
-            SizedBox(height: 12.h),
-
-            _buildLabels('Enter Hearing Title'),
-            _buildTextField(hearingCreateVM.hearingTitleController),
-            SizedBox(height: 12.h),
-
-            // Notes
-            _buildLabels("Enter Case Notes"),
-            _buildTextField(
-              hearingCreateVM.hearingNotesController,
-              maxLines: 3,
-            ),
-            Spacer(),
-
-            ElevatedButton(
-              onPressed: hearingCreateVM.loading
-                  ? null
-                  : () async {
-                      try {
-                        final dbHearing =
-                            await hearingCreateVM.createHearing(caseId);
-                        hearingListVM.addHearingLocally(dbHearing);
-
-                        hearingCreateVM.resetFields();
-                        Navigator.pop(context);
-                        SnakeBars.flutterToast(
-                          "Hearing added successfully",
-                          context,
-                        );
-                      } catch (e) {
-                        SnakeBars.flutterToast(
-                          e.toString(),
-                          context,
-                        );
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade800,
-                minimumSize: const Size(double.infinity, 48),
-              ),
-              child: hearingCreateVM.loading
-                  ? CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.edit_calendar, color: Colors.white),
-                        SizedBox(width: 8.w),
-                        Text(
-                          'Add Hearing',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ],
+                  initialDate: vm.hearingDateTime ?? DateTime.now(),
+                  firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                  lastDate: DateTime.now().add(const Duration(days: 730)),
+                  builder: (_, child) => Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: const ColorScheme.light(primary: _RC.navy),
                     ),
+                    child: child!,
+                  ),
+                );
+                if (picked != null) vm.setHearingDateTime(picked);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+                decoration: BoxDecoration(
+                  color: _RC.surface,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: vm.hearingDateTime != null ? _RC.navy : _RC.divider,
+                    width: vm.hearingDateTime != null ? 1.5 : 0.5,
+                  ),
+                  boxShadow: [_RC.card],
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_month_outlined,
+                      size: 20.sp,
+                      color: vm.hearingDateTime != null
+                          ? _RC.navy
+                          : _RC.textSecondary,
+                    ),
+                    SizedBox(width: 12.w),
+                    Text(
+                      vm.hearingDateTime == null
+                          ? 'Select hearing date'
+                          : _formatDate(vm.hearingDateTime!),
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: vm.hearingDateTime != null
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                        color: vm.hearingDateTime != null
+                            ? _RC.textPrimary
+                            : _RC.textTertiary,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (vm.hearingDateTime != null)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.w, vertical: 3.h),
+                        decoration: BoxDecoration(
+                          color: _RC.navy.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(6.r),
+                        ),
+                        child: Text(
+                          'Change',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: _RC.navy,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: 16.h),
+
+            // ── Title field ──────────────────────────────────
+            _SectionLabel('Hearing title'),
+            SizedBox(height: 6.h),
+            TextField(
+              controller: vm.hearingTitleController,
+              textCapitalization: TextCapitalization.sentences,
+              style: TextStyle(fontSize: 13.sp, color: _RC.textPrimary),
+              decoration: _RC.fieldDecoration(
+                'e.g. Evidence — Shah vs. State',
+                Icons.gavel_outlined,
+                context,
+              ),
+            ),
+
+            SizedBox(height: 16.h),
+
+            // ── Notes field ──────────────────────────────────
+            _SectionLabel('Notes (optional)'),
+            SizedBox(height: 6.h),
+            TextField(
+              controller: vm.hearingNotesController,
+              maxLines: 3,
+              style: TextStyle(fontSize: 13.sp, color: _RC.textPrimary),
+              decoration: _RC.fieldDecoration(
+                'Additional context or preparation notes...',
+                Icons.notes_outlined,
+                context,
+              ),
+            ),
+
+            SizedBox(height: 32.h),
+
+            // ── Submit button ────────────────────────────────
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: vm.loading
+                    ? null
+                    : () async {
+                        if (vm.hearingDateTime == null) {
+                          SnakeBars.flutterToast(
+                              'Please select a hearing date', context);
+                          return;
+                        }
+                        if (vm.hearingTitleController.text.trim().isEmpty) {
+                          SnakeBars.flutterToast(
+                              'Please enter a hearing title', context);
+                          return;
+                        }
+                        try {
+                          final dbHearing =
+                              await vm.createHearing(context, caseId);
+                          hearingListVM.addHearingLocally(dbHearing);
+                          vm.resetFields();
+                          Navigator.pop(context);
+                          SnakeBars.flutterToast(
+                              'Hearing added successfully', context);
+                        } catch (e) {
+                          SnakeBars.flutterToast(e.toString(), context);
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _RC.navy,
+                  disabledBackgroundColor: _RC.navy.withValues(alpha: 0.4),
+                  padding: EdgeInsets.symmetric(vertical: 15.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  elevation: 0,
+                ),
+                child: vm.loading
+                    ? SizedBox(
+                        height: 18.h,
+                        width: 18.h,
+                        child: const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.edit_calendar_outlined,
+                              color: Colors.white, size: 18.sp),
+                          SizedBox(width: 8.w),
+                          Text(
+                            'Add Hearing',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
             ),
           ],
         ),
@@ -132,34 +271,39 @@ class HearingCreateScreenView extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller, {
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-    int? maxLength,
-    List<TextInputFormatter>? inputFormatter,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      cursorColor: Colors.grey.shade800,
-      maxLength: maxLength,
-      inputFormatters: inputFormatter,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.grey.shade300,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: BorderSide.none),
-      ),
-    );
+  String _formatDate(DateTime d) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${days[d.weekday - 1]}, ${d.day} ${months[d.month - 1]} ${d.year}';
   }
+}
 
-  Widget _buildLabels(String title) {
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
     return Text(
-      title,
-      style: TextStyle(color: Colors.grey.shade700, fontSize: 13.sp),
+      text,
+      style: TextStyle(
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w500,
+        color: _RC.textSecondary,
+      ),
     );
   }
 }
