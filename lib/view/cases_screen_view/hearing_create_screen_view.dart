@@ -60,7 +60,7 @@ class HearingCreateScreenView extends StatelessWidget {
     final hearingListVM = context.read<HearingListViewModel>();
 
     return Scaffold(
-      backgroundColor: _RC.background,
+      backgroundColor: _RC.surface,
       appBar: AppBar(
         backgroundColor: _RC.navy,
         elevation: 0,
@@ -111,7 +111,7 @@ class HearingCreateScreenView extends StatelessWidget {
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
                 decoration: BoxDecoration(
-                  color: _RC.surface,
+                  color: _RC.background,
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
                     color: vm.hearingDateTime != null ? _RC.navy : _RC.divider,
