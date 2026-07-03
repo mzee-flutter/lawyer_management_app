@@ -132,7 +132,7 @@ class _HearingUpdateScreenViewState extends State<HearingUpdateScreenView> {
     final listVM = context.read<HearingListViewModel>();
 
     return Scaffold(
-      backgroundColor: _RC.background,
+      backgroundColor: _RC.surface,
       appBar: AppBar(
         backgroundColor: _RC.navy,
         elevation: 0,
@@ -188,7 +188,7 @@ class _HearingUpdateScreenViewState extends State<HearingUpdateScreenView> {
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
                 decoration: BoxDecoration(
-                  color: _RC.surface,
+                  color: _RC.background,
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(color: _RC.divider, width: 0.5),
                   boxShadow: [_RC.card],
@@ -244,13 +244,14 @@ class _HearingUpdateScreenViewState extends State<HearingUpdateScreenView> {
             SizedBox(height: 6.h),
             Container(
               decoration: BoxDecoration(
-                color: _RC.surface,
+                color: _RC.background,
                 borderRadius: BorderRadius.circular(12.r),
                 border: Border.all(color: _RC.divider, width: 0.5),
                 boxShadow: [_RC.card],
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
+                  dropdownColor: _RC.background,
                   value: vm.selectedStatus,
                   isExpanded: true,
                   padding:
