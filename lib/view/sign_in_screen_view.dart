@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/resources/custom_text_fields.dart';
-import 'package:right_case/resources/login_icons.dart';
-
+import 'package:right_case/resources/system_design/rc_theme.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
+import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 import 'package:right_case/view_model/auth_view_models/login_view_model.dart';
+
+import '../resources/system_design/auth_widgets.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -14,185 +16,166 @@ class SignInScreen extends StatefulWidget {
   State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+class _SignInScreenState extends State<SignInScreen>
+    with SingleTickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
+  late final AnimationController _shakeCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
+  }
+
+  @override
+  void dispose() {
+    _shakeCtrl.dispose();
+    super.dispose();
+  }
+
+  void _shake() => _shakeCtrl.forward(from: 0);
+
+  Future<void> _submit(LoginViewModel loginVM) async {
+    if (!_formKey.currentState!.validate()) {
+      _shake();
+      return;
+    }
+    final success = await loginVM.loginUser(context);
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pushReplacementNamed(context, RoutesName.homeScreen);
+    } else {
+      _shake();
+      SnakeBars.flutterToast(
+          'Incorrect email or password. Please try again.', context);
+    }
+    loginVM.clearFields();
+  }
+
+  String? _validateEmail(String? v) {
+    final value = v?.trim() ?? '';
+    if (value.isEmpty) return 'Email is required';
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
+      return 'Enter a valid email address';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? v) {
+    if (v == null || v.isEmpty) return 'Password is required';
+    if (v.length < 6) return 'Must be at least 6 characters';
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final loginVM = context.watch<LoginViewModel>();
+
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height,
-              ),
-              child: IntrinsicHeight(
-                child: Consumer<LoginViewModel>(
-                  builder: (context, loginVM, child) {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment:
-                          CrossAxisAlignment.stretch, // for horizontal
-                      children: [
-                        Text(
-                          'Welcome!',
+      backgroundColor: RC.background,
+      resizeToAvoidBottomInset: true,
+      body: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const AuthHero(
+              icon: Icons.balance_rounded,
+              title: 'Welcome back, Counsel',
+              subtitle: 'Sign in to manage your cases, hearings & clients',
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(24.w, 32.h, 24.w, 24.h),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AuthTextField(
+                      controller: loginVM.emailController,
+                      label: 'Email address',
+                      hint: 'you@lawfirm.com',
+                      icon: Icons.mail_outline_rounded,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: _validateEmail,
+                    ).animate().fadeIn(delay: 500.ms, duration: 400.ms).slideY(
+                        begin: 0.12,
+                        end: 0,
+                        delay: 500.ms,
+                        duration: 400.ms,
+                        curve: Curves.easeOutCubic),
+                    SizedBox(height: 16.h),
+                    AuthTextField(
+                      controller: loginVM.passwordController,
+                      label: 'Password',
+                      hint: 'Enter your password',
+                      icon: Icons.lock_outline_rounded,
+                      obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      validator: _validatePassword,
+                      onFieldSubmitted: (_) => _submit(loginVM),
+                    ).animate().fadeIn(delay: 580.ms, duration: 400.ms).slideY(
+                        begin: 0.12,
+                        end: 0,
+                        delay: 580.ms,
+                        duration: 400.ms,
+                        curve: Curves.easeOutCubic),
+                    SizedBox(height: 10.h),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => Navigator.pushNamed(
+                            context, RoutesName.forgotPasswordScreen),
+                        style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size(0, 30.h)),
+                        child: Text(
+                          'Forgot password?',
                           style: TextStyle(
-                            color: Color(0xFF0077B5),
-                            fontSize: 24.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
+                              color: RC.gold,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13.sp),
                         ),
-                        SizedBox(height: 10.h),
-                        Text(
-                          'Login to your existing account',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            color: Colors.grey[600],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 15.h),
-
-                        // Email
-                        CustomTextField.fieldLabel(
-                            'Enter your email, phone, or username'),
-                        SizedBox(height: 5.h),
-                        CustomTextField(
-                          controller: loginVM.emailController,
-                        ),
-                        SizedBox(height: 15.h),
-
-                        // Password
-                        CustomTextField.fieldLabel('Enter your password'),
-                        SizedBox(height: 5.h),
-                        CustomTextField(
-                          controller: loginVM.passwordController,
-                        ),
-                        SizedBox(
-                          height: 5.h,
-                        ),
-                        InkWell(
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, RoutesName.forgotPasswordScreen);
-                          },
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              'Forgot Password?',
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                color: const Color(0xFF0077B5),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Login button
-                        SizedBox(height: 20.h),
-                        ElevatedButton(
-                          onPressed: () async {
-                            final valid = await loginVM.loginUser(context);
-                            if (valid) {
-                              Navigator.pushReplacementNamed(
-                                  context, RoutesName.homeScreen);
-                            } else {
-                              debugPrint('Login Failed');
-                            }
-                            loginVM.clearFields();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0077B5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20.r),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: 14.h),
-                          ),
-                          child: loginVM.isLoading
-                              ? CircularProgressIndicator(color: Colors.white)
-                              : Text(
-                                  'Login',
-                                  style: TextStyle(
-                                    fontSize: 18.sp,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                        ),
-                        // OR divider
-                        SizedBox(height: 20.h),
-                        Row(
-                          children: [
-                            Expanded(
-                                child: Divider(
-                                    color: Colors.grey[400], thickness: 1)),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 10.w),
-                              child: Text(
-                                'Or login with',
-                                style: TextStyle(
-                                    fontSize: 14.sp, color: Colors.grey[600]),
-                              ),
-                            ),
-                            Expanded(
-                                child: Divider(
-                                    color: Colors.grey[400], thickness: 1)),
-                          ],
-                        ),
-
-                        // Social icons
-                        SizedBox(height: 20.h),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            LoginIcons(assetPath: 'images/google1.png'),
-                            SizedBox(width: 20.w),
-                            LoginIcons(assetPath: 'images/facebook.png'),
-                            SizedBox(width: 20.w),
-                            LoginIcons(assetPath: 'images/apple.png'),
-                          ],
-                        ),
-
-                        // Sign Up Link
-                        SizedBox(height: 30.h),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, RoutesName.signUpScreen);
-                          },
-                          child: Center(
-                            child: RichText(
-                              text: TextSpan(
-                                text: "Don't have an account yet? ",
-                                style: TextStyle(
-                                    fontSize: 14.sp, color: Colors.grey[600]),
-                                children: [
-                                  TextSpan(
-                                    text: 'Sign Up',
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      color: const Color(0xFF0077B5),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                      ),
+                    ).animate().fadeIn(delay: 650.ms, duration: 350.ms),
+                    SizedBox(height: 12.h),
+                    AuthPrimaryButton(
+                      label: 'Sign In',
+                      isLoading: loginVM.isLoading,
+                      onPressed: () => _submit(loginVM),
+                    )
+                        .animate()
+                        .fadeIn(delay: 720.ms, duration: 400.ms)
+                        .scale(
+                            begin: const Offset(0.94, 0.94),
+                            end: const Offset(1, 1),
+                            delay: 720.ms,
+                            duration: 400.ms,
+                            curve: Curves.easeOutBack)
+                        .shimmer(
+                            delay: 1300.ms,
+                            duration: 1100.ms,
+                            color: Colors.white.withValues(alpha: 0.35)),
+                    SizedBox(height: 28.h),
+                    AuthFooterLink(
+                      leading: "Don't have an account? ",
+                      actionLabel: 'Create one',
+                      onTap: () =>
+                          Navigator.pushNamed(context, RoutesName.signUpScreen),
+                    ).animate().fadeIn(delay: 900.ms, duration: 400.ms),
+                  ],
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
-    );
+    ).animate(controller: _shakeCtrl, autoPlay: false).shake(
+          hz: 4,
+          offset: const Offset(8, 0),
+          curve: Curves.easeInOut,
+        );
   }
 }
