@@ -25,7 +25,7 @@ class CaseUpdateViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void setRegistrationDate(DateTime date) {
+  void setRegistrationDate(DateTime? date) {
     registrationDate = date;
     notifyListeners();
   }
