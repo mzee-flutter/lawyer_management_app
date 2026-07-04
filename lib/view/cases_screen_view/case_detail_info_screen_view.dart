@@ -6,6 +6,7 @@ import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/resources/case_resources/case_file_section_view.dart';
 import 'package:right_case/resources/client_resources/related_client_info_card.dart';
 import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
+import 'package:right_case/view/cases_screen_view/case_update_screen_view.dart';
 import 'package:right_case/view/cases_screen_view/hearing_list_screen_view.dart';
 import 'package:right_case/view_model/cases_view_model/add_case_file_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/add_related_client_view_model.dart';
@@ -17,12 +18,75 @@ import 'package:right_case/view_model/cases_view_model/remove_case_file_view_mod
 import 'package:right_case/view_model/client_view_model/client_list_view_model.dart';
 import 'package:uuid/uuid.dart';
 
+class _RC {
+  static const navy = Color(0xFF1A2744);
+  static const navyLight = Color(0xFF243356);
+  static const gold = Color(0xFFC8952A);
+  static const goldLight = Color(0xFFFAEDD4);
+  static const background = Color(0xFFF7F5F1);
+  static const surface = Color(0xFFFFFFFF);
+  static const textPrimary = Color(0xFF111827);
+  static const textSecondary = Color(0xFF6B7280);
+  static const textTertiary = Color(0xFF9CA3AF);
+  static const textOnDark = Color(0xFFFFFFFF);
+  static const textOnDarkMuted = Color(0xFFB8C4D8);
+  static const danger = Color(0xFFB91C1C);
+  static const dangerSurface = Color(0xFFFEF2F2);
+  static const dangerBorder = Color(0xFFFECACA);
+  static const successText = Color(0xFF166534);
+  static const successSurface = Color(0xFFF0FDF4);
+  static const infoText = Color(0xFF1E40AF);
+  static const infoSurface = Color(0xFFEFF6FF);
+  static const warningText = Color(0xFF92400E);
+  static const warningSurface = Color(0xFFFFFBEB);
+  static const warningBorder = Color(0xFFFDE68A);
+  static const divider = Color(0xFFE5E1D8);
+
+  static BoxShadow get card => BoxShadow(
+        color: Colors.black.withValues(alpha: 0.055),
+        blurRadius: 10,
+        offset: const Offset(0, 3),
+      );
+
+  static Color statusColor(String? name) {
+    switch ((name ?? '').toLowerCase()) {
+      case 'running':
+        return infoText;
+      case 'decided':
+        return successText;
+      case 'abandoned':
+      case 'cancelled':
+        return danger;
+      case 'pending':
+      case 'date awaited':
+        return warningText;
+      default:
+        return navy;
+    }
+  }
+
+  static Color statusSurface(String? name) {
+    switch ((name ?? '').toLowerCase()) {
+      case 'running':
+        return infoSurface;
+      case 'decided':
+        return successSurface;
+      case 'abandoned':
+      case 'cancelled':
+        return dangerSurface;
+      case 'pending':
+      case 'date awaited':
+        return warningSurface;
+      default:
+        return navy.withValues(alpha: 0.08);
+    }
+  }
+}
+
+// ── Wrapper — keeps providers setup exactly as before ────────────
 class CaseDetailInfoScreenWrapper extends StatelessWidget {
   final String caseId;
-  const CaseDetailInfoScreenWrapper({
-    super.key,
-    required this.caseId,
-  });
+  const CaseDetailInfoScreenWrapper({super.key, required this.caseId});
 
   @override
   Widget build(BuildContext context) {
@@ -42,14 +106,10 @@ class CaseDetailInfoScreenWrapper extends StatelessWidget {
   }
 }
 
+// ── Main screen ──────────────────────────────────────────────────
 class CaseDetailInfoScreenView extends StatefulWidget {
   final String caseId;
-
-  const CaseDetailInfoScreenView({
-    super.key,
-    required this.caseId,
-  });
-
+  const CaseDetailInfoScreenView({super.key, required this.caseId});
   @override
   State<CaseDetailInfoScreenView> createState() =>
       _CaseDetailInfoScreenViewState();
@@ -61,32 +121,26 @@ class _CaseDetailInfoScreenViewState extends State<CaseDetailInfoScreenView> {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final relatedClientVM = context.read<RelatedClientViewModel>();
-
       context.read<CaseFilesViewModel>().loadFilesFromCase(context);
-
-      relatedClientVM.loadRelatedClientsFromCase(context);
-      relatedClientVM.syncUnSyncedClients(context);
+      final rcVM = context.read<RelatedClientViewModel>();
+      rcVM.loadRelatedClientsFromCase(context);
+      rcVM.syncUnSyncedClients(context);
     });
   }
 
-  void _openUploadSheet(AddCaseFileViewModel vm) {
+  void _openUploadSheet() {
     if (_isUploadSheetOpen) return;
-
     _isUploadSheetOpen = true;
-
-    _showUploadBottomSheet(
+    _showUploadSheet(
       context: context,
       caseId: widget.caseId,
-      caseFilesVM: context.read<CaseFilesViewModel>(),
+      filesVM: context.read<CaseFilesViewModel>(),
     );
   }
 
   void _closeUploadSheet() {
     if (!_isUploadSheetOpen) return;
-
     _isUploadSheetOpen = false;
     Navigator.of(context).pop();
   }
@@ -95,517 +149,830 @@ class _CaseDetailInfoScreenViewState extends State<CaseDetailInfoScreenView> {
   Widget build(BuildContext context) {
     final caseData =
         context.watch<CaseListViewModel>().getCaseById(widget.caseId);
-    final hasUnSyncedClient =
-        context.read<RelatedClientViewModel>().relatedClients.any(
-              (rc) => !rc.isSynced,
-            );
-    final formattedDate =
-        DateFormat('dd MMM, yyyy').format(caseData!.registrationDate);
 
-    return Consumer<AddCaseFileViewModel>(builder: (context, addCaseFileVM, _) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        /// OPEN bottom sheet
-        if (addCaseFileVM.status == UploadStatus.readyToUpload) {
-          _openUploadSheet(addCaseFileVM);
-        }
-
-        if (addCaseFileVM.status == UploadStatus.idle && _isUploadSheetOpen) {
-          _closeUploadSheet();
-        }
-
-        /// SUCCESS
-        if (addCaseFileVM.status == UploadStatus.success) {
-          _closeUploadSheet();
-
-          SnakeBars.flutterToast(
-            "Files uploaded successfully",
-            context,
-          );
-
-          addCaseFileVM.cancelUploadWorkflow();
-        }
-
-        /// ERROR
-        if (addCaseFileVM.status == UploadStatus.error) {
-          _closeUploadSheet();
-          SnakeBars.flutterToast(
-            addCaseFileVM.error ?? "Upload failed",
-            context,
-          );
-          addCaseFileVM.cancelUploadWorkflow();
-        }
-      });
-
+    if (caseData == null) {
       return Scaffold(
-        backgroundColor: Colors.grey.shade50,
+        backgroundColor: _RC.background,
         appBar: AppBar(
-          backgroundColor: Colors.grey.shade300,
-          title: Text(
-            "Case Preview",
-            textAlign: TextAlign.left,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16.sp,
-            ),
-          ),
-          actions: [
-            Padding(
-              padding: EdgeInsets.only(right: 12.w),
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade100,
-                  foregroundColor: Colors.indigo.shade900,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.r),
-                  ),
-                ),
-                onPressed: () {
-                  // TODO: Generate PDF
-                },
-                icon: const Icon(Icons.picture_as_pdf_outlined,
-                    size: 18, color: Colors.black),
-                label: const Text(
-                  "Generate PDF",
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-            )
-          ],
+          backgroundColor: _RC.navy,
+          iconTheme: const IconThemeData(color: Colors.white),
+          title:
+              const Text('Case Details', style: TextStyle(color: Colors.white)),
         ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Text(
-                  "Case Number: #${caseData.caseNumber}",
-                  style:
-                      TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w700),
-                ),
-              ),
+        body: const Center(child: Text('Case not found.')),
+      );
+    }
 
-              SizedBox(height: 10.h),
-              Center(
-                child: Text(
-                  caseData.firstPartyName,
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
+    return Consumer<AddCaseFileViewModel>(
+      builder: (context, addFileVM, _) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (addFileVM.status == UploadStatus.readyToUpload) {
+            _openUploadSheet();
+          }
+          if (addFileVM.status == UploadStatus.idle && _isUploadSheetOpen) {
+            _closeUploadSheet();
+          }
+          if (addFileVM.status == UploadStatus.success) {
+            _closeUploadSheet();
+            SnakeBars.flutterToast('Files uploaded successfully', context);
+            addFileVM.cancelUploadWorkflow();
+          }
+          if (addFileVM.status == UploadStatus.error) {
+            _closeUploadSheet();
+            SnakeBars.flutterToast(addFileVM.error ?? 'Upload failed', context);
+            addFileVM.cancelUploadWorkflow();
+          }
+        });
 
-              SizedBox(height: 14.h),
+        return Scaffold(
+          backgroundColor: _RC.background,
+          appBar: _buildAppBar(context, caseData),
+          body: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Hero card ──────────────────────────────
+                _HeroCard(caseData: caseData),
+                SizedBox(height: 12.h),
 
-              Container(
-                padding: EdgeInsets.all(14.w),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(16.r),
+                // ── Quick actions ──────────────────────────
+                _QuickActions(
+                  caseId: caseData.id,
+                  onAddFiles: () => addFileVM.pickFiles(),
+                  onAddClient: () => _showAddClientsSheet(
+                      context: context, caseId: caseData.id),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                SizedBox(height: 12.h),
+
+                // ── Case information ───────────────────────
+                _InfoCard(caseData: caseData),
+                SizedBox(height: 12.h),
+
+                // ── Court information ──────────────────────
+                _CourtCard(caseData: caseData),
+                SizedBox(height: 12.h),
+
+                // ── Case notes (expandable) ────────────────
+                if (caseData.caseNotes != null &&
+                    caseData.caseNotes!.isNotEmpty) ...[
+                  _NotesCard(notes: caseData.caseNotes!),
+                  SizedBox(height: 12.h),
+                ],
+
+                // ── Files section ──────────────────────────
+                _SectionTitle('Case Files'),
+                Consumer<CaseFilesViewModel>(
+                  builder: (_, filesVM, __) =>
+                      CaseFilesEmbeddedSection(files: filesVM.files),
+                ),
+                SizedBox(height: 16.h),
+
+                // ── Timestamps ────────────────────────────
+                _TimestampRow(
+                    label: 'Created',
+                    value:
+                        DateFormat('dd MMM yyyy').format(caseData.createdAt)),
+                if (caseData.updatedAt != null)
+                  _TimestampRow(
+                      label: 'Updated',
+                      value: DateFormat('dd MMM yyyy')
+                          .format(caseData.updatedAt!)),
+                SizedBox(height: 16.h),
+
+                // ── Related clients ────────────────────────
+                Row(
                   children: [
-                    _action(
-                      icon: Icons.person_add_alt_1_outlined,
-                      label: "Add Client",
-                      onTap: () {
-                        showAddRelatedClientsSheet(
-                          context: context,
-                          caseId: caseData.id,
-                        );
-                      },
-                    ),
-                    _action(
-                      icon: Icons.file_copy_outlined,
-                      label: "Add Files",
-                      onTap: () {
-                        context.read<AddCaseFileViewModel>().pickFiles();
-                      },
-                    ),
-                    _action(
-                      icon: Icons.event_available_outlined,
-                      label: "Hearings",
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => HearingListScreenView(
-                              caseId: caseData.id,
+                    _SectionTitle('Attached Clients'),
+                    const Spacer(),
+                    Consumer<RelatedClientViewModel>(
+                      builder: (_, rcVM, __) {
+                        final hasUnsynced =
+                            rcVM.relatedClients.any((rc) => !rc.isSynced);
+                        if (!hasUnsynced) return const SizedBox.shrink();
+                        return InkWell(
+                          onTap: rcVM.isSyncing
+                              ? null
+                              : () async {
+                                  final ok =
+                                      await rcVM.syncUnSyncedClients(context);
+                                  if (!context.mounted) return;
+                                  SnakeBars.flutterToast(
+                                    ok
+                                        ? 'Clients synced'
+                                        : rcVM.lastError ?? 'Sync failed',
+                                    context,
+                                  );
+                                },
+                          borderRadius: BorderRadius.circular(8.r),
+                          child: Container(
+                            padding: EdgeInsets.all(6.r),
+                            decoration: BoxDecoration(
+                              color: _RC.background,
+                              borderRadius: BorderRadius.circular(8.r),
                             ),
+                            child: rcVM.isSyncing
+                                ? SizedBox(
+                                    height: 16.h,
+                                    width: 16.w,
+                                    child: CircularProgressIndicator(
+                                        color: _RC.navy, strokeWidth: 2))
+                                : Icon(Icons.refresh,
+                                    size: 18.sp, color: _RC.navy),
                           ),
                         );
                       },
                     ),
                   ],
                 ),
-              ),
-
-              SizedBox(height: 24.h),
-
-              _sectionHeader("Case Basic Information",
-                  trailing: "Sticky Notes"),
-              _infoTile(Icons.calendar_today_outlined,
-                  "Register Date: $formattedDate"),
-              _infoTile(Icons.confirmation_number_outlined,
-                  "Case Number: ${caseData.caseNumber}"),
-              _infoTile(Icons.category_outlined,
-                  "Case Type: ${caseData.caseType?.name ?? 'Not Added'}"),
-              _infoTile(Icons.layers_outlined,
-                  "Case Stage: ${caseData.caseStage?.name ?? 'Not Added'}"),
-              _infoTile(Icons.flag_outlined,
-                  "Case Status: ${caseData.caseStatus?.name ?? 'Not Added'}"),
-              // _infoTile(Icons.price_change_outlined,
-              //     "Legal Fees: ${caseData.legalFees?.toStringAsFixed(0) ?? 'N/A'}"),
-
-              SizedBox(height: 18.h),
-
-              _dropdownTile(
-                  "Case Study", caseData.caseNotes ?? "No notes added."),
-
-              SizedBox(height: 22.h),
-
-              _sectionTitle("Court Information"),
-              Wrap(
-                spacing: 10.w,
-                runSpacing: 10.h,
-                children: [
-                  _courtCard(Icons.balance_rounded, "Court Category",
-                      caseData.courtCategory?.name ?? "N/A"),
-                  _courtCard(Icons.account_balance_rounded, "Court Name",
-                      caseData.courtName ?? "N/A"),
-                  _courtCard(Icons.person_outline_rounded, "Judge",
-                      caseData.judgeName ?? "N/A"),
-                ],
-              ),
-
-              SizedBox(height: 24.h),
-
-              _sectionTitle("Other Information"),
-              Consumer<CaseFilesViewModel>(
-                builder: (context, caseFilesVM, child) {
-                  return CaseFilesEmbeddedSection(
-                    files: caseFilesVM.files,
-                  );
-                },
-              ),
-              _iconInfo(Icons.calendar_month_outlined, "Created At",
-                  DateFormat('dd MMM, yyyy').format(caseData.createdAt)),
-              if (caseData.updatedAt != null)
-                _iconInfo(Icons.update, "Last Updated",
-                    DateFormat('dd MMM, yyyy').format(caseData.updatedAt!)),
-              Divider(),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _sectionTitle("Attached Clients"),
-                  Consumer<RelatedClientViewModel>(
-                    builder: (context, relatedClientVM, _) {
-                      if (!hasUnSyncedClient) return SizedBox();
-
-                      return InkWell(
-                        splashColor: Colors.transparent,
-                        onTap: relatedClientVM.isSyncing
-                            ? null
-                            : () async {
-                                final success = await relatedClientVM
-                                    .syncUnSyncedClients(context);
-                                if (!context.mounted) return;
-
-                                if (success) {
-                                  SnakeBars.flutterToast(
-                                    "All clients synced successfully",
-                                    context,
-                                  );
-                                } else {
-                                  SnakeBars.flutterToast(
-                                    relatedClientVM.lastError ?? "Sync failed",
-                                    context,
-                                  );
-                                }
-                              },
-                        child: Container(
-                          padding: EdgeInsets.all(5.r),
-                          decoration: BoxDecoration(
-                            color: relatedClientVM.isSyncing
-                                ? Colors.grey.shade300
-                                : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                          child: relatedClientVM.isSyncing
-                              ? SizedBox(
-                                  height: 18.h,
-                                  width: 18.w,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.grey.shade900,
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.refresh,
-                                  color: Colors.grey.shade900,
-                                  size: 20,
-                                ),
-                        ),
-                      );
-                    },
-                  )
-                ],
-              ),
-              Consumer<RelatedClientViewModel>(
-                builder: (context, relatedClientVM, _) {
-                  return _relatedClientsSection(
-                    relatedClients: relatedClientVM.relatedClients,
-                  );
-                },
-              ),
-
-              SizedBox(height: 80.h),
-            ],
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: FloatingActionButton.extended(
-          shape: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(50.sp),
-              borderSide: BorderSide.none),
-          backgroundColor: Colors.grey.shade800,
-          onPressed: () {
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(
-            //       builder: (_) => EditCaseScreen(clientCase: caseData)),
-            // );
-          },
-          icon: Icon(Icons.edit_outlined, color: Colors.grey.shade300),
-          label:
-              Text("Edit Case", style: TextStyle(color: Colors.grey.shade300)),
-        ),
-      );
-    });
-  }
-
-  // ---------- Reusable UI Components ----------
-
-  Widget _action(
-          {required IconData icon,
-          required String label,
-          required void Function() onTap}) =>
-      InkWell(
-        onTap: onTap,
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 24.r,
-              backgroundColor: Colors.white,
-              child: Icon(icon, color: Colors.grey.shade900),
-            ),
-            SizedBox(height: 6.h),
-            Text(label,
-                style: TextStyle(color: Colors.grey.shade900, fontSize: 13)),
-          ],
-        ),
-      );
-
-  Widget _sectionTitle(String text) => Padding(
-        padding: EdgeInsets.only(bottom: 6.h),
-        child: Text(text,
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp)),
-      );
-
-  Widget _sectionHeader(String text, {String? trailing}) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _sectionTitle(text),
-          if (trailing != null)
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: Colors.lightBlueAccent.shade700,
-                borderRadius: BorderRadius.circular(20.r),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.push_pin_outlined,
-                      size: 16, color: Colors.white),
-                  SizedBox(width: 4.w),
-                  Text(trailing,
-                      style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.w600)),
-                ],
-              ),
-            ),
-        ],
-      );
-
-  Widget _infoTile(IconData icon, String text) => Padding(
-        padding: EdgeInsets.symmetric(vertical: 4.h),
-        child: Row(
-          children: [
-            Icon(icon, size: 18.sp, color: Colors.grey.shade900),
-            SizedBox(width: 8.w),
-            Expanded(
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: Colors.grey.shade700,
+                SizedBox(height: 8.h),
+                Consumer<RelatedClientViewModel>(
+                  builder: (_, rcVM, __) => _RelatedClientsList(
+                    relatedClients: rcVM.relatedClients,
+                  ),
                 ),
-              ),
-            ),
-          ],
-        ),
-      );
-
-  Widget _dropdownTile(String title, String content) => Material(
-        elevation: 3,
-        borderRadius: BorderRadius.circular(10.r),
-        child: ExpansionTile(
-          collapsedBackgroundColor: Colors.grey.shade300,
-          backgroundColor: Colors.grey.shade300,
-          shape: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide.none),
-          collapsedShape: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide.none),
-          title: Text(title,
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15.sp)),
-          children: [
-            Padding(
-              padding: EdgeInsets.all(12.w),
-              child: Text(content,
-                  style:
-                      TextStyle(color: Colors.grey.shade900, fontSize: 14.sp)),
-            ),
-          ],
-        ),
-      );
-
-  Widget _courtCard(IconData icon, String label, String value) => Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.w),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(10.r),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black12,
-                blurRadius: 2,
-                offset: const Offset(0, 2)),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.grey.shade700, size: 20.sp),
-            SizedBox(
-              width: 10.w,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: TextStyle(
-                        fontSize: 11.sp, color: Colors.grey.shade700)),
-                SizedBox(height: 3.w),
-                Text(value,
-                    style: TextStyle(
-                        fontSize: 14.sp, fontWeight: FontWeight.w600)),
+                SizedBox(height: 80.h),
               ],
             ),
-          ],
-        ),
-      );
+          ),
+        );
+      },
+    );
+  }
 
-  Widget _iconInfo(IconData icon, String title, String value) => Padding(
-        padding: EdgeInsets.only(bottom: 10.h),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.blue.shade100,
-              child: Icon(icon, color: Colors.grey.shade900, size: 18.sp),
-            ),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 14.sp)),
-                  Text(value,
-                      style: TextStyle(
-                          color: Colors.grey.shade600, fontSize: 13.sp)),
-                ],
+  PreferredSizeWidget _buildAppBar(BuildContext context, CaseModel caseData) {
+    return AppBar(
+      backgroundColor: _RC.navy,
+      elevation: 0,
+      iconTheme: const IconThemeData(color: Colors.white),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Case Details',
+              style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white)),
+          Text(
+            '#${caseData.caseNumber}',
+            style: TextStyle(fontSize: 11.sp, color: Colors.white54),
+          ),
+        ],
+      ),
+      actions: [
+        Padding(
+          padding: EdgeInsets.only(right: 8.w),
+          child: TextButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CaseUpdateScreenView(caseData: caseData),
               ),
             ),
-          ],
+            icon: Icon(Icons.edit_outlined, size: 16.sp, color: _RC.gold),
+            label: Text('Edit',
+                style: TextStyle(
+                    fontSize: 13.sp,
+                    color: _RC.gold,
+                    fontWeight: FontWeight.w500)),
+          ),
         ),
-      );
+      ],
+    );
+  }
 }
 
-///-----------------------------------///
+// ── Hero card ────────────────────────────────────────────────────
+class _HeroCard extends StatelessWidget {
+  final CaseModel caseData;
+  const _HeroCard({required this.caseData});
 
-void _showUploadBottomSheet({
+  @override
+  Widget build(BuildContext context) {
+    final statusName = caseData.caseStatus?.name;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: _RC.navy,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [_RC.card],
+      ),
+      child: Column(
+        children: [
+          // Case number badge
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Text(
+              'Case #${caseData.caseNumber}',
+              style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                  color: _RC.textOnDarkMuted),
+            ),
+          ),
+          SizedBox(height: 10.h),
+          // First party
+          Text(
+            caseData.firstPartyName,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: Colors.white),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            'vs.',
+            style: TextStyle(fontSize: 13.sp, color: _RC.textOnDarkMuted),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            caseData.oppositePartyName ?? '—',
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w500,
+                color: _RC.textOnDarkMuted),
+          ),
+          SizedBox(height: 12.h),
+          // Status + type badges
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            alignment: WrapAlignment.center,
+            children: [
+              if (statusName != null)
+                Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: _RC.statusSurface(statusName),
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                  child: Text(
+                    statusName,
+                    style: TextStyle(
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w600,
+                        color: _RC.statusColor(statusName)),
+                  ),
+                ),
+              if (caseData.caseType?.name != null)
+                Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                  child: Text(
+                    caseData.caseType!.name,
+                    style: TextStyle(
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w500,
+                        color: _RC.textOnDarkMuted),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Quick actions row ─────────────────────────────────────────────
+class _QuickActions extends StatelessWidget {
+  final String caseId;
+  final VoidCallback onAddFiles;
+  final VoidCallback onAddClient;
+
+  const _QuickActions({
+    required this.caseId,
+    required this.onAddFiles,
+    required this.onAddClient,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 14.h),
+      decoration: BoxDecoration(
+        color: _RC.surface,
+        borderRadius: BorderRadius.circular(14.r),
+        boxShadow: [_RC.card],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _ActionBtn(
+            icon: Icons.event_available_outlined,
+            label: 'Hearings',
+            color: _RC.navy,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => HearingListScreenView(caseId: caseId),
+              ),
+            ),
+          ),
+          _Divider(),
+          _ActionBtn(
+            icon: Icons.person_add_outlined,
+            label: 'Add Client',
+            color: _RC.gold,
+            onTap: onAddClient,
+          ),
+          _Divider(),
+          _ActionBtn(
+            icon: Icons.upload_file_outlined,
+            label: 'Add Files',
+            color: _RC.navy,
+            onTap: onAddFiles,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(height: 36.h, width: 0.5, color: _RC.divider);
+  }
+}
+
+class _ActionBtn extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  const _ActionBtn(
+      {required this.icon,
+      required this.label,
+      required this.color,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40.w,
+              height: 40.w,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: Icon(icon, size: 20.sp, color: color),
+            ),
+            SizedBox(height: 5.h),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w500,
+                    color: _RC.textSecondary)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Case info card ────────────────────────────────────────────────
+class _InfoCard extends StatelessWidget {
+  final CaseModel caseData;
+  const _InfoCard({required this.caseData});
+
+  @override
+  Widget build(BuildContext context) {
+    final reg = DateFormat('dd MMM yyyy').format(caseData.registrationDate);
+    return _DetailSection(
+      title: 'Case Information',
+      icon: Icons.cases_outlined,
+      children: [
+        _InfoRow(Icons.calendar_today_outlined, 'Registered', reg),
+        _InfoRow(Icons.confirmation_number_outlined, 'Case number',
+            caseData.caseNumber),
+        if (caseData.caseType != null)
+          _InfoRow(
+              Icons.category_outlined, 'Case type', caseData.caseType!.name),
+        if (caseData.caseStage != null)
+          _InfoRow(Icons.layers_outlined, 'Stage', caseData.caseStage!.name),
+        if (caseData.caseStatus != null)
+          _InfoRow(Icons.flag_outlined, 'Status', caseData.caseStatus!.name),
+        if (caseData.legalFees != null)
+          _InfoRow(Icons.payments_outlined, 'Legal fees',
+              'PKR ${caseData.legalFees!.toStringAsFixed(0)}'),
+      ],
+    );
+  }
+}
+
+// ── Court card ────────────────────────────────────────────────────
+class _CourtCard extends StatelessWidget {
+  final CaseModel caseData;
+  const _CourtCard({required this.caseData});
+
+  @override
+  Widget build(BuildContext context) {
+    if (caseData.courtName == null &&
+        caseData.judgeName == null &&
+        caseData.courtCategory == null) return const SizedBox.shrink();
+
+    return _DetailSection(
+      title: 'Court Information',
+      icon: Icons.account_balance_outlined,
+      children: [
+        if (caseData.courtCategory != null)
+          _InfoRow(
+              Icons.balance_outlined, 'Category', caseData.courtCategory!.name),
+        if (caseData.courtName != null)
+          _InfoRow(
+              Icons.account_balance_outlined, 'Court', caseData.courtName!),
+        if (caseData.judgeName != null)
+          _InfoRow(Icons.gavel_outlined, 'Judge', caseData.judgeName!),
+      ],
+    );
+  }
+}
+
+// ── Notes card (expandable) ───────────────────────────────────────
+class _NotesCard extends StatelessWidget {
+  final String notes;
+  const _NotesCard({required this.notes});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _RC.surface,
+        borderRadius: BorderRadius.circular(14.r),
+        boxShadow: [_RC.card],
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
+          leading:
+              Icon(Icons.sticky_note_2_outlined, size: 18.sp, color: _RC.navy),
+          title: Text('Case Notes',
+              style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: _RC.textPrimary)),
+          children: [
+            Divider(
+                color: _RC.divider,
+                height: 1,
+                thickness: 0.5,
+                indent: 14.w,
+                endIndent: 14.w),
+            Padding(
+              padding: EdgeInsets.all(14.w),
+              child: Text(notes,
+                  style: TextStyle(
+                      fontSize: 13.sp, color: _RC.textSecondary, height: 1.5)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────
+class _DetailSection extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+  const _DetailSection(
+      {required this.title, required this.icon, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _RC.surface,
+        borderRadius: BorderRadius.circular(14.r),
+        boxShadow: [_RC.card],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            child: Row(children: [
+              Icon(icon, size: 16.sp, color: _RC.navy),
+              SizedBox(width: 8.w),
+              Text(title,
+                  style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                      color: _RC.navy)),
+            ]),
+          ),
+          Divider(color: _RC.divider, height: 1, thickness: 0.5),
+          Padding(
+            padding: EdgeInsets.all(14.w),
+            child: Column(children: children),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _InfoRow(this.icon, this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 10.h),
+      child: Row(
+        children: [
+          Icon(icon, size: 15.sp, color: _RC.textSecondary),
+          SizedBox(width: 10.w),
+          Text('$label:',
+              style: TextStyle(fontSize: 12.sp, color: _RC.textSecondary)),
+          SizedBox(width: 6.w),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500,
+                  color: _RC.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TimestampRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _TimestampRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 4.h),
+      child: Row(
+        children: [
+          Icon(Icons.schedule_outlined, size: 12.sp, color: _RC.textTertiary),
+          SizedBox(width: 5.w),
+          Text('$label: $value',
+              style: TextStyle(fontSize: 11.sp, color: _RC.textTertiary)),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  const _SectionTitle(this.title);
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Text(title,
+          style: TextStyle(
+              fontSize: 15.sp,
+              fontWeight: FontWeight.w600,
+              color: _RC.textPrimary)),
+    );
+  }
+}
+
+class _RelatedClientsList extends StatelessWidget {
+  final List<RelatedClientModel> relatedClients;
+  const _RelatedClientsList({required this.relatedClients});
+
+  @override
+  Widget build(BuildContext context) {
+    if (relatedClients.isEmpty) {
+      return Text('No related clients added.',
+          style: TextStyle(fontSize: 13.sp, color: _RC.textTertiary));
+    }
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: relatedClients.length,
+      separatorBuilder: (_, __) => SizedBox(height: 10.h),
+      itemBuilder: (_, i) {
+        final rc = relatedClients[i];
+        return RelatedClientInfoCard(
+          isSynced: rc.isSynced,
+          client: rc.client,
+          onRemoveFromCase: () async {
+            final vm = context.read<RelatedClientViewModel>();
+            final ok = await vm.removeRelatedClient(context, rc);
+            if (!context.mounted) return;
+            SnakeBars.flutterToast(
+              ok ? 'Client removed' : 'Failed to remove',
+              context,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+// ── Upload bottom sheet ──────────────────────────────────────────
+void _showUploadSheet({
   required BuildContext context,
   required String caseId,
-  required CaseFilesViewModel caseFilesVM,
+  required CaseFilesViewModel filesVM,
 }) {
-  final addCaseFileVM = context.read<AddCaseFileViewModel>();
-
+  final addVM = context.read<AddCaseFileViewModel>();
   showModalBottomSheet(
     context: context,
     isDismissible: false,
     enableDrag: false,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) {
-      return ChangeNotifierProvider.value(
-        value: addCaseFileVM,
-        child: _UploadBottomSheet(
-          caseId: caseId,
-          caseFilesVM: caseFilesVM,
-        ),
-      );
-    },
+    builder: (_) => ChangeNotifierProvider.value(
+      value: addVM,
+      child: _UploadSheet(caseId: caseId, filesVM: filesVM),
+    ),
   );
 }
 
-class _UploadBottomSheet extends StatelessWidget {
+class _UploadSheet extends StatelessWidget {
   final String caseId;
-  final CaseFilesViewModel caseFilesVM;
-
-  const _UploadBottomSheet({
-    required this.caseId,
-    required this.caseFilesVM,
-  });
+  final CaseFilesViewModel filesVM;
+  const _UploadSheet({required this.caseId, required this.filesVM});
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<AddCaseFileViewModel>();
-
     return Container(
       padding: EdgeInsets.fromLTRB(
-        16,
-        16,
-        16,
-        MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          16.w, 16.h, 16.w, MediaQuery.of(context).viewInsets.bottom + 20.h),
+      decoration: BoxDecoration(
+        color: _RC.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const _SheetHeader(),
-          const SizedBox(height: 12),
-          _FileList(vm: vm),
-          const SizedBox(height: 20),
-          _SheetActions(
-            addCaseFileVM: vm,
-            caseId: caseId,
-            caseFilesVM: caseFilesVM,
+          Center(
+            child: Container(
+              width: 36.w,
+              height: 4,
+              margin: EdgeInsets.only(bottom: 16.h),
+              decoration: BoxDecoration(
+                  color: _RC.divider, borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          Row(
+            children: [
+              Icon(Icons.upload_file_outlined, size: 20.sp, color: _RC.navy),
+              SizedBox(width: 8.w),
+              Text('Uploading Files',
+                  style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: _RC.textPrimary)),
+            ],
+          ),
+          SizedBox(height: 14.h),
+          if (vm.selectedFiles.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.h),
+              child: Text('No files selected',
+                  style: TextStyle(color: _RC.textTertiary)),
+            )
+          else
+            Column(
+              children: vm.selectedFiles.map((f) {
+                return Container(
+                  margin: EdgeInsets.only(bottom: 8.h),
+                  padding: EdgeInsets.all(10.r),
+                  decoration: BoxDecoration(
+                    color: _RC.background,
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(color: _RC.divider, width: 0.5),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.insert_drive_file_outlined,
+                              size: 16.sp, color: _RC.navy),
+                          SizedBox(width: 8.w),
+                          Expanded(
+                            child: Text(
+                              f.file.path.split('/').last,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 12.sp, color: _RC.textPrimary),
+                            ),
+                          ),
+                          if (vm.status != UploadStatus.uploading)
+                            Icon(Icons.check_circle_outline,
+                                size: 16.sp, color: _RC.successText)
+                          else
+                            Text(
+                              '${(f.progress * 100).toInt()}%',
+                              style:
+                                  TextStyle(fontSize: 11.sp, color: _RC.navy),
+                            ),
+                        ],
+                      ),
+                      if (vm.status == UploadStatus.uploading)
+                        Padding(
+                          padding: EdgeInsets.only(top: 6.h),
+                          child: LinearProgressIndicator(
+                            value: f.progress,
+                            backgroundColor: _RC.divider,
+                            valueColor: AlwaysStoppedAnimation(_RC.navy),
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          SizedBox(height: 8.h),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 13.h),
+                    side: BorderSide(color: _RC.divider),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r)),
+                  ),
+                  onPressed: vm.status == UploadStatus.uploading
+                      ? null
+                      : () => context
+                          .read<AddCaseFileViewModel>()
+                          .cancelUploadWorkflow(),
+                  child: Text('Cancel',
+                      style: TextStyle(color: _RC.textSecondary)),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _RC.navy,
+                    padding: EdgeInsets.symmetric(vertical: 13.h),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r)),
+                    elevation: 0,
+                  ),
+                  onPressed: vm.status == UploadStatus.uploading
+                      ? null
+                      : () async {
+                          final uploaded = await vm.uploadFiles(caseId);
+                          filesVM.addFile(context, uploaded);
+                        },
+                  child: vm.status == UploadStatus.uploading
+                      ? SizedBox(
+                          height: 18.h,
+                          width: 18.h,
+                          child: const CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2))
+                      : Text('Upload',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -613,411 +980,179 @@ class _UploadBottomSheet extends StatelessWidget {
   }
 }
 
-class _SheetHeader extends StatelessWidget {
-  const _SheetHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: const [
-        SizedBox(height: 6),
-        Text(
-          "Uploading Files",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FileList extends StatelessWidget {
-  final AddCaseFileViewModel vm;
-
-  const _FileList({required this.vm});
-
-  @override
-  Widget build(BuildContext context) {
-    if (vm.selectedFiles.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        child: Text(
-          "No files selected",
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
-    }
-
-    return Column(
-      children: vm.selectedFiles.map((file) {
-        return ListTile(
-          leading: const Icon(Icons.insert_drive_file_outlined),
-          title: Text(
-            file.file.path.split('/').last,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: vm.status == UploadStatus.uploading
-              ? LinearProgressIndicator(value: file.progress)
-              : null,
-          trailing: vm.status == UploadStatus.uploading
-              ? Text("${(file.progress * 100).toInt()}%")
-              : const Icon(
-                  Icons.check_circle_outline,
-                  color: Colors.green,
-                ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class _SheetActions extends StatelessWidget {
-  final AddCaseFileViewModel addCaseFileVM;
-  final String caseId;
-  final CaseFilesViewModel caseFilesVM;
-
-  const _SheetActions({
-    required this.addCaseFileVM,
-    required this.caseId,
-    required this.caseFilesVM,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey.shade700,
-              disabledForegroundColor: Colors.white,
-            ),
-            onPressed: addCaseFileVM.status == UploadStatus.uploading
-                ? null
-                : () {
-                    context.read<AddCaseFileViewModel>().cancelUploadWorkflow();
-                  },
-            child: Text(
-              "Cancel",
-              style: TextStyle(
-                color: Colors.grey.shade300,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: SizedBox(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade700,
-              ),
-              onPressed: addCaseFileVM.status == UploadStatus.uploading
-                  ? null
-                  : () async {
-                      final uploadedFiles =
-                          await addCaseFileVM.uploadFiles(caseId);
-
-                      caseFilesVM.addFile(context, uploadedFiles);
-                    },
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Opacity(
-                    opacity:
-                        addCaseFileVM.status == UploadStatus.uploading ? 0 : 1,
-                    child: Text(
-                      "Upload Files",
-                      style: TextStyle(
-                        color: Colors.grey.shade300,
-                      ),
-                    ),
-                  ),
-                  if (addCaseFileVM.status == UploadStatus.uploading)
-                    SizedBox(
-                      height: 17.h,
-                      width: 20.w,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-///-----------------------------------------------///
-
-Widget _relatedClientsSection(
-    {required List<RelatedClientModel> relatedClients}) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      SizedBox(height: 10.h),
-      if (relatedClients.isEmpty)
-        Text(
-          "No related clients added",
-          style: TextStyle(color: Colors.grey),
-        )
-      else
-        ListView.builder(
-          itemCount: relatedClients.length,
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            final relatedClient = relatedClients[index];
-
-            return Padding(
-              padding: EdgeInsets.only(bottom: 12.0.h),
-              child: RelatedClientInfoCard(
-                isSynced: relatedClient.isSynced,
-                client: relatedClient.client,
-                onRemoveFromCase: () async {
-                  final relatedClientVM =
-                      context.read<RelatedClientViewModel>();
-
-                  final success = await relatedClientVM.removeRelatedClient(
-                    context,
-                    relatedClient,
-                  );
-
-                  if (!context.mounted) return;
-
-                  if (success) {
-                    SnakeBars.flutterToast(
-                      "Client removed successfully",
-                      context,
-                    );
-                  } else {
-                    SnakeBars.flutterToast(
-                      "Failed to remove client",
-                      context,
-                    );
-                  }
-                },
-              ),
-            );
-          },
-        ),
-    ],
-  );
-}
-
-///---------------------------------///
-void showAddRelatedClientsSheet({
-  required BuildContext context,
-  required String caseId,
-}) {
+// ── Add related clients sheet ────────────────────────────────────
+void _showAddClientsSheet(
+    {required BuildContext context, required String caseId}) {
   context.read<RelatedClientViewModel>().resetSelectedClients();
-
   showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
-    builder: (_) {
-      return MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(
-            value: context.read<RelatedClientViewModel>(),
-          ),
-          ChangeNotifierProvider.value(
-            value: context.read<AddRelatedClientViewModel>(),
-          ),
-          ChangeNotifierProvider.value(
-            value: context.read<ClientListViewModel>(),
-          ),
-        ],
-        child: _AddRelatedClientsSheet(caseId: caseId),
-      );
-    },
+    builder: (_) => MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(
+            value: context.read<RelatedClientViewModel>()),
+        ChangeNotifierProvider.value(
+            value: context.read<AddRelatedClientViewModel>()),
+        ChangeNotifierProvider.value(
+            value: context.read<ClientListViewModel>()),
+      ],
+      child: _AddClientsSheet(caseId: caseId),
+    ),
   );
 }
 
-class _AddRelatedClientsSheet extends StatefulWidget {
+class _AddClientsSheet extends StatefulWidget {
   final String caseId;
-  const _AddRelatedClientsSheet({required this.caseId});
-
+  const _AddClientsSheet({required this.caseId});
   @override
-  State<_AddRelatedClientsSheet> createState() =>
-      _AddRelatedClientsSheetState();
+  State<_AddClientsSheet> createState() => _AddClientsSheetState();
 }
 
-class _AddRelatedClientsSheetState extends State<_AddRelatedClientsSheet> {
-  late final ScrollController _scrollController;
+class _AddClientsSheetState extends State<_AddClientsSheet> {
+  late final ScrollController _scroll;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
-    _scrollController.addListener(_onScroll);
-
-    /// 🔹 Fetch clients ONLY if not fetched yet
+    _scroll = ScrollController()..addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final clientVM = context.read<ClientListViewModel>();
-      if (clientVM.filterClients.isEmpty && !clientVM.isLoading) {
-        clientVM.fetchClientList();
+      final vm = context.read<ClientListViewModel>();
+      if (vm.filterClients.isEmpty && !vm.isLoading) {
+        vm.fetchClientList();
       }
     });
   }
 
   void _onScroll() {
-    final clientVM = context.read<ClientListViewModel>();
-
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      if (clientVM.canLoadMore) {
-        clientVM.fetchClientList(loadMore: true);
-      }
+    final vm = context.read<ClientListViewModel>();
+    if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 200) {
+      if (vm.canLoadMore) vm.fetchClientList(loadMore: true);
     }
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final clientVM = context.watch<ClientListViewModel>();
-    final relatedClientVM = context.watch<RelatedClientViewModel>();
-    final addRelatedClientVM = context.watch<AddRelatedClientViewModel>();
+    final rcVM = context.watch<RelatedClientViewModel>();
+    final addRcVM = context.watch<AddRelatedClientViewModel>();
 
-    final selectableClients = clientVM.filterClients
-        .where((c) => !relatedClientVM.isClientAlreadyAdded(c.id))
+    final selectable = clientVM.filterClients
+        .where((c) => !rcVM.isClientAlreadyAdded(c.id))
         .toList();
 
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.only(top: 90.h),
+        padding: EdgeInsets.only(top: 80.h),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16.r),
+            color: _RC.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
           ),
           child: Column(
             children: [
               SizedBox(height: 12.h),
-              Text(
-                "Add Related Clients",
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
+              Center(
+                child: Container(
+                  width: 36.w,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: _RC.divider,
+                      borderRadius: BorderRadius.circular(2)),
                 ),
               ),
-              const Divider(),
-
-              /// 🔹 LIST
+              SizedBox(height: 12.h),
+              Text('Add Related Clients',
+                  style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: _RC.textPrimary)),
+              Divider(color: _RC.divider, height: 1),
               Expanded(
-                child: clientVM.isLoading && selectableClients.isEmpty
+                child: clientVM.isLoading && selectable.isEmpty
                     ? Center(
                         child: CircularProgressIndicator(
-                          color: Colors.grey.shade700,
-                          strokeWidth: 2,
-                        ),
-                      )
+                            color: _RC.navy, strokeWidth: 2))
                     : ListView.builder(
-                        controller: _scrollController,
-                        itemCount: selectableClients.length +
+                        controller: _scroll,
+                        itemCount: selectable.length +
                             (clientVM.isLoadingMore ? 1 : 0),
-                        itemBuilder: (_, index) {
-                          if (index == selectableClients.length) {
-                            return Padding(
-                              padding: EdgeInsets.all(12.r),
-                              child: Center(
+                        itemBuilder: (_, i) {
+                          if (i == selectable.length) {
+                            return Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(12.r),
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.grey.shade700,
-                                ),
+                                    color: _RC.navy, strokeWidth: 2),
                               ),
                             );
                           }
-
-                          final client = selectableClients[index];
-
+                          final c = selectable[i];
                           return CheckboxListTile(
-                            activeColor: Colors.grey.shade700,
-                            value:
-                                relatedClientVM.isClientBoxIsChecked(client.id),
-                            title: Text(client.name),
-                            subtitle: Text(client.phone.toString()),
-                            onChanged: (val) {
-                              relatedClientVM.onCheckBoxChange(
-                                val,
-                                client.id,
-                              );
-                            },
+                            activeColor: _RC.navy,
+                            value: rcVM.isClientBoxIsChecked(c.id),
+                            title: Text(c.name,
+                                style: TextStyle(
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w500)),
+                            subtitle: Text(c.phone.toString(),
+                                style: TextStyle(
+                                    fontSize: 12.sp, color: _RC.textSecondary)),
+                            onChanged: (v) => rcVM.onCheckBoxChange(v, c.id),
                           );
                         },
                       ),
               ),
-
-              /// 🔹 ACTION BUTTON
               Padding(
                 padding: EdgeInsets.all(12.r),
                 child: SizedBox(
-                  height: 35.h,
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade700,
+                      backgroundColor: _RC.navy,
+                      padding: EdgeInsets.symmetric(vertical: 13.h),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r)),
+                      elevation: 0,
                     ),
-                    onPressed: relatedClientVM.selectedClientsIds.isEmpty ||
-                            addRelatedClientVM.loading
+                    onPressed: rcVM.selectedClientsIds.isEmpty ||
+                            addRcVM.loading
                         ? null
                         : () async {
                             final selected = clientVM.filterClients
-                                .where((c) => relatedClientVM.selectedClientsIds
-                                    .contains(c.id))
-                                .map(
-                                  (c) => RelatedClientModel(
-                                    id: "temp_${const Uuid().v4()}",
-                                    client: c,
-                                    role: "Evident",
-                                    isSynced: false,
-                                  ),
-                                )
+                                .where((c) =>
+                                    rcVM.selectedClientsIds.contains(c.id))
+                                .map((c) => RelatedClientModel(
+                                      id: 'temp_${const Uuid().v4()}',
+                                      client: c,
+                                      role: 'Evident',
+                                      isSynced: false,
+                                    ))
                                 .toList();
 
-                            /// instant UX
-                            relatedClientVM.addRelatedClientsLocally(
-                              context,
-                              selected,
-                            );
-
-                            /// sync
-                            await relatedClientVM.syncUnSyncedClients(context);
-
+                            rcVM.addRelatedClientsLocally(context, selected);
+                            await rcVM.syncUnSyncedClients(context);
                             if (context.mounted) Navigator.pop(context);
                           },
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        if (addRelatedClientVM.loading)
-                          SizedBox(
-                            height: 17.h,
-                            width: 20.w,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        else
-                          const Text(
-                            "Add Selected Clients",
-                            style: TextStyle(color: Colors.white),
+                    child: addRcVM.loading
+                        ? SizedBox(
+                            height: 18.h,
+                            width: 18.h,
+                            child: const CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : Text(
+                            'Add Selected Clients',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600),
                           ),
-                      ],
-                    ),
                   ),
                 ),
               ),
