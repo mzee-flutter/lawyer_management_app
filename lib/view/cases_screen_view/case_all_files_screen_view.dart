@@ -9,6 +9,8 @@ import 'package:right_case/view_model/cases_view_model/case_files_service_view_m
 import 'package:right_case/view_model/cases_view_model/case_files_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/remove_case_file_view_model.dart';
 
+import '../../resources/system_design/rc_theme.dart';
+
 class CaseAllFilesScreenView extends StatelessWidget {
   const CaseAllFilesScreenView({super.key});
 
@@ -21,7 +23,25 @@ class CaseAllFilesScreenView extends StatelessWidget {
     final files = filesVM.files;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Case Files")),
+      backgroundColor: RC.background,
+      appBar: AppBar(
+        backgroundColor: RC.navy,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: RC.textOnDark),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Case Files',
+                style: TextStyle(
+                    color: RC.textOnDark,
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w700)),
+            Text('${files.length} file${files.length == 1 ? '' : 's'}',
+                style: TextStyle(color: RC.textOnDarkMuted, fontSize: 12.sp)),
+          ],
+        ),
+      ),
       body: files.isEmpty
           ? const Center(child: Text("No files uploaded"))
           : ListView.separated(
@@ -64,11 +84,10 @@ class CaseFileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 0.8,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(14.r),
       ),
-      color: Colors.grey.shade200,
+      color: RC.surface,
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: state == FileLoadState.loading
@@ -96,18 +115,17 @@ class CaseFileCard extends StatelessWidget {
                           file.filename,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
+                          style: RC.body().copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.sp,
+                              ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           "Uploaded • ${DateFormat('dd MMM yyyy').format(file.uploadedAt)}",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade700,
-                          ),
+                          style: RC.caption().copyWith(
+                                color: RC.textTertiary,
+                              ),
                         ),
                       ],
                     ),
@@ -167,6 +185,7 @@ class CaseFileCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: RC.surface,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
