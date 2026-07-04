@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:right_case/models/case_models/hearing_models.dart';
 import 'package:right_case/repository/case_repository/hearing_repository/hearing_create_repository.dart';
+import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/legal_task_view_model.dart';
 
 class HearingCreateViewModel with ChangeNotifier {
   final HearingCreateRepo _hearingCreateRepo = HearingCreateRepo();
@@ -26,7 +28,8 @@ class HearingCreateViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<HearingPublicModel> createHearing(String caseId) async {
+  Future<HearingPublicModel> createHearing(
+      BuildContext context, String caseId) async {
     final hearing = HearingCreateModel(
       title: hearingTitleController.text.trim(),
       hearingDateTime: _hearingDateTime ?? DateTime.now(),
@@ -39,6 +42,12 @@ class HearingCreateViewModel with ChangeNotifier {
         caseId: caseId,
         hearing: hearing,
       );
+      context.read<LegalTaskViewModel>().createAutoTask(
+            caseId: dbHearing.caseId,
+            hearingId: dbHearing.id,
+            hearingDateTime: dbHearing.hearingDateTime,
+            caseTitle: dbHearing.title,
+          );
 
       return dbHearing;
     } catch (e) {
