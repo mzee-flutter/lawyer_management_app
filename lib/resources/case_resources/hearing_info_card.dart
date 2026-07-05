@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:right_case/models/case_models/hearing_models.dart';
 import 'package:intl/intl.dart';
+import 'package:right_case/models/case_models/hearing_models.dart';
+
+import '../system_design/rc_theme.dart';
+import '../system_design/rc_widgets.dart';
 
 class HearingInfoCard extends StatelessWidget {
   final String judgeName;
@@ -25,31 +28,24 @@ class HearingInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-      elevation: 0.8,
-      color: isHighLighted ? Colors.grey.shade200 : Colors.grey.shade300,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: isHighLighted ? RC.goldLight : RC.surface,
         borderRadius: BorderRadius.circular(14.r),
-        side: BorderSide(
-          color: isHighLighted
-              ? Colors.black.withValues(alpha: 0.5)
-              : Colors.transparent,
-        ),
+        border: Border.all(
+            color: isHighLighted ? RC.gold : RC.divider,
+            width: isHighLighted ? 1.4 : 1),
+        boxShadow: [RC.cardShadow],
       ),
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.only(
-              left: 5.h,
-              right: 5.h,
-              top: 5.h,
-            ),
+            padding: EdgeInsets.all(12.w),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _DateBadge(date: hearing.hearingDateTime),
-                SizedBox(width: 8.r),
+                SizedBox(width: 10.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,51 +58,62 @@ class HearingInfoCard extends StatelessWidget {
                               hearing.title,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: RC.body().copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14.5.sp),
                             ),
                           ),
-                          _HearingStatusBadge(status: hearing.status),
+                          SizedBox(width: 6.w),
+                          _hearingStatusPill(hearing.status),
                         ],
                       ),
-                      Text(
-                        "$courtName • Judge: $judgeName",
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12.5.sp,
-                          color: Colors.grey.shade800,
-                        ),
+                      SizedBox(height: 4.h),
+                      Row(
+                        children: [
+                          Icon(Icons.account_balance_outlined,
+                              size: 12.sp, color: RC.textTertiary),
+                          SizedBox(width: 4.w),
+                          Expanded(
+                            child: Text(
+                              '$courtName · Judge: $judgeName',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: RC.caption(),
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        "Created at: ${DateFormat('dd MMM, yyyy').format(hearing.createdAt)}",
-                        style: TextStyle(
-                          fontSize: 12.5.sp,
-                          color: Colors.grey.shade700,
-                        ),
+                      SizedBox(height: 2.h),
+                      Row(
+                        children: [
+                          Icon(Icons.schedule_outlined,
+                              size: 12.sp, color: RC.textTertiary),
+                          SizedBox(width: 4.w),
+                          Text(
+                              'Created ${DateFormat('dd MMM, yyyy').format(hearing.createdAt)}',
+                              style: RC.caption(color: RC.textTertiary)),
+                        ],
                       ),
-                      SizedBox(height: 5.r),
+                      SizedBox(height: 8.h),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           _ActionIcon(
-                            icon: Icons.settings_outlined,
-                            color: Colors.blueGrey,
-                            onTap: onManage,
-                          ),
-                          SizedBox(width: 10.w),
+                              icon: Icons.settings_outlined,
+                              color: RC.textSecondary,
+                              onTap: onManage),
+                          SizedBox(width: 8.w),
                           _ActionIcon(
-                            icon: Icons.edit_outlined,
-                            color: Colors.orange,
-                            onTap: onEdit,
-                          ),
-                          SizedBox(width: 10.w),
+                              icon: Icons.edit_outlined,
+                              color: RC.gold,
+                              onTap: onEdit),
+                          SizedBox(width: 8.w),
                           _ActionIcon(
-                            icon: Icons.delete_outline,
-                            color: Colors.red,
-                            onTap: () => _showRemoveDialog(context),
+                            icon: Icons.delete_outline_rounded,
+                            color: RC.danger,
+                            onTap: onDeleteHearing == null
+                                ? null
+                                : () => _confirmRemove(context),
                           ),
                         ],
                       ),
@@ -116,204 +123,117 @@ class HearingInfoCard extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 5.h),
-          ExpansionTile(
-            title: Text(
-              "Hearing Notes",
-              style: TextStyle(
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w600,
+          Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: EdgeInsets.symmetric(horizontal: 12.w),
+              childrenPadding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 12.h),
+              minTileHeight: 1,
+              backgroundColor: RC.background,
+              collapsedBackgroundColor: RC.background,
+              iconColor: RC.textSecondary,
+              collapsedIconColor: RC.textSecondary,
+              shape: RoundedRectangleBorder(
+                side: BorderSide.none,
+                borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(14.r),
+                    bottomRight: Radius.circular(14.r)),
               ),
-            ),
-            minTileHeight: 1,
-            backgroundColor: Colors.blue.withValues(alpha: 0.2),
-            collapsedBackgroundColor: Colors.blue.withValues(alpha: 0.2),
-            iconColor: Colors.black,
-            collapsedIconColor: Colors.black,
-            collapsedShape: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.only(
-                bottomRight: Radius.circular(8.r),
-                bottomLeft: Radius.circular(8.r),
+              collapsedShape: RoundedRectangleBorder(
+                side: BorderSide.none,
+                borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(14.r),
+                    bottomRight: Radius.circular(14.r)),
               ),
+              title: Text('Hearing Notes',
+                  style: RC.label().copyWith(
+                      fontSize: 12.5.sp, fontWeight: FontWeight.w700)),
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    (hearing.notes?.trim().isNotEmpty ?? false)
+                        ? hearing.notes!
+                        : 'No notes added for this hearing.',
+                    style: RC.body(color: RC.textSecondary),
+                  ),
+                ),
+              ],
             ),
-            shape: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.only(
-                bottomRight: Radius.circular(8.r),
-                bottomLeft: Radius.circular(8.r),
-              ),
-            ),
-            tilePadding: EdgeInsets.symmetric(horizontal: 5.r),
-            childrenPadding: EdgeInsets.only(
-              left: 12.w,
-              right: 5.w,
-              bottom: 5.h,
-            ),
-            children: [
-              Center(
-                child: Text(hearing.notes ?? "No description"),
-              )
-            ],
-          )
+          ),
         ],
       ),
     );
   }
 
-  void _showRemoveDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.grey.shade300,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Remove Hearing',
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10.h),
-            Text(
-              'Are you sure want to delete this hearing?',
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 15.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _actionButton(
-                  title: 'Cancel',
-                  color: Colors.blue,
-                  onTap: () => Navigator.pop(context),
-                ),
-                SizedBox(width: 10.w),
-                _actionButton(
-                  title: 'Remove',
-                  color: Colors.red,
-                  onTap: () {
-                    Navigator.pop(context);
-                    onDeleteHearing?.call();
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+  Widget _hearingStatusPill(String status) {
+    final (color, surface) = _statusColors(status);
+    return RCStatusPill(label: status, color: color, surface: surface);
   }
 
-  Widget _actionButton({
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: 40.h,
-        width: 90.w,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(50),
-        ),
-        child: Text(
-          title,
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
+  (Color, Color) _statusColors(String status) {
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        return (RC.infoText, RC.infoSurface);
+      case 'completed':
+        return (RC.successText, RC.successSurface);
+      case 'adjourned':
+        return (RC.warningText, RC.warningSurface);
+      case 'cancelled':
+        return (RC.danger, RC.dangerSurface);
+      default:
+        return (RC.textSecondary, RC.background);
+    }
+  }
+
+  void _confirmRemove(BuildContext context) {
+    RCConfirmDialog.show(
+      context: context,
+      icon: Icons.event_busy_outlined,
+      iconColor: RC.danger,
+      iconSurface: RC.dangerSurface,
+      title: 'Remove Hearing?',
+      message:
+          'This hearing will be permanently removed from the case timeline.',
+      confirmLabel: 'Remove',
+      confirmColor: RC.danger,
+      confirmSurface: RC.dangerSurface,
+      confirmBorder: RC.dangerBorder,
+      onConfirm: () async => onDeleteHearing?.call(),
     );
   }
 }
 
 class _DateBadge extends StatelessWidget {
   final DateTime date;
-
   const _DateBadge({required this.date});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 52.w,
-      padding: EdgeInsets.symmetric(vertical: 8.r),
+      width: 50.w,
+      padding: EdgeInsets.symmetric(vertical: 8.h),
       decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
+          color: RC.navy.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(12.r)),
       child: Column(
         children: [
-          Text(
-            DateFormat('dd').format(date),
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            DateFormat('MMM').format(date).toUpperCase(),
-            style: TextStyle(
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Text(
-            DateFormat('yyyy').format(date),
-            style: TextStyle(
-              fontSize: 10.sp,
-              color: Colors.grey.shade700,
-            ),
-          ),
+          Text(DateFormat('dd').format(date),
+              style: TextStyle(
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w800,
+                  color: RC.navy)),
+          Text(DateFormat('MMM').format(date).toUpperCase(),
+              style: TextStyle(
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w700,
+                  color: RC.gold)),
+          SizedBox(height: 1.h),
+          Text(DateFormat('yyyy').format(date),
+              style: RC
+                  .caption(color: RC.textTertiary)
+                  .copyWith(fontSize: 9.5.sp)),
         ],
-      ),
-    );
-  }
-}
-
-class _HearingStatusBadge extends StatelessWidget {
-  final String status;
-
-  const _HearingStatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    late Color color;
-
-    switch (status.toLowerCase()) {
-      case "scheduled":
-        color = Colors.blue;
-        break;
-      case "completed":
-        color = Colors.green;
-        break;
-      case "adjourned":
-        color = Colors.orange;
-        break;
-      case "cancelled":
-        color = Colors.red;
-        break;
-      default:
-        color = Colors.grey;
-    }
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 3.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          fontSize: 11.5.sp,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
       ),
     );
   }
@@ -322,26 +242,24 @@ class _HearingStatusBadge extends StatelessWidget {
 class _ActionIcon extends StatelessWidget {
   final IconData icon;
   final Color color;
-  final VoidCallback onTap;
-
-  const _ActionIcon({
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
+  final VoidCallback? onTap;
+  const _ActionIcon(
+      {required this.icon, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final disabled = onTap == null;
     return InkWell(
       borderRadius: BorderRadius.circular(8.r),
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(6.r),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
+          color: (disabled ? RC.textTertiary : color).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8.r),
         ),
-        child: Icon(icon, size: 18, color: color),
+        child:
+            Icon(icon, size: 16.sp, color: disabled ? RC.textTertiary : color),
       ),
     );
   }
