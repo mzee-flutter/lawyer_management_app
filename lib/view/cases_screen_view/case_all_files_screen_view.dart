@@ -89,12 +89,12 @@ class CaseFileCard extends StatelessWidget {
       ),
       color: RC.surface,
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(14.r),
         onTap: state == FileLoadState.loading
             ? null
             : () => caseFilesServiceVM.openFile(context, file),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(14.r),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -104,7 +104,7 @@ class CaseFileCard extends StatelessWidget {
                 children: [
                   _FileIcon(filename: file.filename),
 
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
 
                   /// FILE INFO
                   Expanded(
@@ -120,7 +120,7 @@ class CaseFileCard extends StatelessWidget {
                                 fontSize: 14.sp,
                               ),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6.h),
                         Text(
                           "Uploaded • ${DateFormat('dd MMM yyyy').format(file.uploadedAt)}",
                           style: RC.caption().copyWith(
@@ -145,15 +145,15 @@ class CaseFileCard extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
 
               /// FOOTER
               Row(
                 children: [
                   if (state == FileLoadState.loading)
-                    const SizedBox(
-                      width: 18,
-                      height: 18,
+                    SizedBox(
+                      width: 18.r,
+                      height: 18.r,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
@@ -234,15 +234,19 @@ class CaseFileCard extends StatelessWidget {
                             await removeCaseFileVM.removeFileFromCase(file.id);
                         caseFilesVM.removeFile(context, removedFile.id);
 
-                        SnakeBars.flutterToast(
-                          "File removed successfully",
-                          context,
-                        );
+                        if (context.mounted) {
+                          SnakeBars.flutterToast(
+                            "File removed successfully",
+                            context,
+                          );
+                        }
                       } catch (e) {
-                        SnakeBars.flutterToast(
-                          "Failed to remove file",
-                          context,
-                        );
+                        if (context.mounted) {
+                          SnakeBars.flutterToast(
+                            "Failed to remove file",
+                            context,
+                          );
+                        }
                       }
                     },
                   ),
@@ -267,7 +271,7 @@ Widget _deleteConformationButtons({
     alignment: Alignment.center,
     decoration: BoxDecoration(
       color: color,
-      borderRadius: BorderRadius.circular(50),
+      borderRadius: BorderRadius.circular(50.r),
     ),
     child: InkWell(
       onTap: onTap,
