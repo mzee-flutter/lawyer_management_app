@@ -1,135 +1,210 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import 'package:right_case/models/client_models/client_model.dart';
-import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 import 'package:right_case/view_model/client_view_model/client_restore_view_model.dart';
+
+import '../system_design/rc_theme.dart';
 
 class ArchivedClientInfoCard extends StatelessWidget {
   final ClientModel client;
   const ArchivedClientInfoCard({super.key, required this.client});
 
+  // Fixed: client.name.characters.first threw on an empty name.
+  String get _initial =>
+      client.name.trim().isNotEmpty ? client.name.trim()[0].toUpperCase() : '?';
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8.r),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(8.r),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(12.r),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    alignment: Alignment.center,
-                    height: 40.h,
-                    width: 45.w,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade700,
-                      borderRadius: BorderRadius.circular(5.r),
-                    ),
-                    child: Text(
-                      client.name.characters.first,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 10.w),
-                  Expanded(
-                    child: Text(
-                      client.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  // Restore button
-                  Consumer<ClientRestoreViewModel>(
-                    builder:
-                        (BuildContext context, clientRestoreVM, Widget? child) {
-                      return ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade600,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20.r),
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      decoration: BoxDecoration(
+        color: RC.surface,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: RC.divider, width: 1),
+        boxShadow: [RC.cardShadow],
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Gold strip = archived state, matches ArchivedCaseCard convention
+            Container(width: 4.w, color: RC.gold),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(14.w, 13.h, 14.w, 13.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 40.w,
+                          height: 40.w,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                              color: RC.navy,
+                              borderRadius: BorderRadius.circular(10.r)),
+                          child: Text(
+                            _initial,
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w700),
                           ),
                         ),
-                        onPressed: () {
-                          clientRestoreVM.handleRestore(context, client.id);
-                        },
-                        child: Text(
-                          "Restore",
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.white,
+                        SizedBox(width: 11.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                client.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: RC.body().copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14.5.sp),
+                              ),
+                              SizedBox(height: 3.h),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 7.w, vertical: 2.h),
+                                decoration: BoxDecoration(
+                                    color: RC.goldLight,
+                                    borderRadius: BorderRadius.circular(20.r)),
+                                child: Text(
+                                  'ARCHIVED',
+                                  style: TextStyle(
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: RC.warningText,
+                                      letterSpacing: 0.3),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                        Consumer<ClientRestoreViewModel>(
+                          builder: (_, vm, __) => _RestoreButton(
+                            onTap: () => vm.handleRestore(context, client.id),
+                          ),
+                        ),
+                      ],
+                    ),
 
-              SizedBox(height: 10.h),
-              Divider(color: Colors.grey.shade400),
+                    SizedBox(height: 12.h),
+                    Divider(color: RC.divider, height: 1, thickness: 0.5),
+                    SizedBox(height: 10.h),
 
-              // More Info Section
-              Text(
-                "Client Details",
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade700,
+                    // Structured info grid — replaces the old bold-label/value
+                    // row list, which read as a raw data dump.
+                    Wrap(
+                      spacing: 8.w,
+                      runSpacing: 8.h,
+                      children: [
+                        _InfoChip(
+                            icon: Icons.phone_outlined,
+                            label: 'Phone',
+                            value: client.phone.toString()),
+                        if (client.email.isNotEmpty)
+                          _InfoChip(
+                              icon: Icons.mail_outline_rounded,
+                              label: 'Email',
+                              value: client.email),
+                        if (client.address.isNotEmpty)
+                          _InfoChip(
+                              icon: Icons.location_on_outlined,
+                              label: 'Address',
+                              value: client.address),
+                      ],
+                    ),
+
+                    SizedBox(height: 10.h),
+                    Row(
+                      children: [
+                        Icon(Icons.event_outlined,
+                            size: 11.sp, color: RC.textTertiary),
+                        SizedBox(width: 4.w),
+                        Text(
+                          'Added ${DateFormat('dd MMM yyyy').format(client.createdAt)}',
+                          style: RC
+                              .caption(color: RC.textTertiary)
+                              .copyWith(fontSize: 10.5.sp),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 6.h),
-
-              _infoRow("Phone:", client.phone.toString()),
-              _infoRow("Email:", client.email),
-              _infoRow("Address:", client.address),
-              _infoRow("Added On:", client.createdAt.toString()),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _infoRow(String title, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 4.h),
+class _RestoreButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _RestoreButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 13.w, vertical: 6.h),
+        decoration: BoxDecoration(
+            color: RC.navy, borderRadius: BorderRadius.circular(20.r)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.restore_rounded, size: 12.sp, color: Colors.white),
+            SizedBox(width: 4.w),
+            Text('Restore',
+                style: TextStyle(
+                    fontSize: 11.5.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _InfoChip(
+      {required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(maxWidth: 220.w),
+      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 6.h),
+      decoration: BoxDecoration(
+          color: RC.background, borderRadius: BorderRadius.circular(8.r)),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            "$title ",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 12.sp,
-              color: Colors.black87,
-            ),
-          ),
-          Expanded(
+          Icon(icon, size: 12.sp, color: RC.textTertiary),
+          SizedBox(width: 5.w),
+          Flexible(
             child: Text(
               value,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.grey.shade800,
-              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: RC
+                  .caption(color: RC.textSecondary)
+                  .copyWith(fontSize: 11.sp, fontWeight: FontWeight.w500),
             ),
           ),
         ],
