@@ -51,31 +51,4 @@ class SplashViewModel with ChangeNotifier {
       });
     }
   }
-
-  // Future<void> getInitialRoute(BuildContext context) async {
-  //   final hasSession = await _tokenStorage.hasValidSession();
-  //   // final accessToken = await _tokenStorage.getAccessToken();
-  //   // final expiry = await _tokenStorage.getAccessTokenExpiry();
-  //   // print("accessToken: $accessToken");
-  //   // print("expiry: $expiry");
-  //   // print("now: ${DateTime.now().millisecondsSinceEpoch}");
-  //   // print("valid Session: $hasSession");
-  //
-  //   await Future.delayed(const Duration(seconds: 3));
-  //
-  //   debugPrint("Pending notification: ${NotificationRouter.pendingPayload}");
-  //
-  //   if (NotificationRouter.pendingPayload != null) {
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       NotificationRouter.handlePendingNavigation(context);
-  //     });
-  //     return;
-  //   }
-  //
-  //   if (hasSession) {
-  //     Navigator.pushReplacementNamed(context, RoutesName.homeScreen);
-  //   } else {
-  //     Navigator.pushReplacementNamed(context, RoutesName.signInScreen);
-  //   }
-  // }
 }
