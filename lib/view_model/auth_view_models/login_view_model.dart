@@ -1,63 +1,97 @@
-import 'package:flutter/material.dart';
-import 'package:right_case/models/auth_models/auth_model.dart';
+import 'dart:async';
+
+import 'package:all/all.dart';
 import 'package:right_case/models/auth_models/login_request_model.dart';
 import 'package:right_case/repository/auth_repository/login_repo.dart';
-import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
+import 'package:right_case/view_model/auth_view_models/current_user_view_model.dart';
 import 'package:right_case/view_model/services/firebase_notification_service.dart';
 
+/// What the View needs to react to a login attempt — a message to show and
+/// whether it succeeded. Deliberately dumb: it carries no BuildContext.
+class LoginResult {
+  const LoginResult.success(this.message) : success = true;
+  const LoginResult.failure(this.message) : success = false;
+
+  final bool success;
+  final String message;
+}
+
 class LoginViewModel with ChangeNotifier {
+  LoginViewModel(this._currentUserVM);
+
+  final CurrentUserViewModel _currentUserVM;
   final LoginRepository _loginRepo = LoginRepository();
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  User? _dbUser;
-  User? get dbUser => _dbUser;
-
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  Future<bool> loginUser(context) async {
-    String email = emailController.text.trim();
-    String password = passwordController.text.trim();
+  /// Returns a result for the View to show (snackbar/toast). Never touches
+  /// BuildContext or Navigator — once _currentUserVM flips to authenticated,
+  /// AuthGate swaps to HomeScreen on its own. No navigation call belongs here.
+  Future<LoginResult> loginUser() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      SnakeBars.flutterToast('All fields are required', context);
-      return false;
+      return const LoginResult.failure('All fields are required');
     }
-
-    final existingUser = LoginRequestModel(email: email, password: password);
 
     _isLoading = true;
     notifyListeners();
 
     try {
-      final user = await _loginRepo.loginUser(existingUser);
-      _dbUser = user.user;
-      notifyListeners();
+      final authModel = await _loginRepo.loginUser(
+        LoginRequestModel(email: email, password: password),
+      );
 
-      // ✅ FCM: get token and register it after login
-      final token = await FirebaseNotificationService().getAndRegisterToken();
-      if (token != null && _dbUser != null) {
-        await _loginRepo.registerFCMToken(_dbUser!.id, token);
-      }
+      _currentUserVM.setAuthenticatedUser(authModel);
 
-      SnakeBars.flutterToast("${_dbUser?.name} login successfully", context);
-      return true;
+      // Push-token registration is best-effort. It used to run inline and
+      // share the same try/catch as the login call itself — if FCM
+      // registration threw, a user who had actually logged in successfully
+      // was shown "Login Failed". Firing it off separately means a flaky
+      // push service can never fail a real login.
+      unawaited(_registerPushToken(authModel.user.id));
+
+      return LoginResult.success(
+        '${authModel.user.name ?? 'Welcome'} logged in successfully',
+      );
     } catch (e, stack) {
       debugPrint('Error in LoginViewModel: $e');
       debugPrint(stack.toString());
-
-      SnakeBars.flutterToast('Login Failed. Try Again!', context);
-      return false;
+      return const LoginResult.failure('Login failed. Please try again.');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
+  Future<void> _registerPushToken(String? userId) async {
+    if (userId == null) return;
+    try {
+      final token = await FirebaseNotificationService().getAndRegisterToken();
+      if (token != null) {
+        await _loginRepo.registerFCMToken(userId, token);
+      }
+    } catch (e) {
+      debugPrint('FCM registration failed (non-fatal): $e');
+    }
+  }
+
   void clearFields() {
     emailController.clear();
     passwordController.clear();
+  }
+
+  @override
+  void dispose() {
+    // The original never disposed these — a small but real leak on every
+    // sign-in screen visit.
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }
