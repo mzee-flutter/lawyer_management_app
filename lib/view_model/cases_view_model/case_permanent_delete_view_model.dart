@@ -8,15 +8,26 @@ class CasePermanentDeleteViewModel with ChangeNotifier {
   final CasePermanentDeleteRepo _casePermanentDeleteRepo =
       CasePermanentDeleteRepo();
 
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  void toggleLoading(bool loader) {
+    _isLoading = loader;
+    notifyListeners();
+  }
+
   Future<void> deleteCasePermanent(context, String id) async {
+    toggleLoading(true);
     try {
       final dbCase = await _casePermanentDeleteRepo.deleteCase(id);
-
+      toggleLoading(false);
       Provider.of<CaseListViewModel>(context, listen: false).removeCase(dbCase);
       SnakeBars.flutterToast("Case deleted successfully", context);
     } catch (e) {
       SnakeBars.flutterToast(e.toString(), context);
       debugPrint("Error in CasePermanentDeleteViewModel: $e");
+    } finally {
+      toggleLoading(false);
     }
   }
 }
