@@ -48,11 +48,11 @@ class CurrentUserViewModel with ChangeNotifier {
   }
 
   SessionStatus _status = SessionStatus.initial;
-  AuthModel? _user;
+  User? _user;
   String? _lastErrorMessage;
 
   SessionStatus get status => _status;
-  AuthModel? get user => _user;
+  User? get user => _user;
   String? get lastErrorMessage => _lastErrorMessage;
 
   bool get isAuthenticated =>
@@ -112,7 +112,7 @@ class CurrentUserViewModel with ChangeNotifier {
   // No extra network round-trip; we already have the AuthModel.
   // ────────────────────────────────────────────────────────────
   void setAuthenticatedUser(AuthModel user) {
-    _user = user;
+    _user = user.user;
     _status = SessionStatus.authenticated;
     _lastErrorMessage = null;
     notifyListeners();
