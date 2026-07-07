@@ -18,8 +18,6 @@ class NotificationHistoryScreenView extends StatefulWidget {
 
 class _NotificationHistoryScreenViewState
     extends State<NotificationHistoryScreenView> {
-  bool _markingAll = false;
-
   @override
   void initState() {
     super.initState();
@@ -28,24 +26,12 @@ class _NotificationHistoryScreenViewState
     });
   }
 
-  // The old VM had no bulk endpoint — this loops the existing single-item
-  // mark-as-read call rather than inventing a new backend method.
-  Future<void> _markAllRead(NotificationHistoryViewModel vm) async {
-    final unread = vm.notifications.where((n) => !n.isRead).toList();
-    if (unread.isEmpty || _markingAll) return;
-
-    setState(() => _markingAll = true);
-    try {
-      for (final n in unread) {
-        await vm.markNotificationAsRead(n.id);
-      }
-      if (mounted) {
-        SnakeBars.scaffoldMessenger('All notifications marked as read', context,
-            type: SnackType.success);
-      }
-    } finally {
-      if (mounted) setState(() => _markingAll = false);
-    }
+  Future<void> _handleNotificationTap(
+    NotificationHistoryViewModel vm,
+    dynamic item,
+  ) async {
+    final id = item.id as String;
+    await vm.handleNotificationTap(context, item.payload, id);
   }
 
   @override
@@ -53,8 +39,6 @@ class _NotificationHistoryScreenViewState
     final vm = context.watch<NotificationHistoryViewModel>();
     final hasUnread = vm.notifications.any((n) => !n.isRead);
 
-    // Fixed: old code could show the empty state AND a loading overlay
-    // simultaneously on first load. States are now mutually exclusive.
     final isInitialLoad = vm.isLoading && vm.notifications.isEmpty;
     final isEmpty = !vm.isLoading && vm.notifications.isEmpty;
 
@@ -81,13 +65,15 @@ class _NotificationHistoryScreenViewState
                     itemCount: vm.notifications.length,
                     itemBuilder: (context, index) {
                       final item = vm.notifications[index];
+                      final isChecking =
+                          vm.isCheckingHearing(item.id as String);
+
                       return _NotificationCard(
                         item: item,
-                        onTap: () async {
-                          await vm.handleNotificationTap(
-                              context, item.payload, item.id);
-                          await vm.markNotificationAsRead(item.id);
-                        },
+                        isChecking: isChecking,
+                        onTap: isChecking
+                            ? null
+                            : () => _handleNotificationTap(vm, item),
                         onDismiss: () async {
                           await vm.deleteNotification(item.id);
                           if (context.mounted) {
@@ -131,10 +117,11 @@ class _NotificationHistoryScreenViewState
           Padding(
             padding: EdgeInsets.only(right: 12.w),
             child: TextButton(
-              onPressed: _markingAll ? null : () => _markAllRead(vm),
+              onPressed:
+                  vm.markAll ? null : () => vm.markAllNotificationRead(context),
               style: TextButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 10.w)),
-              child: _markingAll
+              child: vm.markAll
                   ? SizedBox(
                       width: 14.w,
                       height: 14.w,
@@ -153,13 +140,17 @@ class _NotificationHistoryScreenViewState
 }
 
 class _NotificationCard extends StatelessWidget {
-  final dynamic
-      item; // StoredNotificationModel — kept dynamic to match existing VM shape
-  final VoidCallback onTap;
+  final dynamic item;
+  final bool isChecking;
+  final VoidCallback? onTap;
   final VoidCallback onDismiss;
 
-  const _NotificationCard(
-      {required this.item, required this.onTap, required this.onDismiss});
+  const _NotificationCard({
+    required this.item,
+    required this.isChecking,
+    required this.onTap,
+    required this.onDismiss,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -171,7 +162,12 @@ class _NotificationCard extends StatelessWidget {
 
     return Dismissible(
       key: Key(item.id as String),
-      direction: DismissDirection.endToStart,
+      // Disabled mid-check — swiping away a card while its network call
+      // is still resolving would either orphan the pending future or,
+      // worse, race the setState cleanup in _handleNotificationTap against
+      // a widget that no longer exists in the list.
+      direction:
+          isChecking ? DismissDirection.none : DismissDirection.endToStart,
       onDismissed: (_) => onDismiss(),
       background: Container(
         margin: EdgeInsets.only(bottom: 10.h),
@@ -189,96 +185,128 @@ class _NotificationCard extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(14.r),
-            child: Container(
-              padding: EdgeInsets.all(13.w),
-              decoration: BoxDecoration(
-                color: surface,
-                borderRadius: BorderRadius.circular(14.r),
-                border: Border.all(color: border, width: 1),
-                // Fixed: original shadow used a raw dark colour with no
-                // alpha, producing a heavy near-opaque smear. RC.cardShadow
-                // is the same soft elevation used everywhere else.
-                boxShadow: [RC.cardShadow],
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 38.w,
-                    height: 38.w,
-                    decoration: BoxDecoration(
-                        color: accent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10.r)),
-                    child:
-                        Icon(Icons.balance_rounded, size: 17.sp, color: accent),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                item.title as String,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: RC.body().copyWith(
-                                      fontWeight: isRead
-                                          ? FontWeight.w600
-                                          : FontWeight.w700,
-                                      fontSize: 13.5.sp,
-                                      color: isRead
-                                          ? RC.textSecondary
-                                          : RC.textPrimary,
-                                    ),
-                              ),
-                            ),
-                            if (!isRead) ...[
-                              SizedBox(width: 6.w),
-                              Container(
-                                width: 7.w,
-                                height: 7.w,
-                                margin: EdgeInsets.only(top: 4.h),
-                                decoration: BoxDecoration(
-                                    color: RC.infoText, shape: BoxShape.circle),
-                              ),
-                            ],
-                          ],
-                        ),
-                        SizedBox(height: 3.h),
-                        Text(
-                          item.body as String,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: RC
-                              .caption(
-                                  color: isRead
-                                      ? RC.textTertiary
-                                      : RC.textSecondary)
-                              .copyWith(fontSize: 12.sp, height: 1.35),
-                        ),
-                        SizedBox(height: 7.h),
-                        Row(
-                          children: [
-                            Icon(Icons.access_time_rounded,
-                                size: 11.sp, color: RC.textTertiary),
-                            SizedBox(width: 4.w),
-                            Text(
-                              DateFormat('dd MMM yyyy · hh:mm a')
-                                  .format(item.timestamp as DateTime),
-                              style: RC
-                                  .caption(color: RC.textTertiary)
-                                  .copyWith(fontSize: 10.5.sp),
-                            ),
-                          ],
-                        ),
-                      ],
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 180),
+              opacity: isChecking ? 0.6 : 1.0,
+              child: Container(
+                padding: EdgeInsets.all(13.w),
+                decoration: BoxDecoration(
+                  color: surface,
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(color: border, width: 1),
+                  boxShadow: [RC.cardShadow],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Leading icon swaps to a spinner while checking —
+                    // same slot, same size, so nothing in the layout jumps.
+                    Container(
+                      width: 38.w,
+                      height: 38.w,
+                      decoration: BoxDecoration(
+                          color: accent.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10.r)),
+                      child: Center(
+                        child: isChecking
+                            ? SizedBox(
+                                width: 16.w,
+                                height: 16.w,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: accent),
+                              )
+                            : Icon(Icons.balance_rounded,
+                                size: 17.sp, color: accent),
+                      ),
                     ),
-                  ),
-                ],
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  item.title as String,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: RC.body().copyWith(
+                                        fontWeight: isRead
+                                            ? FontWeight.w600
+                                            : FontWeight.w700,
+                                        fontSize: 13.5.sp,
+                                        color: isRead
+                                            ? RC.textSecondary
+                                            : RC.textPrimary,
+                                      ),
+                                ),
+                              ),
+                              if (!isRead && !isChecking) ...[
+                                SizedBox(width: 6.w),
+                                Container(
+                                  width: 7.w,
+                                  height: 7.w,
+                                  margin: EdgeInsets.only(top: 4.h),
+                                  decoration: BoxDecoration(
+                                      color: RC.infoText,
+                                      shape: BoxShape.circle),
+                                ),
+                              ],
+                            ],
+                          ),
+                          SizedBox(height: 3.h),
+                          Text(
+                            item.body as String,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: RC
+                                .caption(
+                                    color: isRead
+                                        ? RC.textTertiary
+                                        : RC.textSecondary)
+                                .copyWith(fontSize: 12.sp, height: 1.35),
+                          ),
+                          SizedBox(height: 7.h),
+                          // Timestamp row swaps to a status line while
+                          // checking — this is the explicit "please wait"
+                          // signal the old version never gave.
+                          isChecking
+                              ? Row(
+                                  children: [
+                                    Icon(Icons.sync_rounded,
+                                        size: 11.sp, color: RC.infoText),
+                                    SizedBox(width: 4.w),
+                                    Text(
+                                      'Checking hearing…',
+                                      style: RC
+                                          .caption(color: RC.infoText)
+                                          .copyWith(
+                                              fontSize: 10.5.sp,
+                                              fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                )
+                              : Row(
+                                  children: [
+                                    Icon(Icons.access_time_rounded,
+                                        size: 11.sp, color: RC.textTertiary),
+                                    SizedBox(width: 4.w),
+                                    Text(
+                                      DateFormat('dd MMM yyyy · hh:mm a')
+                                          .format(item.timestamp as DateTime),
+                                      style: RC
+                                          .caption(color: RC.textTertiary)
+                                          .copyWith(fontSize: 10.5.sp),
+                                    ),
+                                  ],
+                                ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
