@@ -1,3 +1,5 @@
+// lib/view/notification_history_screen_view.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
@@ -5,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../resources/system_design/rc_theme.dart';
 import '../resources/system_design/rc_widgets.dart';
+import '../utils/routes/notification_router.dart';
 import '../utils/snakebars_and_popUps/snake_bars.dart';
 import '../view_model/services/notification_history_view_model.dart';
 
@@ -26,12 +29,48 @@ class _NotificationHistoryScreenViewState
     });
   }
 
+  // The VM only reports what happened — this is the one place that
+  // decides what the user sees or where they go, matching the same
+  // "ViewModels never touch BuildContext" discipline as Login/Logout.
   Future<void> _handleNotificationTap(
     NotificationHistoryViewModel vm,
     dynamic item,
   ) async {
-    final id = item.id as String;
-    await vm.handleNotificationTap(context, item.payload, id);
+    final result =
+        await vm.handleNotificationTap(item.payload, item.id as String);
+    if (!mounted) return;
+
+    switch (result) {
+      case NotificationTapResult.navigated:
+        NotificationRouter.navigateToHearing(item.payload);
+      case NotificationTapResult.hearingRemoved:
+        SnakeBars.scaffoldMessenger(
+          'This hearing record has been deleted or removed.',
+          context,
+        );
+      case NotificationTapResult.networkError:
+        SnakeBars.scaffoldMessenger(
+          'Network error. Please check your internet connection.',
+          context,
+        );
+      case NotificationTapResult.unexpectedError:
+        SnakeBars.scaffoldMessenger(
+          'Something went wrong. Please try again.',
+          context,
+        );
+      case NotificationTapResult.alreadyInProgress:
+        break; // no-op — the tapped card is already disabled while checking
+    }
+  }
+
+  Future<void> _handleMarkAllRead(NotificationHistoryViewModel vm) async {
+    final didMark = await vm.markAllNotificationsRead();
+    if (!mounted || !didMark) return;
+    SnakeBars.scaffoldMessenger(
+      'All notifications marked as read',
+      context,
+      type: SnackType.success,
+    );
   }
 
   @override
@@ -118,10 +157,10 @@ class _NotificationHistoryScreenViewState
             padding: EdgeInsets.only(right: 12.w),
             child: TextButton(
               onPressed:
-                  vm.markAll ? null : () => vm.markAllNotificationRead(context),
+                  vm.isMarkingAllRead ? null : () => _handleMarkAllRead(vm),
               style: TextButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 10.w)),
-              child: vm.markAll
+              child: vm.isMarkingAllRead
                   ? SizedBox(
                       width: 14.w,
                       height: 14.w,
@@ -162,10 +201,6 @@ class _NotificationCard extends StatelessWidget {
 
     return Dismissible(
       key: Key(item.id as String),
-      // Disabled mid-check — swiping away a card while its network call
-      // is still resolving would either orphan the pending future or,
-      // worse, race the setState cleanup in _handleNotificationTap against
-      // a widget that no longer exists in the list.
       direction:
           isChecking ? DismissDirection.none : DismissDirection.endToStart,
       onDismissed: (_) => onDismiss(),
@@ -199,8 +234,6 @@ class _NotificationCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Leading icon swaps to a spinner while checking —
-                    // same slot, same size, so nothing in the layout jumps.
                     Container(
                       width: 38.w,
                       height: 38.w,
@@ -269,9 +302,6 @@ class _NotificationCard extends StatelessWidget {
                                 .copyWith(fontSize: 12.sp, height: 1.35),
                           ),
                           SizedBox(height: 7.h),
-                          // Timestamp row swaps to a status line while
-                          // checking — this is the explicit "please wait"
-                          // signal the old version never gave.
                           isChecking
                               ? Row(
                                   children: [
