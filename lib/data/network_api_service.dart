@@ -8,8 +8,7 @@ import 'package:right_case/data/base_api_service.dart';
 import 'package:right_case/repository/auth_repository/refresh_access_token_repo.dart';
 import 'package:right_case/view_model/services/token_storage_service.dart';
 
-// --- CUSTOM EXCEPTION LAYER EXTENSIONS ---
-// Make sure to add these to your right_case/data/api_exception.dart file
+import '../view_model/services/auth_event_bus.dart';
 
 class NetworkApiServices extends BaseApiServices {
   final TokenStorageService _tokenStorage = TokenStorageService();
@@ -21,16 +20,14 @@ class NetworkApiServices extends BaseApiServices {
 
   Future<dynamic> _sendRequest(
     Future<http.Response> Function(Map<String, String>) requestFunction, {
-    Map<String, String>?
-        customHeaders, // Fix 1: Accept optional target header overrides
+    Map<String, String>? customHeaders,
   }) async {
     final token = await _tokenStorage.getAccessToken();
 
-    // Establish fundamental basic structural components
     final Map<String, String> headers = {
       "Content-Type": "application/json",
       if (token != null) "Authorization": "Bearer $token",
-      ...?customHeaders, // Safely combine unique extra headers if passed
+      ...?customHeaders,
     };
 
     http.Response response;
@@ -41,30 +38,33 @@ class NetworkApiServices extends BaseApiServices {
         onTimeout: () => throw FetchDataException("Request timed out"),
       );
 
-      // --- ADVANCED 401 INTERCEPTOR LOGIC HANDLING ---
       if (response.statusCode == 401) {
-        debugPrint(
-            "401 Unauthorized detected. Attempting atomic token token replacement pipeline...");
+        debugPrint("401 received — attempting token refresh.");
         final refreshToken = await _tokenStorage.getRefreshToken();
 
         if (refreshToken == null) {
+          await _tokenStorage.clearTokens();
+          AuthEventBus.instance.fireForceLogout();
           throw UnauthorizedRequestException(
-              "Session expired. No Refresh Token Found.");
+              "Session expired. No refresh token found.");
         }
 
         try {
-          // Attempt token exchange
           await _refreshRepo.getFreshAccessToken(refreshToken);
           final newAccessToken = await _tokenStorage.getAccessToken();
 
-          // Apply fresh token to headers and retry the exact same request closure safely
           headers["Authorization"] = "Bearer $newAccessToken";
           response = await requestFunction(headers);
         } catch (refreshError) {
-          debugPrint(
-              "Critical Token Refresh Failed. Purging credential store parameters: $refreshError");
-          // Clear active keys immediately to force the user back to Login safely
+          debugPrint("Refresh token rejected: $refreshError");
           await _tokenStorage.clearTokens();
+          // This is the piece that was missing before: clearing tokens
+          // alone doesn't tell the rest of the app anything changed. Any
+          // screen mid-navigation-stack would keep behaving as if it were
+          // still logged in until its next API call also 401'd. Firing
+          // this event lets CurrentUserViewModel react immediately,
+          // regardless of which screen triggered the failing request.
+          AuthEventBus.instance.fireForceLogout();
           throw UnauthorizedRequestException(
               "Session completely expired. Please log in again.");
         }
@@ -72,7 +72,7 @@ class NetworkApiServices extends BaseApiServices {
 
       return _checkAndReturnApiResponse(response);
     } on ApiException {
-      rethrow; // Pass up custom infrastructure exceptions without mutations
+      rethrow;
     } on SocketException catch (e) {
       debugPrint("SocketException: $e");
       throw FetchDataException("No Internet Connection: ${e.message}");
@@ -90,7 +90,7 @@ class NetworkApiServices extends BaseApiServices {
   Future getGetApiRequest(
     String url,
     Map<String, dynamic>? header, {
-    Map<String, dynamic>? query, // Existing optional named parameter
+    Map<String, dynamic>? query,
   }) async {
     final Map<String, String>? stringHeaders =
         header?.map((k, v) => MapEntry(k, v.toString()));
@@ -101,7 +101,6 @@ class NetworkApiServices extends BaseApiServices {
         if (query != null && query.isNotEmpty) {
           final Map<String, dynamic> stringQuery =
               query.map((k, v) => MapEntry(k, v.toString()));
-
           uri = uri.replace(queryParameters: stringQuery);
         }
         return http.get(uri, headers: headers);
@@ -185,7 +184,6 @@ class NetworkApiServices extends BaseApiServices {
       case 403:
         throw UnauthorizedRequestException(serverErrorMessage);
 
-      // FIX 2: Explicit structural catching of HTTP 404 codes to support your dynamic repository checks
       case 404:
         throw NotFoundException(serverErrorMessage.isNotEmpty
             ? serverErrorMessage
