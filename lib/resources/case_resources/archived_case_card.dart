@@ -206,12 +206,19 @@ class _RestoreButton extends StatelessWidget {
           color: _RC.navy,
           borderRadius: BorderRadius.circular(20.r),
         ),
-        child: Text(
-          'Restore',
-          style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.white),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.restore_rounded, size: 12.sp, color: Colors.white),
+            SizedBox(width: 4.w),
+            Text(
+              'Restore',
+              style: TextStyle(
+                  fontSize: 11.5.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white),
+            ),
+          ],
         ),
       ),
     );
