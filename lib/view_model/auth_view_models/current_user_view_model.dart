@@ -1,8 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:right_case/models/auth_models/auth_model.dart';
 import 'package:right_case/repository/auth_repository/login_user_info_repo.dart';
-import 'package:right_case/utils/navigation/navigation_service.dart';
-import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/view_model/services/token_storage_service.dart';
 
 import '../../data/api_exception.dart';
@@ -64,6 +64,7 @@ class CurrentUserViewModel with ChangeNotifier {
   // provider in main.dart (`create: (_) => CurrentUserViewModel()..bootstrapSession()`).
   // AuthGate watches `status` and renders Splash/Home/SignIn/Error accordingly.
   // ────────────────────────────────────────────────────────────
+
   Future<void> bootstrapSession() async {
     _status = SessionStatus.loading;
     notifyListeners();
@@ -146,15 +147,5 @@ class CurrentUserViewModel with ChangeNotifier {
     _status = SessionStatus.unauthenticated;
     _lastErrorMessage = null;
     notifyListeners();
-
-    // Collapse the whole stack back to the splash route, which now hosts
-    // AuthGate. Since `status` is already unauthenticated by the time this
-    // runs, AuthGate will render SignInScreen. This is what makes both a
-    // normal logout AND a forced logout (401 ten screens deep) land the
-    // user in the right place, instead of leaving a stale screen on top.
-    NavigationService.navigatorKey.currentState?.pushNamedAndRemoveUntil(
-      RoutesName.splashScreenView,
-      (route) => false,
-    );
   }
 }
