@@ -1,31 +1,38 @@
-import 'package:flutter/material.dart';
-import 'package:right_case/models/notification_payload.dart';
+import 'package:all/all.dart';
 
-import '../../view/cases_screen_view/hearing_list_screen_view.dart';
-import '../navigation/navigation_service.dart';
+import '../../models/notification_payload.dart';
 
 class NotificationRouter {
-  static NotificationPayload? pendingPayload;
+  NotificationRouter._();
+  // no more `static late final GoRouter router` — use AppRouter.router directly
 
-  /// Simply caches the payload during a cold start
-  static void setPending(NotificationPayload payload) {
-    pendingPayload = payload;
+  static String? _lastHandledMessageId;
+  static DateTime? _lastHandledAt;
+
+  static String _hearingLocation(NotificationPayload payload) {
+    return Uri(
+      path: '/hearing/${payload.caseId}',
+      queryParameters: {
+        if (payload.hearingId != null) 'hearingId': payload.hearingId!,
+      },
+    ).toString();
   }
 
-  /// Direct routing for active Foreground/Background tray clicks
-  static void navigateToHearing(NotificationPayload payload) {
-    final context = NavigationService.navigatorKey.currentContext;
-    if (context == null) return;
+  static void handle(NotificationPayload? payload) {
+    if (payload == null || !payload.isValid) return;
+    final now = DateTime.now();
+    final isRecentDuplicate = payload.messageId != null &&
+        payload.messageId == _lastHandledMessageId &&
+        _lastHandledAt != null &&
+        now.difference(_lastHandledAt!) < const Duration(seconds: 3);
+    if (isRecentDuplicate) return;
+    _lastHandledMessageId = payload.messageId;
+    _lastHandledAt = now;
+    AppRouter.router.push(_hearingLocation(payload));
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => HearingListScreenView(
-            caseId: payload.caseId,
-            hearingId: payload.hearingId,
-          ),
-        ),
-      );
-    });
+  static void goToHearing(BuildContext context, NotificationPayload payload) {
+    if (!payload.isValid) return;
+    context.push(_hearingLocation(payload));
   }
 }
