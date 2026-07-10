@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/system_design/rc_theme.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
-import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 import 'package:right_case/view_model/auth_view_models/login_view_model.dart';
 
 import '../resources/system_design/auth_widgets.dart';
@@ -36,23 +35,23 @@ class _SignInScreenState extends State<SignInScreen>
 
   void _shake() => _shakeCtrl.forward(from: 0);
 
-  Future<void> _submit(LoginViewModel loginVM) async {
-    if (!_formKey.currentState!.validate()) {
-      _shake();
-      return;
-    }
-    final success = await loginVM.loginUser(context);
-    if (!mounted) return;
-
-    if (success) {
-      Navigator.pushReplacementNamed(context, RoutesName.homeScreen);
-    } else {
-      _shake();
-      SnakeBars.flutterToast(
-          'Incorrect email or password. Please try again.', context);
-    }
-    loginVM.clearFields();
-  }
+  // Future<void> _submit(LoginViewModel loginVM) async {
+  //   if (!_formKey.currentState!.validate()) {
+  //     _shake();
+  //     return;
+  //   }
+  //   final success = await loginVM.loginUser();
+  //   if (!mounted) return;
+  //
+  //   if (success) {
+  //     Navigator.pushReplacementNamed(context, RoutesName.homeScreen);
+  //   } else {
+  //     _shake();
+  //     SnakeBars.flutterToast(
+  //         'Incorrect email or password. Please try again.', context);
+  //   }
+  //   loginVM.clearFields();
+  // }
 
   String? _validateEmail(String? v) {
     final value = v?.trim() ?? '';
@@ -115,7 +114,7 @@ class _SignInScreenState extends State<SignInScreen>
                       obscureText: true,
                       textInputAction: TextInputAction.done,
                       validator: _validatePassword,
-                      onFieldSubmitted: (_) => _submit(loginVM),
+                      onFieldSubmitted: (_) => loginVM.loginUser(),
                     ).animate().fadeIn(delay: 580.ms, duration: 400.ms).slideY(
                         begin: 0.12,
                         end: 0,
@@ -144,7 +143,8 @@ class _SignInScreenState extends State<SignInScreen>
                     AuthPrimaryButton(
                       label: 'Sign In',
                       isLoading: loginVM.isLoading,
-                      onPressed: () => _submit(loginVM),
+                      onPressed: () {},
+                      // onPressed: () => _submit(loginVM),
                     )
                         .animate()
                         .fadeIn(delay: 720.ms, duration: 400.ms)
