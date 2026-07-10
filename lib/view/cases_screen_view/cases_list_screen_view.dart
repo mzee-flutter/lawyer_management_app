@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
@@ -171,8 +172,7 @@ class _CasesListScreenState extends State<CasesListScreen> {
                 label: const Text('Add Case',
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.w500)),
-                onPressed: () =>
-                    Navigator.pushNamed(context, RoutesName.caseCreateScreen),
+                onPressed: () => context.pushNamed(RoutesName.caseCreateScreen),
               ),
             ),
           ),
