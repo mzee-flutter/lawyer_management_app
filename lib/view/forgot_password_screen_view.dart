@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
 import 'package:right_case/resources/system_design/rc_theme.dart';
-import 'package:right_case/view_model/services/login_and_signup_view_model.dart';
 
 import '../resources/system_design/auth_widgets.dart';
 
@@ -45,29 +43,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     return null;
   }
 
-  Future<void> _submit(LoginAndSignUpViewModel vm) async {
-    if (!_formKey.currentState!.validate()) {
-      _shake();
-      return;
-    }
-    final email = vm.emailController.text.trim();
-    try {
-      // Previously called without `await` — errors were silently swallowed.
-      // await vm.resetPassword(context);
-      if (!mounted) return;
-      setState(() {
-        _emailSent = true;
-        _sentTo = email;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      _shake();
-    }
-  }
+  // Future<void> _submit(LoginAndSignUpViewModel vm) async {
+  //   if (!_formKey.currentState!.validate()) {
+  //     _shake();
+  //     return;
+  //   }
+  //   final email = vm.emailController.text.trim();
+  //   try {
+  //     // Previously called without `await` — errors were silently swallowed.
+  //     // await vm.resetPassword(context);
+  //     if (!mounted) return;
+  //     setState(() {
+  //       _emailSent = true;
+  //       _sentTo = email;
+  //     });
+  //   } catch (_) {
+  //     if (!mounted) return;
+  //     _shake();
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<LoginAndSignUpViewModel>();
+    // final vm = context.watch<LoginAndSignUpViewModel>();
 
     return Scaffold(
       backgroundColor: RC.background,
@@ -97,14 +95,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           AuthTextField(
-                            controller: vm.emailController,
+                            controller: TextEditingController(),
+                            // controller: vm.emailController,
                             label: 'Email address',
                             hint: 'you@lawfirm.com',
                             icon: Icons.mail_outline_rounded,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.done,
                             validator: _validateEmail,
-                            onFieldSubmitted: (_) => _submit(vm),
+                            // onFieldSubmitted: (_) => _submit(vm),
                           )
                               .animate()
                               .fadeIn(delay: 450.ms, duration: 380.ms)
@@ -117,8 +116,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                           SizedBox(height: 24.h),
                           AuthPrimaryButton(
                             label: 'Send Reset Link',
-                            isLoading: vm.isLoading,
-                            onPressed: () => _submit(vm),
+                            isLoading: false,
+                            onPressed: () {},
+                            // isLoading: vm.isLoading,
+                            // onPressed: () => _submit(vm),
                           )
                               .animate()
                               .fadeIn(delay: 600.ms, duration: 400.ms)
