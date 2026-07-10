@@ -42,7 +42,7 @@ class _NotificationHistoryScreenViewState
 
     switch (result) {
       case NotificationTapResult.navigated:
-        NotificationRouter.navigateToHearing(item.payload);
+        NotificationRouter.goToHearing(context, item.payload);
       case NotificationTapResult.hearingRemoved:
         SnakeBars.scaffoldMessenger(
           'This hearing record has been deleted or removed.',

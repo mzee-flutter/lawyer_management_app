@@ -1,15 +1,14 @@
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/view/critical_agenda_section.dart';
 import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/today_and_upcoming_hearing_view_model.dart';
 
 import '../utils/routes/routes_names.dart';
 import '../view_model/services/notification_history_view_model.dart';
-import 'cases_screen_view/case_create_screen.dart';
 import 'drawer_view.dart';
-import 'notification_history_screen_view.dart';
 
 // ─────────────────────────────────────────────
 // RightCase Design Tokens
@@ -179,11 +178,8 @@ class HomeScreenState extends State<HomeScreen> {
                       color: count > 0 ? _RC.gold : _RC.textOnDarkMuted,
                       size: 22,
                     ),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) =>
-                              const NotificationHistoryScreenView()),
+                    onPressed: () => context.pushNamed(
+                      RoutesName.notificationHistoryScreenView,
                     ),
                   ),
                 ),
@@ -225,22 +221,18 @@ class HomeScreenState extends State<HomeScreen> {
             _BottomNavButton(
               label: 'Add Client',
               icon: Icons.person_add_outlined,
-              onTap: () =>
-                  Navigator.pushNamed(context, RoutesName.addClientScreen),
+              onTap: () => context.pushNamed(RoutesName.addClientScreen),
             ),
             _BottomNavButton(
               label: 'Add Case',
               icon: Icons.cases_outlined,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CaseCreateScreen()),
-              ),
+              onTap: () => context.pushNamed(RoutesName.caseCreateScreen),
             ),
             _BottomNavButton(
               label: 'Add Task',
               icon: Icons.playlist_add_check_outlined,
               onTap: () {
-                Navigator.pushNamed(context, RoutesName.legalTaskScreenView);
+                context.pushNamed(RoutesName.legalTaskScreenView);
               },
               isPrimary: true, // Gold accent for the primary CTA
             ),
@@ -368,26 +360,23 @@ class _QuickActionsRow extends StatelessWidget {
             _QuickActionTile(
               label: 'Clients',
               icon: Icons.group_outlined,
-              onTap: () =>
-                  Navigator.pushNamed(context, RoutesName.clientsScreen),
+              onTap: () => context.pushNamed(RoutesName.clientsScreen),
             ),
             _QuickActionTile(
               label: 'Cases',
               icon: Icons.cases_outlined,
-              onTap: () =>
-                  Navigator.pushNamed(context, RoutesName.casesListScreen),
+              onTap: () => context.pushNamed(RoutesName.casesListScreen),
             ),
             _QuickActionTile(
               label: 'Calendar',
               icon: Icons.calendar_month_outlined,
-              onTap: () =>
-                  Navigator.pushNamed(context, RoutesName.calendarScreen),
+              onTap: () => context.pushNamed(RoutesName.calendarScreen),
             ),
             _QuickActionTile(
               label: 'Court',
               icon: Icons.balance_outlined,
               onTap: () {
-                Navigator.pushNamed(context, RoutesName.courtPortalScreenView);
+                context.pushNamed(RoutesName.courtPortalScreenView);
               },
             ),
           ],
