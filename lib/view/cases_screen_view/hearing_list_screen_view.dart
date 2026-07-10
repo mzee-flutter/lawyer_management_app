@@ -10,41 +10,45 @@ import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart
 import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/hearing_delete_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/hearing_list_view_model.dart';
 
+import '../../resources/system_design/rc_theme.dart';
+import '../../resources/system_design/rc_widgets.dart';
 import '../../view_model/cases_view_model/single_case_view_model.dart';
 
 class HearingListScreenView extends StatefulWidget {
   final String caseId;
   final String? hearingId;
 
-  const HearingListScreenView({
-    super.key,
-    required this.caseId,
-    this.hearingId,
-  });
+  const HearingListScreenView(
+      {super.key, required this.caseId, this.hearingId});
 
   @override
-  State<HearingListScreenView> createState() => HearingListScreenViewState();
+  State<HearingListScreenView> createState() => _HearingListScreenViewState();
 }
 
-class HearingListScreenViewState extends State<HearingListScreenView> {
+class _HearingListScreenViewState extends State<HearingListScreenView> {
   @override
   void initState() {
     super.initState();
     final hearingListVM = context.read<HearingListViewModel>();
-    final singleCaseVM = context.read<SingleCaseViewModel>();
     hearingListVM.addListenerToScroll();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       hearingListVM.hearingList.clear();
       hearingListVM.fetchHearingList(widget.caseId);
 
       final localCase =
           context.read<CaseListViewModel>().getCaseById(widget.caseId);
-
       if (localCase == null) {
-        singleCaseVM.fetchSingleCase(widget.caseId);
+        context.read<SingleCaseViewModel>().fetchSingleCase(widget.caseId);
       }
     });
+  }
+
+  Future<void> _onRefresh() async {
+    final hearingListVM = context.read<HearingListViewModel>();
+    hearingListVM.hearingList.clear();
+    await hearingListVM.fetchHearingList(widget.caseId);
   }
 
   @override
@@ -61,124 +65,114 @@ class HearingListScreenViewState extends State<HearingListScreenView> {
         (singleCaseVM.isLoading || singleCaseVM.singleCaseData == null);
     final isHearingListLoading =
         hearingListVM.isLoading && hearingListVM.hearingList.isEmpty;
-
-    final showGlobalSkeleton = isSingleCaseLoading || isHearingListLoading;
+    final showSkeleton = isSingleCaseLoading || isHearingListLoading;
 
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (bool didPop, Object? result) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-
         final navigator = Navigator.of(context);
         if (navigator.canPop()) {
           navigator.pop(result);
         } else {
           navigator.pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => const CasesListScreen(),
-            ),
-          );
+              MaterialPageRoute(builder: (_) => const CasesListScreen()));
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.grey.shade50,
-        appBar: AppBar(
-          backgroundColor: Colors.grey.shade300,
-          title: Text(
-            "Case Hearings",
-            textAlign: TextAlign.left,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16.sp,
-            ),
-          ),
-        ),
-        body: showGlobalSkeleton
-            ? _buildHearingListShimmerSkeleton()
+        backgroundColor: RC.background,
+        appBar: _HearingsAppBar(count: hearingListVM.hearingList.length),
+        body: showSkeleton
+            ? const _HearingListSkeleton()
             : hearingListVM.hearingList.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.r),
-                      child: Text(
-                        "No hearings found.",
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ),
+                ? const RCEmptyState(
+                    icon: Icons.event_busy_outlined,
+                    title: 'No Hearings Yet',
+                    message:
+                        'Scheduled hearings for this case will appear here.',
                   )
-                : ListView.builder(
-                    controller: hearingListVM.scrollController,
-                    itemCount: hearingListVM.hearingList.length,
-                    itemBuilder: (context, index) {
-                      final hearing = hearingListVM.hearingList[index];
-                      final isHighLighted = hearing.id == widget.hearingId;
-                      return HearingInfoCard(
-                        judgeName: caseData?.judgeName ?? "N/A",
-                        courtName: caseData?.courtName ?? "N/A",
-                        isHighLighted: isHighLighted,
-                        hearing: hearing,
-                        onManage: () {},
-                        onEdit: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => HearingUpdateScreenView(
-                                hearingData: hearing,
-                              ),
+                : RefreshIndicator(
+                    color: RC.gold,
+                    backgroundColor: RC.surface,
+                    strokeWidth: 2,
+                    onRefresh: _onRefresh,
+                    child: ListView.builder(
+                      controller: hearingListVM.scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16.w, vertical: 12.h),
+                      itemCount: hearingListVM.hearingList.length,
+                      itemBuilder: (context, index) {
+                        final hearing = hearingListVM.hearingList[index];
+                        final isHighlighted = hearing.id == widget.hearingId;
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 10.h),
+                          child: HearingInfoCard(
+                            judgeName: caseData?.judgeName ?? 'N/A',
+                            courtName: caseData?.courtName ?? 'N/A',
+                            isHighLighted: isHighlighted,
+                            hearing: hearing,
+                            onManage: () {},
+                            onEdit: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => HearingUpdateScreenView(
+                                      hearingData: hearing)),
                             ),
-                          );
-                        },
-                        onDeleteHearing: hearingDeleteVM.isLoading
-                            ? null
-                            : () async {
-                                try {
-                                  await hearingDeleteVM.deleteHearing(
-                                    context,
-                                    hearing.id,
-                                  );
-
-                                  hearingListVM
-                                      .deleteHearingFromLocal(hearing.id);
-                                  SnakeBars.flutterToast(
-                                    "Hearing removed successfully",
-                                    context,
-                                  );
-                                } catch (e) {
-                                  SnakeBars.flutterToast(
-                                      "Failed to remove", context);
-                                }
-                              },
-                      );
-                    },
+                            onDeleteHearing: hearingDeleteVM.isLoading
+                                ? null
+                                : () async {
+                                    try {
+                                      await hearingDeleteVM.deleteHearing(
+                                          context, hearing.id);
+                                      hearingListVM
+                                          .deleteHearingFromLocal(hearing.id);
+                                      if (context.mounted) {
+                                        SnakeBars.flutterToast(
+                                          'Hearing removed successfully',
+                                          context,
+                                        );
+                                      }
+                                    } catch (_) {
+                                      if (context.mounted) {
+                                        SnakeBars.flutterToast(
+                                          'Failed to remove hearing',
+                                          context,
+                                        );
+                                      }
+                                    }
+                                  },
+                          ),
+                        );
+                      },
+                    ),
                   ),
         floatingActionButton: Selector<HearingListViewModel, bool>(
           selector: (_, vm) => vm.isButtonIsVisible,
-          builder: (context, isVisible, child) {
+          builder: (context, isVisible, _) {
             return AnimatedSlide(
-              offset: isVisible ? Offset.zero : Offset(0, 2),
-              duration: const Duration(milliseconds: 300),
+              offset: isVisible ? Offset.zero : const Offset(0, 2),
+              duration: const Duration(milliseconds: 280),
               curve: Curves.easeInOut,
               child: AnimatedOpacity(
-                opacity: isVisible ? 1.0 : 0.0, // Smoothly fades out
-                duration: const Duration(milliseconds: 300),
+                opacity: isVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 280),
                 child: FloatingActionButton.extended(
-                  backgroundColor: Colors.grey.shade800,
-                  icon: const Icon(Icons.edit_calendar, color: Colors.white),
-                  label: const Text(
-                    'Add Hearing',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
+                  backgroundColor: RC.navy,
+                  elevation: 4,
+                  icon: const Icon(Icons.edit_calendar_outlined,
+                      color: RC.textOnDark),
+                  label: Text('Add Hearing',
+                      style: TextStyle(
+                          color: RC.textOnDark,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14.sp)),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
                         builder: (_) =>
-                            HearingCreateScreenView(caseId: widget.caseId),
-                      ),
-                    );
-                  },
+                            HearingCreateScreenView(caseId: widget.caseId)),
+                  ),
                 ),
               ),
             );
@@ -189,39 +183,76 @@ class HearingListScreenViewState extends State<HearingListScreenView> {
   }
 }
 
-Widget _buildHearingListShimmerSkeleton() {
-  return ListView.builder(
-    padding: EdgeInsets.all(16.r),
-    itemCount: 3, // Emulate standard list card counts
-    itemBuilder: (context, index) {
-      return Container(
-        margin: EdgeInsets.symmetric(vertical: 8.h),
-        padding: EdgeInsets.all(16.r),
+class _HearingsAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final int count;
+  const _HearingsAppBar({required this.count});
+
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight + 1);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: RC.navy,
+      elevation: 0,
+      iconTheme: IconThemeData(color: Colors.white),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Case Hearings',
+              style: TextStyle(
+                  color: RC.textOnDark,
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w700)),
+          Text('$count scheduled',
+              style: TextStyle(color: RC.textOnDarkMuted, fontSize: 12.sp)),
+        ],
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child:
+            Container(height: 1, color: Colors.white.withValues(alpha: 0.08)),
+      ),
+    );
+  }
+}
+
+class _HearingListSkeleton extends StatelessWidget {
+  const _HearingListSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: EdgeInsets.all(16.w),
+      itemCount: 4,
+      itemBuilder: (_, __) => Container(
+        margin: EdgeInsets.only(bottom: 10.h),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100, // Very quiet monochromatic surface tint
-          borderRadius: BorderRadius.circular(12.r),
+          color: RC.surface,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(color: RC.divider),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 140.w,
-              height: 16.h,
-              decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(4.r)),
-            ),
-            SizedBox(height: 12.h),
+                width: 140.w,
+                height: 14.h,
+                decoration: BoxDecoration(
+                    color: RC.background,
+                    borderRadius: BorderRadius.circular(4.r))),
+            SizedBox(height: 10.h),
             Container(
-              width: double.infinity,
-              height: 12.h,
-              decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(4.r)),
-            ),
+                width: double.infinity,
+                height: 11.h,
+                decoration: BoxDecoration(
+                    color: RC.background,
+                    borderRadius: BorderRadius.circular(4.r))),
           ],
         ),
-      );
-    },
-  );
+      ),
+    );
+  }
 }
