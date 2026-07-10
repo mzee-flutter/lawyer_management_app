@@ -1,13 +1,21 @@
-import 'package:all/all.dart';
+// notification_router.dart
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../models/notification_payload.dart';
+import 'app_router.dart';
 
 class NotificationRouter {
   NotificationRouter._();
-  // no more `static late final GoRouter router` — use AppRouter.router directly
 
   static String? _lastHandledMessageId;
   static DateTime? _lastHandledAt;
+
+  /// Set the moment a push() gets redirected away before it can land
+  /// (cold start, status still initial/loading). AppRouter's redirect
+  /// consumes and clears this once a session is actually established —
+  /// see _handleAuthRedirect below.
+  static String? pendingLocation;
 
   static String _hearingLocation(NotificationPayload payload) {
     return Uri(
@@ -19,16 +27,32 @@ class NotificationRouter {
   }
 
   static void handle(NotificationPayload? payload) {
-    if (payload == null || !payload.isValid) return;
+    debugPrint('NotificationRouter.handle: caseId=${payload?.caseId} '
+        'hearingId=${payload?.hearingId} messageId=${payload?.messageId}');
+
+    if (payload == null || !payload.isValid) {
+      debugPrint(
+          'NotificationRouter.handle: DROPPED — null or invalid payload');
+      return;
+    }
+
     final now = DateTime.now();
     final isRecentDuplicate = payload.messageId != null &&
         payload.messageId == _lastHandledMessageId &&
         _lastHandledAt != null &&
         now.difference(_lastHandledAt!) < const Duration(seconds: 3);
-    if (isRecentDuplicate) return;
+    if (isRecentDuplicate) {
+      debugPrint(
+          'NotificationRouter.handle: DROPPED — duplicate (${payload.messageId})');
+      return;
+    }
     _lastHandledMessageId = payload.messageId;
     _lastHandledAt = now;
-    AppRouter.router.push(_hearingLocation(payload));
+
+    final location = _hearingLocation(payload);
+    pendingLocation = location;
+    debugPrint('NotificationRouter.handle: pushing $location');
+    AppRouter.router.push(location);
   }
 
   static void goToHearing(BuildContext context, NotificationPayload payload) {
