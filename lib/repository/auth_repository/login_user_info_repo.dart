@@ -11,9 +11,6 @@ class LoginUserInfoRepository {
 
   Future<User> fetchLoginUserInfo(String? token) async {
     if (token == null || token.isEmpty) {
-      // Same exception type NetworkApiServices already throws for a
-      // rejected token, instead of a second, unrelated "Unauthorized"
-      // class that callers' catch clauses would never actually match.
       throw UnauthorizedRequestException('No access token available');
     }
 
