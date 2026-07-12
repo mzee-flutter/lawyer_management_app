@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/system_design/rc_theme.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
@@ -125,8 +126,8 @@ class _SignInScreenState extends State<SignInScreen>
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => Navigator.pushNamed(
-                            context, RoutesName.forgotPasswordScreen),
+                        onPressed: () => context
+                            .pushNamed(RoutesName.forgotPasswordFlowScreen),
                         style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: Size(0, 30.h)),
@@ -162,8 +163,7 @@ class _SignInScreenState extends State<SignInScreen>
                     AuthFooterLink(
                       leading: "Don't have an account? ",
                       actionLabel: 'Create one',
-                      onTap: () =>
-                          Navigator.pushNamed(context, RoutesName.signUpScreen),
+                      onTap: () => context.pushNamed(RoutesName.signUpScreen),
                     ).animate().fadeIn(delay: 900.ms, duration: 400.ms),
                   ],
                 ),
