@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/system_design/rc_theme.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
-import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 import 'package:right_case/view_model/auth_view_models/register_view_model.dart';
 
 import '../resources/system_design/auth_widgets.dart';
@@ -59,33 +59,33 @@ class _SignUpScreenState extends State<SignUpScreen>
     super.dispose();
   }
 
-  void _shake() => _shakeCtrl.forward(from: 0);
-
-  Future<void> _submit(RegisterViewModel registerVM) async {
-    if (!_formKey.currentState!.validate()) {
-      _shake();
-      return;
-    }
-    if (!_agreedToTerms) {
-      _shake();
-      SnakeBars.flutterToast(
-          'Please agree to the Terms & Privacy Policy to continue', context);
-      return;
-    }
-
-    final user = await registerVM.registerUser(context);
-    if (!mounted) return;
-
-    if (user != null) {
-      Navigator.pushReplacementNamed(context, RoutesName.homeScreen);
-    } else {
-      _shake();
-      SnakeBars.flutterToast(
-          'Could not create your account. Please try again.', context);
-    }
-    registerVM.clearFields();
-    _confirmPasswordController.clear();
-  }
+  // void _shake() => _shakeCtrl.forward(from: 0);
+  //
+  // Future<void> _submit(RegisterViewModel registerVM) async {
+  //   if (!_formKey.currentState!.validate()) {
+  //     _shake();
+  //     return;
+  //   }
+  //   if (!_agreedToTerms) {
+  //     _shake();
+  //     SnakeBars.flutterToast(
+  //         'Please agree to the Terms & Privacy Policy to continue', context);
+  //     return;
+  //   }
+  //
+  //   final user = await registerVM.registerUser(context);
+  //   if (!mounted) return;
+  //
+  //   if (user != null) {
+  //     Navigator.pushReplacementNamed(context, RoutesName.homeScreen);
+  //   } else {
+  //     _shake();
+  //     SnakeBars.flutterToast(
+  //         'Could not create your account. Please try again.', context);
+  //   }
+  //   registerVM.clearFields();
+  //   _confirmPasswordController.clear();
+  // }
 
   String? _validateName(String? v) {
     final value = v?.trim() ?? '';
@@ -186,20 +186,24 @@ class _SignUpScreenState extends State<SignUpScreen>
                         .fadeIn(delay: 650.ms, duration: 300.ms),
                     SizedBox(height: 14.h),
                     AuthTextField(
-                      controller: _confirmPasswordController,
-                      label: 'Confirm password',
-                      hint: 'Re-enter your password',
-                      icon: Icons.lock_person_outlined,
-                      obscureText: true,
-                      textInputAction: TextInputAction.done,
-                      validator: (v) => _validateConfirmPassword(v, registerVM),
-                      onFieldSubmitted: (_) => _submit(registerVM),
-                    ).animate().fadeIn(delay: 700.ms, duration: 380.ms).slideY(
-                        begin: 0.12,
-                        end: 0,
-                        delay: 700.ms,
-                        duration: 380.ms,
-                        curve: Curves.easeOutCubic),
+                            controller: _confirmPasswordController,
+                            label: 'Confirm password',
+                            hint: 'Re-enter your password',
+                            icon: Icons.lock_person_outlined,
+                            obscureText: true,
+                            textInputAction: TextInputAction.done,
+                            validator: (v) =>
+                                _validateConfirmPassword(v, registerVM),
+                            onFieldSubmitted: (_) =>
+                                registerVM.registerUser(context))
+                        .animate()
+                        .fadeIn(delay: 700.ms, duration: 380.ms)
+                        .slideY(
+                            begin: 0.12,
+                            end: 0,
+                            delay: 700.ms,
+                            duration: 380.ms,
+                            curve: Curves.easeOutCubic),
                     SizedBox(height: 16.h),
                     _TermsCheckbox(
                       value: _agreedToTerms,
@@ -209,7 +213,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                     AuthPrimaryButton(
                       label: 'Create Account',
                       isLoading: registerVM.isLoading,
-                      onPressed: () => _submit(registerVM),
+                      // onPressed: () => _submit(registerVM),
+                      onPressed: () {},
                     )
                         .animate()
                         .fadeIn(delay: 830.ms, duration: 400.ms)
@@ -227,8 +232,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                     AuthFooterLink(
                       leading: 'Already have an account? ',
                       actionLabel: 'Sign in',
-                      onTap: () => Navigator.pushReplacementNamed(
-                          context, RoutesName.signInScreen),
+                      onTap: () => context.goNamed(RoutesName.signInScreen),
                     ).animate().fadeIn(delay: 950.ms, duration: 400.ms),
                   ],
                 ),
