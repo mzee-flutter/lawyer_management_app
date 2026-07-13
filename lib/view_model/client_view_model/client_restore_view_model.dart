@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/repository/client_repository/client_restore_repo.dart';
 import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
@@ -21,14 +22,14 @@ class ClientRestoreViewModel with ChangeNotifier {
       duration: const Duration(minutes: 1),
       content: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           SizedBox(
-            height: 18,
-            width: 18,
+            height: 18.w,
+            width: 18.w,
             child:
                 CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
           ),
-          SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Text("Restoring client..."),
         ],
       ),
@@ -42,10 +43,10 @@ class ClientRestoreViewModel with ChangeNotifier {
       await restoreClient(context, clientId);
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      SnakeBars.flutterToast("✅ Client restored successfully", context);
+      SnakeBars.flutterToast("Client restored successfully", context);
     } catch (e) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      SnakeBars.flutterToast("❌ Failed to restore client: $e", context);
+      SnakeBars.flutterToast("Failed to restore client: $e", context);
     } finally {
       _toggleLoading(false);
     }
