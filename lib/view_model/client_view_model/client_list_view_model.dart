@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:right_case/models/client_models/client_model.dart';
 import 'package:right_case/repository/client_repository/client_list_repo.dart';
 
@@ -6,6 +7,9 @@ class ClientListViewModel extends ChangeNotifier {
   final ClientListRepo _clientListRepo = ClientListRepo();
   final TextEditingController searchController = TextEditingController();
   final FocusNode searchFocusNode = FocusNode();
+
+  bool _isButtonIsVisible = true;
+  bool get isButtonIsVisible => _isButtonIsVisible;
 
   String _searchQuery = '';
   String get searchQuery => _searchQuery;
@@ -18,6 +22,8 @@ class ClientListViewModel extends ChangeNotifier {
 
   bool _hasMore = true;
   bool get hasMore => _hasMore;
+
+  bool get canLoadMore => _hasMore && !_isLoadingMore;
 
   int _page = 1;
   final int _size = 10;
@@ -40,9 +46,13 @@ class ClientListViewModel extends ChangeNotifier {
   List<ClientModel> get filterClients {
     if (_searchQuery.isEmpty) return _clientList;
     return _clientList
-        .where((c) =>
-            c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            c.phone.contains(_searchQuery))
+        .where(
+          (c) =>
+              c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              c.phone.contains(_searchQuery) ||
+              c.cnic.contains(_searchQuery) ||
+              c.email.contains(_searchQuery),
+        )
         .toList();
   }
 
@@ -85,15 +95,13 @@ class ClientListViewModel extends ChangeNotifier {
     if (loadMore) {
       if (_isLoadingMore || !_hasMore) return;
       _setLoadingMore(true);
-    } else if (!isRefresh) {
-      /// initial load or refresh
-      _page = 1;
-      _hasMore = true;
-      _clientList.clear();
-      _setLoading(true);
     } else {
       _page = 1;
       _hasMore = true;
+      if (!isRefresh) {
+        _clientList.clear();
+        _setLoading(true);
+      }
     }
 
     try {
@@ -102,15 +110,11 @@ class ClientListViewModel extends ChangeNotifier {
         size: _size,
       );
 
-      /// If backend returned nothing, stop further calls
       if (clients.isEmpty) {
         _hasMore = false;
       }
-      if (isRefresh) {
-        _clientList.clear();
-        _clientList = clients;
-        _page = 2;
-      } else if (loadMore) {
+
+      if (loadMore) {
         _clientList.addAll(clients);
         _page++;
       } else {
@@ -120,11 +124,20 @@ class ClientListViewModel extends ChangeNotifier {
     } catch (e) {
       debugPrint("Error in ClientListViewModel: $e");
     } finally {
-      if (loadMore) {
-        _setLoadingMore(false);
-      } else {
-        _setLoading(false);
-      }
+      loadMore ? _setLoadingMore(false) : _setLoading(false);
+    }
+  }
+
+  Future<void> refresh() async {
+    await fetchClientList(isRefresh: true);
+  }
+
+  void handleScroll(ScrollDirection direction) {
+    final bool shouldBeVisible = direction == ScrollDirection.forward;
+
+    if (_isButtonIsVisible != shouldBeVisible) {
+      _isButtonIsVisible = shouldBeVisible;
+      notifyListeners();
     }
   }
 
