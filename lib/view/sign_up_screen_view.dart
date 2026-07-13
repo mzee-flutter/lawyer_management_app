@@ -213,8 +213,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                     AuthPrimaryButton(
                       label: 'Create Account',
                       isLoading: registerVM.isLoading,
-                      // onPressed: () => _submit(registerVM),
-                      onPressed: () {},
+                      onPressed: () => registerVM.registerUser(context),
                     )
                         .animate()
                         .fadeIn(delay: 830.ms, duration: 400.ms)

@@ -144,8 +144,7 @@ class _SignInScreenState extends State<SignInScreen>
                     AuthPrimaryButton(
                       label: 'Sign In',
                       isLoading: loginVM.isLoading,
-                      onPressed: () {},
-                      // onPressed: () => _submit(loginVM),
+                      onPressed: () => loginVM.loginUser(),
                     )
                         .animate()
                         .fadeIn(delay: 720.ms, duration: 400.ms)
