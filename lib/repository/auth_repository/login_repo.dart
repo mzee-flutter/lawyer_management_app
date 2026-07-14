@@ -2,56 +2,38 @@ import 'package:flutter/cupertino.dart';
 import 'package:right_case/data/base_api_service.dart';
 import 'package:right_case/data/network_api_service.dart';
 import 'package:right_case/models/auth_models/auth_model.dart';
-import 'package:right_case/view_model/services/token_storage_service.dart';
 import 'package:right_case/models/auth_models/login_request_model.dart';
 import 'package:right_case/resources/URLs/auth_urls.dart';
 
+import '../../view_model/services/auth_token_presistance.dart';
 
 class LoginRepository {
   final BaseApiServices _services = NetworkApiServices();
 
-  final TokenStorageService _tokenStorage = TokenStorageService();
-
   Future<AuthModel> loginUser(LoginRequestModel user) async {
-    final header = {
-      'Content-Type': 'application/json',
-    };
+    final header = {'Content-Type': 'application/json'};
     final requestBody = user.toJson();
     try {
-
       final response = await _services.getPostApiRequest(
         "${AuthURL.baseURl}/login",
         header,
         requestBody,
       );
       final authResponse = AuthModel.fromJson(response);
-      final accessToken = authResponse.tokens.accessToken;
-      final refreshToken = authResponse.tokens.refreshToken;
-      final accessTokenExpiry = authResponse.tokens.expireAt;
 
-      await _tokenStorage.saveToken(
-        accessToken,
-        refreshToken,
-        accessTokenExpiry,
+      // Was previously done inline here with a local TokenStorageService
+      // field -- same three lines duplicated in RegisterRepository and
+      // RefreshAccessTokenRepo. Now shared in one place.
+      await AuthTokenPersistence.save(
+        accessToken: authResponse.tokens.accessToken,
+        refreshToken: authResponse.tokens.refreshToken,
+        accessTokenExpiry: authResponse.tokens.expireAt,
       );
 
       return authResponse;
     } catch (e) {
       debugPrint(e.toString());
       rethrow;
-    }
-  }
-
-  Future<void> registerFCMToken(String userId, String token) async {
-    try {
-      await _services.getPostApiRequest(
-        "${AuthURL.baseURl}/fcm-token",
-        {"Content-Type": "application/json"},
-        {"fcm_token": token},
-      );
-      debugPrint("✅ FCM token sent to backend");
-    } catch (e) {
-      debugPrint("❌ Failed to send FCM token: $e");
     }
   }
 }
