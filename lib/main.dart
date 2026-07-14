@@ -105,7 +105,11 @@ class MyApp extends StatelessWidget {
             update: (ctx, currentUserVM, previous) =>
                 previous ?? LoginViewModel(currentUserVM),
           ),
-          ChangeNotifierProvider(create: (_) => RegisterViewModel()),
+          ChangeNotifierProxyProvider<CurrentUserViewModel, RegisterViewModel>(
+              create: (ctx) =>
+                  RegisterViewModel(ctx.read<CurrentUserViewModel>()),
+              update: (ctx, currentUserVM, previous) =>
+                  previous ?? RegisterViewModel(currentUserVM)),
           ChangeNotifierProvider(create: (_) => RefreshAccessTokenViewModel()),
           ChangeNotifierProxyProvider<CurrentUserViewModel, LogoutViewModel>(
             create: (ctx) => LogoutViewModel(ctx.read<CurrentUserViewModel>()),
@@ -153,5 +157,6 @@ class MyApp extends StatelessWidget {
 ///file upload issue that should be solved...(Done)
 ///notification navigation from terminated app state should be working perfectly...(Done)
 ///and the last two things is Delete Account setup for both frontend and backend...
-///and change password or forgot password functionality should be included in the app...
+///and change password or forgot password functionality should be included in the app...(Done)
 ///and the last is rechecking and understanding the refreshToken use to get the new accessToken (The automatic call)...(Done)
+///Making the sign-in and sign-up and some forgot-password pages should be informative responsive on different errors
