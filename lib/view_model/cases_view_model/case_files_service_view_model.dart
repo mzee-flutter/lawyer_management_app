@@ -1,12 +1,15 @@
 import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:dio/dio.dart';
 import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/resources/case_resources/file_preview_shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+
+import '../../resources/system_design/rc_theme.dart';
 
 enum FileLoadState { idle, loading, ready }
 
@@ -75,9 +78,16 @@ class CaseFilesServiceViewModel extends ChangeNotifier {
       context,
       MaterialPageRoute(
         builder: (_) => Scaffold(
+          backgroundColor: RC.surface,
           appBar: AppBar(
-            backgroundColor: Colors.grey.shade300,
-            title: Text(title),
+            backgroundColor: RC.navy,
+            title: Text(
+              title,
+              style: TextStyle(color: RC.textOnDark),
+            ),
+            iconTheme: IconThemeData(
+              color: Colors.white,
+            ),
           ),
           body: PDFView(filePath: file.path),
         ),
@@ -90,9 +100,16 @@ class CaseFilesServiceViewModel extends ChangeNotifier {
       context,
       MaterialPageRoute(
         builder: (_) => Scaffold(
+          backgroundColor: RC.surface,
           appBar: AppBar(
-            backgroundColor: Colors.grey.shade300,
-            title: Text(title),
+            backgroundColor: RC.navy,
+            title: Text(
+              title,
+              style: TextStyle(color: RC.textOnDark),
+            ),
+            iconTheme: IconThemeData(
+              color: Colors.white,
+            ),
           ),
           body: Center(
             child: InteractiveViewer(
