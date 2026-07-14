@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:all/all.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:right_case/data/api_exception.dart';
 import 'package:right_case/models/auth_models/login_request_model.dart';
 import 'package:right_case/repository/auth_repository/login_repo.dart';
+import 'package:right_case/repository/auth_repository/notification_token_repo.dart';
 import 'package:right_case/view_model/auth_view_models/current_user_view_model.dart';
 import 'package:right_case/view_model/services/firebase_notification_service.dart';
 
@@ -22,6 +24,7 @@ class LoginViewModel with ChangeNotifier {
 
   final CurrentUserViewModel _currentUserVM;
   final LoginRepository _loginRepo = LoginRepository();
+  final NotificationTokenRepo _notificationTokenRepo = NotificationTokenRepo();
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   final emailController = TextEditingController();
@@ -62,10 +65,21 @@ class LoginViewModel with ChangeNotifier {
       return LoginResult.success(
         '${authModel.user.name ?? 'Welcome'} logged in successfully',
       );
+    } on ApiException catch (e, stack) {
+      // Was previously a bare `catch (e, stack)` that discarded the real
+      // backend message (e.g. "Invalid email or password") in favor of a
+      // hardcoded generic string. This surfaces what the server actually said.
+      debugPrint('Error in LoginViewModel: $e');
+      debugPrint(stack.toString());
+      return LoginResult.failure(
+        e.message.isNotEmpty ? e.message : 'Login failed. Please try again.',
+      );
     } catch (e, stack) {
       debugPrint('Error in LoginViewModel: $e');
       debugPrint(stack.toString());
-      return const LoginResult.failure('Login failed. Please try again.');
+      return const LoginResult.failure(
+        'Something went wrong. Please check your connection and try again.',
+      );
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -77,7 +91,7 @@ class LoginViewModel with ChangeNotifier {
     try {
       final token = await FirebaseNotificationService().getAndRegisterToken();
       if (token != null) {
-        await _loginRepo.registerFCMToken(userId, token);
+        await _notificationTokenRepo.registerFCMToken(userId, token);
       }
     } catch (e) {
       debugPrint('FCM registration failed (non-fatal): $e');
@@ -86,7 +100,7 @@ class LoginViewModel with ChangeNotifier {
 
   void _initTokenRefreshListener(String userId) {
     _messaging.onTokenRefresh.listen((newToken) async {
-      await _loginRepo.registerFCMToken(userId, newToken);
+      await _notificationTokenRepo.registerFCMToken(userId, newToken);
     });
   }
 
