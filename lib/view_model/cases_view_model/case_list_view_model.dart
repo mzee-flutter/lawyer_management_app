@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:right_case/models/case_models/case_model.dart';
-
 import 'package:right_case/repository/case_repository/cases_list_repo.dart';
 
 class CaseListViewModel extends ChangeNotifier {
   final CasesListRepo _casesListRepo = CasesListRepo();
   final TextEditingController searchController = TextEditingController();
   final FocusNode searchFocusNode = FocusNode();
+
+  bool _showSearch = false;
+  bool get showSearch => _showSearch;
+
+  void toggleShowSearch() {
+    _showSearch = !showSearch;
+    notifyListeners();
+  }
 
   bool _isButtonIsVisible = true;
   bool get isButtonIsVisible => _isButtonIsVisible;
@@ -43,11 +50,14 @@ class CaseListViewModel extends ChangeNotifier {
 
   List<CaseModel> _caseList = [];
   List<CaseModel> get filterCases {
-    if (_searchQuery.isEmpty) return _caseList;
+    final q = searchController.text.trim().toLowerCase();
+    if (q.isEmpty) return _caseList;
     return _caseList
         .where((c) =>
-            c.courtName!.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            c.judgeName!.contains(_searchQuery))
+            c.caseNumber.toLowerCase().contains(q) ||
+            c.firstPartyName.toLowerCase().contains(q) ||
+            (c.oppositePartyName ?? '').toLowerCase().contains(q) ||
+            (c.courtName ?? '').toLowerCase().contains(q))
         .toList();
   }
 
