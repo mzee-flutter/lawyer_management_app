@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -105,6 +106,7 @@ class _CasesListScreenState extends State<CasesListScreen> {
             if (displayed.isEmpty) {
               return _EmptyState(
                 isSearching: _searchController.text.isNotEmpty,
+                onRetry: () => vm.fetchCaseList(isRefresh: true),
               );
             }
 
@@ -450,46 +452,109 @@ class _SheetButton extends StatelessWidget {
 // ── Empty state ──────────────────────────────────────────────────
 class _EmptyState extends StatelessWidget {
   final bool isSearching;
-  const _EmptyState({required this.isSearching});
+  final VoidCallback onRetry;
+
+  const _EmptyState({
+    super.key,
+    required this.isSearching,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: EdgeInsets.all(32.w),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 40.h, horizontal: 24.w),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // 1. Polite, Muted Icon Container with Soft Tonal Background
             Container(
-              width: 64.w,
-              height: 64.w,
+              width: 52.w,
+              height: 52.w,
               decoration: BoxDecoration(
-                color: _RC.goldLight,
+                color: _RC.danger.withValues(alpha: 0.08), // Soft tint
+                // Soft, premium gold tint
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isSearching ? Icons.search_off_rounded : Icons.cases_outlined,
-                size: 28.sp,
-                color: _RC.gold,
+                isSearching
+                    ? Icons.search_off_rounded
+                    : Icons.cloud_off_rounded,
+                color: _RC.danger.withValues(alpha: 0.9),
+                size: 24.sp,
               ),
-            ),
+            ).animate().scale(
+                  duration: 400.ms,
+                  curve: Curves.easeOutBack,
+                ),
+
             SizedBox(height: 16.h),
+
+            // 2. Integrated Title (Uses Standard App Primary Typography)
             Text(
               isSearching ? 'No cases found' : 'No cases yet',
+              textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: _RC.textPrimary),
-            ),
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                color: _RC
+                    .textPrimary, // Blends perfectly with your other UI headers
+                letterSpacing: -0.2,
+              ),
+            )
+                .animate()
+                .fadeIn(delay: 100.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
+
             SizedBox(height: 6.h),
+
+            // 3. Integrated Subtitle (Uses Standard App Secondary Typography)
             Text(
               isSearching
                   ? 'Try a different case number or party name.'
                   : 'Tap the button below to add your first case.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 13.sp, color: _RC.textSecondary, height: 1.5),
-            ),
+                fontSize: 13.sp,
+                color: _RC.textSecondary, // Blends beautifully as body copy
+                height: 1.4,
+              ),
+            )
+                .animate()
+                .fadeIn(delay: 150.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
+
+            SizedBox(height: 16.h),
+
+            // 3. Tonal, Inline Action Button
+            TextButton.icon(
+              onPressed: onRetry,
+              style: TextButton.styleFrom(
+                foregroundColor: _RC.navy, // Your standard primary action color
+                backgroundColor: _RC.navy
+                    .withValues(alpha: 0.06), // Very soft "Tonal" background
+                elevation: 0,
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+              icon: Icon(Icons.refresh_rounded, size: 16.sp),
+              label: Text(
+                'Try again',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            )
+                .animate()
+                .fadeIn(delay: 200.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
           ],
         ),
       ),
