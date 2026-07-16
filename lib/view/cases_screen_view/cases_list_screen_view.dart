@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/models/case_models/case_model.dart';
+import 'package:right_case/resources/system_design/rc_theme.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 import 'package:right_case/view/home_screen_view.dart';
@@ -62,8 +64,7 @@ class _CasesListScreenState extends State<CasesListScreen> {
       final vm = context.read<CaseListViewModel>();
       if (_scrollController.position.pixels >=
               _scrollController.position.maxScrollExtent * 0.85 &&
-          !vm.isLoadingMore &&
-          vm.hasMore &&
+          vm.canLoadMore &&
           !vm.isLoading) {
         vm.fetchCaseList(loadMore: true);
       }
@@ -103,6 +104,15 @@ class _CasesListScreenState extends State<CasesListScreen> {
 
             final displayed = vm.filterCases;
 
+            // Real failure, nothing to show -- separate from "list is
+            // genuinely empty," which is handled by _EmptyState below.
+            if (vm.hasError && displayed.isEmpty) {
+              return _ErrorState(
+                message: vm.errorMessage!,
+                onRetry: () => vm.fetchCaseList(),
+              );
+            }
+
             if (displayed.isEmpty) {
               return _EmptyState(
                 isSearching: _searchController.text.isNotEmpty,
@@ -114,9 +124,13 @@ class _CasesListScreenState extends State<CasesListScreen> {
               color: _RC.navy,
               onRefresh: () async {
                 await vm.fetchCaseList(loadMore: false, isRefresh: true);
-                if (context.mounted) {
-                  SnakeBars.flutterToast('Cases refreshed', context);
-                }
+                if (!context.mounted) return;
+                SnakeBars.flutterToast(
+                  vm.hasError
+                      ? (vm.errorMessage ?? 'Refresh failed. Please try again.')
+                      : 'Cases refreshed',
+                  context,
+                );
               },
               child: ListView.builder(
                 controller: _scrollController,
@@ -124,7 +138,10 @@ class _CasesListScreenState extends State<CasesListScreen> {
                 padding: EdgeInsets.only(top: 8.h, bottom: 100.h),
                 itemCount: displayed.length + (vm.hasMore ? 1 : 0),
                 itemBuilder: (_, i) {
-                  if (i < 4) {
+                  // Was hardcoded to `i < 4` -- only the first 4 cases were
+                  // ever rendering; everything past that fell into the
+                  // footer branch below instead of showing a card.
+                  if (i < displayed.length) {
                     final c = displayed[i];
 
                     return CaseInfoCard(
@@ -151,7 +168,21 @@ class _CasesListScreenState extends State<CasesListScreen> {
                       child: vm.isLoadingMore
                           ? CircularProgressIndicator(
                               color: _RC.navy, strokeWidth: 2)
-                          : const SizedBox.shrink(),
+                          : vm.hasError
+                              ? TextButton.icon(
+                                  onPressed: () =>
+                                      vm.fetchCaseList(loadMore: true),
+                                  icon: Icon(Icons.refresh_rounded,
+                                      size: 16.sp, color: _RC.navy),
+                                  label: Text(
+                                    "Couldn't load more · Tap to retry",
+                                    style: TextStyle(
+                                        color: _RC.navy,
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
                     ),
                   );
                 },
@@ -277,7 +308,6 @@ class _DeleteCaseSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
           Center(
             child: Container(
               width: 36.w,
@@ -289,8 +319,6 @@ class _DeleteCaseSheet extends StatelessWidget {
             ),
           ),
           SizedBox(height: 16.h),
-
-          // Icon
           Container(
             width: 56.w,
             height: 56.w,
@@ -302,7 +330,6 @@ class _DeleteCaseSheet extends StatelessWidget {
                 size: 26.sp, color: _RC.danger),
           ),
           SizedBox(height: 12.h),
-
           Text(
             'Delete case?',
             style: TextStyle(
@@ -318,8 +345,6 @@ class _DeleteCaseSheet extends StatelessWidget {
             style: TextStyle(fontSize: 13.sp, color: _RC.textSecondary),
           ),
           SizedBox(height: 20.h),
-
-          // Archive option
           Consumer<CaseArchiveViewModel>(
             builder: (_, vm, __) => _SheetButton(
               icon: Icons.archive_outlined,
@@ -338,8 +363,6 @@ class _DeleteCaseSheet extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10.h),
-
-          // Delete option
           Consumer<CasePermanentDeleteViewModel>(
             builder: (_, vm, __) => _SheetButton(
               icon: Icons.delete_forever_outlined,
@@ -355,8 +378,6 @@ class _DeleteCaseSheet extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10.h),
-
-          // Cancel
           SizedBox(
             width: double.infinity,
             child: TextButton(
@@ -449,13 +470,12 @@ class _SheetButton extends StatelessWidget {
   }
 }
 
-// ── Empty state ──────────────────────────────────────────────────
+// ── Empty state (list is genuinely empty) ──────────────────────────
 class _EmptyState extends StatelessWidget {
   final bool isSearching;
   final VoidCallback onRetry;
 
   const _EmptyState({
-    super.key,
     required this.isSearching,
     required this.onRetry,
   });
@@ -470,72 +490,114 @@ class _EmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 1. Polite, Muted Icon Container with Soft Tonal Background
             Container(
-              width: 52.w,
-              height: 52.w,
+              width: 72.w,
+              height: 72.w,
               decoration: BoxDecoration(
-                color: _RC.danger.withValues(alpha: 0.08), // Soft tint
-                // Soft, premium gold tint
+                color: _RC.navy.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isSearching
                     ? Icons.search_off_rounded
-                    : Icons.cloud_off_rounded,
-                color: _RC.danger.withValues(alpha: 0.9),
-                size: 24.sp,
+                    : FontAwesomeIcons.folderOpen,
+                color: _RC.navy.withValues(alpha: 0.9),
+                size: 32.sp,
               ),
-            ).animate().scale(
-                  duration: 400.ms,
-                  curve: Curves.easeOutBack,
-                ),
-
+            ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
             SizedBox(height: 16.h),
-
-            // 2. Integrated Title (Uses Standard App Primary Typography)
             Text(
               isSearching ? 'No cases found' : 'No cases yet',
+              textAlign: TextAlign.center,
+              style: RC.heading(),
+            )
+                .animate()
+                .fadeIn(delay: 100.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
+            SizedBox(height: 6.h),
+            Text(
+                    isSearching
+                        ? 'Try a different case number or party name.'
+                        : 'Tap the button below to add your first case.',
+                    textAlign: TextAlign.center,
+                    style: RC.body(color: RC.textSecondary))
+                .animate()
+                .fadeIn(delay: 150.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Error state (network / server failures) ─────────────────────────
+// Deliberately separate from _EmptyState: an empty list because nothing
+// exists yet is not the same situation as an empty list because the fetch
+// failed. Telling the user "add your first case" when we simply couldn't
+// reach the server is actively misleading.
+class _ErrorState extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorState({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 40.h, horizontal: 24.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 72.w,
+              height: 72.w,
+              decoration: BoxDecoration(
+                color: _RC.danger.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.cloud_off_rounded,
+                color: _RC.danger,
+                size: 32.sp,
+              ),
+            ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+            SizedBox(height: 16.h),
+            Text(
+              "Couldn't load cases",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: FontWeight.w600,
-                color: _RC
-                    .textPrimary, // Blends perfectly with your other UI headers
+                color: _RC.textPrimary,
                 letterSpacing: -0.2,
               ),
             )
                 .animate()
                 .fadeIn(delay: 100.ms, duration: 300.ms)
                 .slideY(begin: 0.1, end: 0),
-
             SizedBox(height: 6.h),
-
-            // 3. Integrated Subtitle (Uses Standard App Secondary Typography)
             Text(
-              isSearching
-                  ? 'Try a different case number or party name.'
-                  : 'Tap the button below to add your first case.',
+              message,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: _RC.textSecondary, // Blends beautifully as body copy
+                color: _RC.textSecondary,
                 height: 1.4,
               ),
             )
                 .animate()
                 .fadeIn(delay: 150.ms, duration: 300.ms)
                 .slideY(begin: 0.1, end: 0),
-
             SizedBox(height: 16.h),
-
-            // 3. Tonal, Inline Action Button
             TextButton.icon(
               onPressed: onRetry,
               style: TextButton.styleFrom(
-                foregroundColor: _RC.navy, // Your standard primary action color
-                backgroundColor: _RC.navy
-                    .withValues(alpha: 0.06), // Very soft "Tonal" background
+                foregroundColor: _RC.navy,
+                backgroundColor: _RC.navy.withValues(alpha: 0.06),
                 elevation: 0,
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
                 shape: RoundedRectangleBorder(
