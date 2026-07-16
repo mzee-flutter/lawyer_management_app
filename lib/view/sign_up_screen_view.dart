@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/system_design/rc_theme.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
+import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 import 'package:right_case/view_model/auth_view_models/register_view_model.dart';
 
 import '../resources/system_design/auth_widgets.dart';
@@ -59,33 +60,39 @@ class _SignUpScreenState extends State<SignUpScreen>
     super.dispose();
   }
 
-  // void _shake() => _shakeCtrl.forward(from: 0);
-  //
-  // Future<void> _submit(RegisterViewModel registerVM) async {
-  //   if (!_formKey.currentState!.validate()) {
-  //     _shake();
-  //     return;
-  //   }
-  //   if (!_agreedToTerms) {
-  //     _shake();
-  //     SnakeBars.flutterToast(
-  //         'Please agree to the Terms & Privacy Policy to continue', context);
-  //     return;
-  //   }
-  //
-  //   final user = await registerVM.registerUser(context);
-  //   if (!mounted) return;
-  //
-  //   if (user != null) {
-  //     Navigator.pushReplacementNamed(context, RoutesName.homeScreen);
-  //   } else {
-  //     _shake();
-  //     SnakeBars.flutterToast(
-  //         'Could not create your account. Please try again.', context);
-  //   }
-  //   registerVM.clearFields();
-  //   _confirmPasswordController.clear();
-  // }
+  void _shake() => _shakeCtrl.forward(from: 0);
+
+  Future<void> _submit(RegisterViewModel registerVM) async {
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) {
+      _shake();
+      return;
+    }
+    if (!_agreedToTerms) {
+      _shake();
+      SnakeBars.flutterToast(
+          'Please agree to the Terms & Privacy Policy to continue', context);
+      return;
+    }
+
+    final result = await registerVM.registerUser();
+    if (!mounted) return;
+
+    SnakeBars.flutterToast(result.message, context);
+
+    if (result.success) {
+      registerVM.clearFields();
+      _confirmPasswordController.clear();
+      // No navigation call here -- registration authenticates the user
+      // (same as login), so AuthGate reacts to CurrentUserViewModel and
+      // swaps to HomeScreen on its own.
+    } else {
+      _shake();
+      // Deliberately NOT clearing fields on failure (e.g. "email already
+      // exists") -- forcing a full retype on every failed attempt is bad
+      // UX. The user should only need to fix whatever was wrong.
+    }
+  }
 
   String? _validateName(String? v) {
     final value = v?.trim() ?? '';
@@ -194,8 +201,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                             textInputAction: TextInputAction.done,
                             validator: (v) =>
                                 _validateConfirmPassword(v, registerVM),
-                            onFieldSubmitted: (_) =>
-                                registerVM.registerUser(context))
+                            onFieldSubmitted: (_) => _submit(registerVM))
                         .animate()
                         .fadeIn(delay: 700.ms, duration: 380.ms)
                         .slideY(
@@ -213,7 +219,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                     AuthPrimaryButton(
                       label: 'Create Account',
                       isLoading: registerVM.isLoading,
-                      onPressed: () => registerVM.registerUser(context),
+                      onPressed: () => _submit(registerVM),
                     )
                         .animate()
                         .fadeIn(delay: 830.ms, duration: 400.ms)
