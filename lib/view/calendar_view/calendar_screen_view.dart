@@ -8,6 +8,7 @@
 //   RoutesName.calendarScreen → CalendarScreen()
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
@@ -1201,24 +1202,108 @@ class _CalendarSkeleton extends StatelessWidget {
 class _CalendarError extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
-  const _CalendarError({required this.message, required this.onRetry});
+  final String? title;
+
+  const _CalendarError({
+    required this.message,
+    required this.onRetry,
+    this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(20.w),
-      child: Column(
-        children: [
-          Text(message,
-              style: TextStyle(fontSize: 12.sp, color: _RC.dangerText),
-              textAlign: TextAlign.center),
-          SizedBox(height: 10.h),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: _RC.navy),
-            onPressed: onRetry,
-            child: const Text('Try again'),
-          ),
-        ],
+    return Center(
+      child: Container(
+        // No borders, no shadows. It sits natively on whatever background it's placed over.
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 40.h, horizontal: 24.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // 1. Polite, Muted Icon
+            Container(
+              width: 52.w,
+              height: 52.w,
+              decoration: BoxDecoration(
+                color: _RC.danger.withValues(alpha: 0.08), // Soft tint
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons
+                    .cloud_off_rounded, // A softer conceptual icon than an alert triangle
+                color: _RC.danger.withValues(alpha: 0.9),
+                size: 24.sp,
+              ),
+            ).animate().scale(
+                  duration: 400.ms,
+                  curve: Curves.easeOutBack,
+                ),
+
+            SizedBox(height: 16.h),
+
+            // 2. Integrated Typography (Using Standard UI Colors)
+            Text(
+              title ?? 'Couldn\'t load data',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                color: _RC
+                    .textPrimary, // Blends perfectly with your standard app headers
+                letterSpacing: -0.2,
+              ),
+            )
+                .animate()
+                .fadeIn(delay: 100.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
+
+            SizedBox(height: 6.h),
+
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: _RC
+                    .textSecondary, // Blends with your standard app subtitles
+                height: 1.4,
+              ),
+            )
+                .animate()
+                .fadeIn(delay: 150.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
+
+            SizedBox(height: 16.h),
+
+            // 3. Tonal, Inline Action Button
+            TextButton.icon(
+              onPressed: onRetry,
+              style: TextButton.styleFrom(
+                foregroundColor: _RC.navy, // Your standard primary action color
+                backgroundColor: _RC.navy
+                    .withValues(alpha: 0.06), // Very soft "Tonal" background
+                elevation: 0,
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+              icon: Icon(Icons.refresh_rounded, size: 16.sp),
+              label: Text(
+                'Try again',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            )
+                .animate()
+                .fadeIn(delay: 200.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
+          ],
+        ),
       ),
     );
   }
