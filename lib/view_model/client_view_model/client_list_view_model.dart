@@ -13,11 +13,6 @@ class ClientListViewModel extends ChangeNotifier {
   final FocusNode searchFocusNode = FocusNode();
 
   ClientListViewModel() {
-    // Single source of truth for search text. Typing AND programmatic
-    // changes (like a plain .clear() when the search bar closes) both flow
-    // through here, so _searchQuery can never go stale versus what's on
-    // screen -- that staleness was previously causing the list to look
-    // "empty" after closing search with leftover text.
     searchController.addListener(_syncSearchQuery);
   }
 
@@ -27,6 +22,22 @@ class ClientListViewModel extends ChangeNotifier {
       _searchQuery = text;
       notifyListeners();
     }
+  }
+
+  /// Clears search state WITHOUT notifying listeners. Use this instead of
+  /// `searchController.clear()` from any call site that can't safely
+  /// trigger a rebuild -- most notably a View's dispose(). During
+  /// widget-tree teardown the framework is locked, and clear()'s automatic
+  /// listener callback (_syncSearchQuery -> notifyListeners) throws
+  /// "setState() or markNeedsBuild() called when widget tree was locked."
+  /// Removing the listener before mutating, then reattaching it, avoids
+  /// that entirely while keeping live in-screen clears (e.g. tapping the
+  /// search-close icon) working normally through the listener as before.
+  void clearSearchSilently() {
+    searchController.removeListener(_syncSearchQuery);
+    searchController.clear();
+    _searchQuery = '';
+    searchController.addListener(_syncSearchQuery);
   }
 
   bool _isButtonIsVisible = true;
@@ -46,9 +57,6 @@ class ClientListViewModel extends ChangeNotifier {
 
   bool get canLoadMore => _hasMore && !_isLoadingMore;
 
-  /// Non-null only when the most recent fetch failed. An empty list with no
-  /// error means "genuinely nothing here." An empty list WITH an error means
-  /// "we don't actually know what's out there, the request failed."
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
   bool get hasError => _errorMessage != null;
@@ -84,9 +92,6 @@ class ClientListViewModel extends ChangeNotifier {
   }
 
   void setSearchQuery(String query) {
-    // Kept for backward compatibility with any existing call sites -- the
-    // controller listener above is now the real source of truth, so this
-    // is effectively a no-op passthrough.
     _searchQuery = query.trim();
     notifyListeners();
   }
@@ -117,16 +122,6 @@ class ClientListViewModel extends ChangeNotifier {
     }
   }
 
-  /// Fetch page 1 (loadMore=false) or next page (loadMore=true).
-  ///
-  /// Error handling is deliberately asymmetric:
-  /// - initial load / refresh failing with nothing loaded -> full-screen
-  ///   error+retry (handled by the View checking hasError && list.isEmpty).
-  /// - refresh failing while data already exists -> error is still set (so
-  ///   the caller can toast it) but the existing list is never cleared.
-  /// - loadMore failing -> same: error is set for a footer retry chip, but
-  ///   already-loaded items are untouched. Losing 20 visible cards because
-  ///   page 3 timed out would be a worse bug than the one we're fixing.
   Future<void> fetchClientList({
     bool loadMore = false,
     bool isRefresh = false,
@@ -153,8 +148,6 @@ class ClientListViewModel extends ChangeNotifier {
         size: _size,
       );
 
-      // A short page is the reliable "no more data" signal; an empty page
-      // is just one instance of that, not a separate rule.
       if (clients.length < _size) {
         _hasMore = false;
       }
