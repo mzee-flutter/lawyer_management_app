@@ -4,8 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:right_case/models/case_models/case_model.dart';
 import 'package:right_case/resources/URLs/case_urls.dart';
+import 'package:right_case/view_model/services/token_storage_service.dart';
 
 class AddCaseFileRepo {
+  final TokenStorageService tokenService = TokenStorageService();
   final Dio _dio = Dio(
     BaseOptions(
       // Time allowed just to establish the connection to the server.
@@ -20,6 +22,7 @@ class AddCaseFileRepo {
     CancelToken? cancelToken,
   }) async {
     final formData = FormData();
+    final token = await tokenService.getAccessToken();
     try {
       for (final file in files) {
         formData.files.add(
@@ -38,6 +41,7 @@ class AddCaseFileRepo {
         // the socket instead of leaving the upload running in the
         // background after the UI has already moved on.
         cancelToken: cancelToken,
+
         options: Options(
           // Once the bytes are fully sent (the moment your progress bar
           // used to hit 100% and freeze), this is how long Dio itself will
@@ -45,6 +49,9 @@ class AddCaseFileRepo {
           // ViewModel's own 45s safety-net timer.
           sendTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 30),
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
         ),
       );
 
