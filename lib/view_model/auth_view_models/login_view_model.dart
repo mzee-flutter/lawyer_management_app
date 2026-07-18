@@ -1,13 +1,11 @@
 import 'dart:async';
 
 import 'package:all/all.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:right_case/data/api_exception.dart';
 import 'package:right_case/models/auth_models/login_request_model.dart';
 import 'package:right_case/repository/auth_repository/login_repo.dart';
-import 'package:right_case/repository/auth_repository/notification_token_repo.dart';
 import 'package:right_case/view_model/auth_view_models/current_user_view_model.dart';
-import 'package:right_case/view_model/services/firebase_notification_service.dart';
+import 'package:right_case/view_model/services/push_token_service.dart';
 
 /// What the View needs to react to a login attempt — a message to show and
 /// whether it succeeded. Deliberately dumb: it carries no BuildContext.
@@ -24,8 +22,6 @@ class LoginViewModel with ChangeNotifier {
 
   final CurrentUserViewModel _currentUserVM;
   final LoginRepository _loginRepo = LoginRepository();
-  final NotificationTokenRepo _notificationTokenRepo = NotificationTokenRepo();
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -54,13 +50,7 @@ class LoginViewModel with ChangeNotifier {
 
       _currentUserVM.setAuthenticatedUser(authModel);
 
-      // Push-token registration is best-effort. It used to run inline and
-      // share the same try/catch as the login call itself — if FCM
-      // registration threw, a user who had actually logged in successfully
-      // was shown "Login Failed". Firing it off separately means a flaky
-      // push service can never fail a real login.
-      unawaited(_registerPushToken(authModel.user.id));
-      _initTokenRefreshListener(authModel.user.id);
+      unawaited(PushTokenService.instance.registerForUser(authModel.user.id));
 
       return LoginResult.success(
         '${authModel.user.name ?? 'Welcome'} logged in successfully',
@@ -84,24 +74,6 @@ class LoginViewModel with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  Future<void> _registerPushToken(String? userId) async {
-    if (userId == null) return;
-    try {
-      final token = await FirebaseNotificationService().getAndRegisterToken();
-      if (token != null) {
-        await _notificationTokenRepo.registerFCMToken(userId, token);
-      }
-    } catch (e) {
-      debugPrint('FCM registration failed (non-fatal): $e');
-    }
-  }
-
-  void _initTokenRefreshListener(String userId) {
-    _messaging.onTokenRefresh.listen((newToken) async {
-      await _notificationTokenRepo.registerFCMToken(userId, newToken);
-    });
   }
 
   void clearFields() {

@@ -1,14 +1,12 @@
 import 'dart:async';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:right_case/data/api_exception.dart';
 import 'package:right_case/models/auth_models/auth_model.dart';
 import 'package:right_case/models/auth_models/register_request_model.dart';
-import 'package:right_case/repository/auth_repository/notification_token_repo.dart';
 import 'package:right_case/repository/auth_repository/register_repo.dart';
 import 'package:right_case/view_model/auth_view_models/current_user_view_model.dart';
-import 'package:right_case/view_model/services/firebase_notification_service.dart';
+import 'package:right_case/view_model/services/push_token_service.dart';
 
 /// Mirrors LoginResult — what the View needs to react to a registration
 /// attempt. No BuildContext, no navigation: AuthGate reacts to
@@ -26,8 +24,6 @@ class RegisterViewModel with ChangeNotifier {
 
   final CurrentUserViewModel _currentUserVM;
   final RegisterRepository _registerRepo = RegisterRepository();
-  final NotificationTokenRepo _notificationTokenRepo = NotificationTokenRepo();
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -38,6 +34,14 @@ class RegisterViewModel with ChangeNotifier {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  bool _agreedToTerms = false;
+  bool get agreedToTerms => _agreedToTerms;
+
+  void toggleAgreedToTermCheckbox() {
+    _agreedToTerms = !_agreedToTerms;
+    notifyListeners();
+  }
 
   Future<RegisterResult> registerUser() async {
     final name = nameController.text.trim();
@@ -58,16 +62,9 @@ class RegisterViewModel with ChangeNotifier {
 
       _dbUser = authModel.user;
 
-      // Backend authenticates on registration (same AuthResponse shape as
-      // login) -- previously this was thrown away and only `.user` was
-      // read, so the app's live session state never learned a user had
-      // just registered (AuthGate had nothing to react to).
       _currentUserVM.setAuthenticatedUser(authModel);
 
-      // Same as LoginViewModel: best-effort, fire-and-forget, never allowed
-      // to fail a registration that already succeeded.
-      unawaited(_registerPushToken(authModel.user.id));
-      _initTokenRefreshListener(authModel.user.id);
+      unawaited(PushTokenService.instance.registerForUser(authModel.user.id));
 
       return RegisterResult.success(
         '${_dbUser?.name ?? 'Account'} created successfully',
@@ -101,24 +98,6 @@ class RegisterViewModel with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  Future<void> _registerPushToken(String? userId) async {
-    if (userId == null) return;
-    try {
-      final token = await FirebaseNotificationService().getAndRegisterToken();
-      if (token != null) {
-        await _notificationTokenRepo.registerFCMToken(userId, token);
-      }
-    } catch (e) {
-      debugPrint('FCM registration failed (non-fatal): $e');
-    }
-  }
-
-  void _initTokenRefreshListener(String userId) {
-    _messaging.onTokenRefresh.listen((newToken) async {
-      await _notificationTokenRepo.registerFCMToken(userId, newToken);
-    });
   }
 
   void clearFields() {
