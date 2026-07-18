@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:right_case/models/auth_models/auth_model.dart';
 import 'package:right_case/repository/auth_repository/login_user_info_repo.dart';
+import 'package:right_case/view_model/services/push_token_service.dart';
 import 'package:right_case/view_model/services/token_storage_service.dart';
 
 import '../../data/api_exception.dart';
@@ -143,9 +145,18 @@ class CurrentUserViewModel with ChangeNotifier {
   // ────────────────────────────────────────────────────────────
   Future<void> clearSession() async {
     await _tokenStorage.clearTokens();
+
     _user = null;
     _status = SessionStatus.unauthenticated;
     _lastErrorMessage = null;
     notifyListeners();
+
+    unawaited(PushTokenService.instance.unbind());
+    unawaited(
+      FirebaseMessaging.instance.deleteToken().catchError((e) {
+        debugPrint(
+            'Failed to delete FCM token during clearSession (non-fatal): $e');
+      }),
+    );
   }
 }
