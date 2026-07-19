@@ -494,14 +494,14 @@ class _EmptyState extends StatelessWidget {
               width: 72.w,
               height: 72.w,
               decoration: BoxDecoration(
-                color: _RC.navy.withValues(alpha: 0.08),
+                color: _RC.navy.withValues(alpha: 0.07),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isSearching
                     ? Icons.search_off_rounded
                     : FontAwesomeIcons.folderOpen,
-                color: _RC.navy.withValues(alpha: 0.9),
+                color: _RC.navy.withValues(alpha: 0.4),
                 size: 32.sp,
               ),
             ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),

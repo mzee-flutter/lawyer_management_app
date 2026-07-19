@@ -166,6 +166,88 @@ class HearingCreateScreenView extends StatelessWidget {
               ),
             ),
 
+            SizedBox(height: 10.h),
+
+            // ── Optional specific-time affordance ────────────
+            // Most hearings are cause-list date entries with no fixed
+            // clock time — the lawyer shows up when court opens and waits
+            // their turn. This stays optional and off by default, and only
+            // surfaces a time when the lawyer explicitly knows one (e.g. a
+            // video hearing, tribunal sitting, or a judge-stated time).
+            if (!vm.hasSpecificTime)
+              GestureDetector(
+                onTap: vm.hearingDateTime == null
+                    ? null
+                    : () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                          builder: (_, child) => Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme:
+                                  const ColorScheme.light(primary: _RC.navy),
+                            ),
+                            child: child!,
+                          ),
+                        );
+                        if (picked != null) vm.setHearingTime(picked);
+                      },
+                child: Row(
+                  children: [
+                    Icon(Icons.access_time,
+                        size: 15.sp, color: _RC.textSecondary),
+                    SizedBox(width: 6.w),
+                    Text(
+                      'Add a specific time (optional)',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: vm.hearingDateTime == null
+                            ? _RC.textTertiary
+                            : _RC.textSecondary,
+                        fontWeight: FontWeight.w500,
+                        decoration: TextDecoration.underline,
+                        decorationColor: _RC.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                decoration: BoxDecoration(
+                  color: _RC.gold.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(color: _RC.gold.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.access_time, size: 16.sp, color: _RC.gold),
+                    SizedBox(width: 8.w),
+                    Text(
+                      _formatTime(vm.hearingDateTime!),
+                      style: TextStyle(
+                        fontSize: 12.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: _RC.textPrimary,
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => vm.setHearingTime(null),
+                      child: Text(
+                        'Remove',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: _RC.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             SizedBox(height: 16.h),
 
             // ── Title field ──────────────────────────────────
@@ -288,6 +370,14 @@ class HearingCreateScreenView extends StatelessWidget {
     ];
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return '${days[d.weekday - 1]}, ${d.day} ${months[d.month - 1]} ${d.year}';
+  }
+
+  String _formatTime(DateTime d) {
+    final h = d.hour;
+    final m = d.minute.toString().padLeft(2, '0');
+    final period = h >= 12 ? 'PM' : 'AM';
+    final displayH = h % 12 == 0 ? 12 : h % 12;
+    return '$displayH:$m $period';
   }
 }
 
