@@ -11,6 +11,7 @@ class TodayHearingModel {
   final String caseId;
   final String title;
   final DateTime hearingDateTime;
+  final bool hasSpecificTime;
   final String? notes;
   final String status;
   final DateTime createdAt;
@@ -30,6 +31,7 @@ class TodayHearingModel {
     required this.caseId,
     required this.title,
     required this.hearingDateTime,
+    required this.hasSpecificTime,
     this.notes,
     required this.status,
     required this.createdAt,
@@ -48,12 +50,17 @@ class TodayHearingModel {
       id: json['id'] as String,
       caseId: json['case_id'] as String,
       title: json['title'] as String,
-      hearingDateTime: DateTime.parse(json['hearing_datetime'] as String),
+      // .toLocal() was missing — this was the direct cause of the "4:00 AM"
+      // deadline card (a 9 AM PKT anchor stored/serialized as 4 AM UTC,
+      // displayed without converting back to local time).
+      hearingDateTime:
+          DateTime.parse(json['hearing_datetime'] as String).toLocal(),
+      hasSpecificTime: json['has_specific_time'] as bool? ?? false,
       notes: json['notes'] as String?,
       status: json['status'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
       updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
+          ? DateTime.parse(json['updated_at'] as String).toLocal()
           : null,
       courtName: json['court_name'] as String?,
       judgeName: json['judge_name'] as String?,
@@ -69,8 +76,12 @@ class TodayHearingModel {
   // Computed helpers used directly by the ViewModel and widgets
   // ----------------------------------------------------------------
 
-  /// Formatted time string for the docket card — e.g. "9:30 AM"
-  String get formattedTime {
+  /// Formatted time string for the docket/deadline card — e.g. "9:30 AM".
+  /// Returns null when no specific time was given — most hearings are
+  /// date-only cause-list entries, so the UI should omit a clock reading
+  /// rather than show a fabricated default-anchor time.
+  String? get formattedTime {
+    if (!hasSpecificTime) return null;
     final hour = hearingDateTime.hour;
     final minute = hearingDateTime.minute.toString().padLeft(2, '0');
     final period = hour >= 12 ? 'PM' : 'AM';
