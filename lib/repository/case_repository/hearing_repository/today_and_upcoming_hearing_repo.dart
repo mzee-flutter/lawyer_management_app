@@ -8,7 +8,10 @@ import '../../../models/case_models/today_hearing_model.dart';
 class AgendaRepository {
   final BaseApiServices _services = NetworkApiServices();
 
-  static const int _utcOffsetHours = 5;
+  /// Computed fresh from the actual device timezone, not hardcoded — the
+  /// backend uses this only to know what "today" means for this user when
+  /// bucketing hearings, so it must reflect the real device offset.
+  int get _utcOffsetHours => DateTime.now().timeZoneOffset.inHours;
 
   Future<List<TodayHearingModel>> getTodayHearings() async {
     try {
