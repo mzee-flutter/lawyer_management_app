@@ -5,7 +5,6 @@ class RoutesName {
   static const String homeScreen = 'home_screen';
   static const String clientsScreen = 'clients_screen';
   static const String archivedClientsScreen = "archived_clients_screen";
-  static const String forgotPasswordScreen = 'forgot_password_screen';
   static const String addClientScreen = "add_client_screen";
   static const String casesListScreen = 'cases_list_screen';
   static const String caseCreateScreen = "case_create_screen";
@@ -16,4 +15,6 @@ class RoutesName {
 
   static const String courtPortalScreenView = "court_portal_screen_view";
   static const String legalTaskScreenView = "legal_task_screen_view";
+  static const String forgotPasswordFlowScreen = "forgot_password_flow_screen";
+  static const String changePasswordScreen = "change_password_screen";
 }
