@@ -43,8 +43,6 @@ class CalendarHearingItem {
       title: json['title'] as String,
       hearingDateTime:
           DateTime.parse(json['hearing_datetime'] as String).toLocal(),
-      // Defaults to false if the backend hasn't been migrated yet, so this
-      // stays backward-compatible until the column is added server-side.
       hasSpecificTime: json['has_specific_time'] as bool? ?? false,
       status: json['status'] as String,
       notes: json['notes'] as String?,
@@ -91,6 +89,14 @@ class CalendarDayModel {
   final DateTime date;
   final List<CalendarHearingItem> hearings;
   final bool hasConflict;
+  // True when the day carries a "soft" risk — an untimed overlap, or a
+  // heavy same-day workload — but no hard time-overlap. Never true at the
+  // same time as hasConflict; the backend classifier treats hard as
+  // strictly higher priority for a given day.
+  final bool hasSoftConflict;
+  // Short human-readable reasons the day was flagged soft, e.g.
+  // ["2 hearings without a specific time"]. Empty when not soft-flagged.
+  final List<String> conflictReasons;
   final bool hasAdjourned;
   final int hearingCount;
 
@@ -98,6 +104,8 @@ class CalendarDayModel {
     required this.date,
     required this.hearings,
     required this.hasConflict,
+    required this.hasSoftConflict,
+    required this.conflictReasons,
     required this.hasAdjourned,
     required this.hearingCount,
   });
@@ -109,6 +117,10 @@ class CalendarDayModel {
           .map((h) => CalendarHearingItem.fromJson(h as Map<String, dynamic>))
           .toList(),
       hasConflict: json['has_conflict'] as bool,
+      hasSoftConflict: json['has_soft_conflict'] as bool? ?? false,
+      conflictReasons: (json['conflict_reasons'] as List<dynamic>? ?? [])
+          .map((r) => r as String)
+          .toList(),
       hasAdjourned: json['has_adjourned'] as bool,
       hearingCount: json['hearing_count'] as int,
     );
@@ -116,6 +128,9 @@ class CalendarDayModel {
 
   // ── Computed display type ───────────────────────────────────
   // Priority: conflict > normal hearing > adjourned
+  // Deliberately unchanged — soft conflicts are surfaced via the
+  // dedicated fields above, not via a new dot colour, so the calendar
+  // grid's visual language stays exactly as it was.
   CalendarDayType get dayType {
     if (hasConflict) return CalendarDayType.conflict;
     if (hearings.any((h) => h.isScheduled)) return CalendarDayType.hearing;
