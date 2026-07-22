@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -522,6 +523,260 @@ class _ProfilePreviewSheet extends StatelessWidget {
 // Delete-account sheet — password + type "DELETE" to confirm
 // (irreversible action)
 // ════════════════════════════════════════════════════════════════
+// class _DeleteAccountSheet extends StatefulWidget {
+//   const _DeleteAccountSheet();
+//
+//   @override
+//   State<_DeleteAccountSheet> createState() => _DeleteAccountSheetState();
+// }
+//
+// class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
+//   final _confirmController = TextEditingController();
+//   final _passwordController = TextEditingController();
+//
+//   late final Listenable _inputFieldListener;
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//
+//     _inputFieldListener =
+//         Listenable.merge([_confirmController, _passwordController]);
+//   }
+//
+//   bool get _canConfirm =>
+//       _confirmController.text.trim().toUpperCase() == 'DELETE' &&
+//       _passwordController.text.isNotEmpty;
+//
+//   @override
+//   void dispose() {
+//     _confirmController.dispose();
+//     _passwordController.dispose();
+//     super.dispose();
+//   }
+//
+//   Future<void> _handleConfirm() async {
+//     final viewModel = context.read<DeleteAccountViewModel>();
+//     if (!_canConfirm || viewModel.isLoading) return;
+//
+//     final result = await viewModel.deleteAccount(
+//       password: _passwordController.text,
+//       confirmation: _confirmController.text.trim().toUpperCase(),
+//     );
+//
+//     if (!mounted) return;
+//
+//     if (result.success) {
+//       Navigator.pop(context);
+//       SnakeBars.flutterToast(result.message, context);
+//       // Account no longer exists -- goNamed replaces the whole stack so
+//       // back can't return into a deleted account. Previously this used
+//       // Navigator.pushNamedAndRemoveUntil, the same wrong-Navigator-API
+//       // issue found in the forgot-password flow -- this app navigates via
+//       // go_router everywhere else.
+//       context.goNamed(RoutesName.signInScreen);
+//     } else {
+//       SnakeBars.flutterToast(result.message, context, type: SnackType.error);
+//     }
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final viewModel = context.watch<DeleteAccountViewModel>();
+//
+//     return Padding(
+//       padding:
+//           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+//       child: Container(
+//         decoration: BoxDecoration(
+//             color: RC.surface,
+//             borderRadius: BorderRadius.vertical(top: Radius.circular(20.r))),
+//         padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 28.h),
+//         child: SingleChildScrollView(
+//           child: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             crossAxisAlignment: CrossAxisAlignment.stretch,
+//             children: [
+//               Center(
+//                 child: Container(
+//                   width: 36.w,
+//                   height: 4,
+//                   decoration: BoxDecoration(
+//                     color: RC.divider,
+//                     borderRadius: BorderRadius.circular(2),
+//                   ),
+//                 ),
+//               ),
+//               SizedBox(height: 16.h),
+//               Center(
+//                 child: Container(
+//                   width: 56.w,
+//                   height: 56.w,
+//                   decoration: BoxDecoration(
+//                       color: RC.dangerSurface, shape: BoxShape.circle),
+//                   child: Icon(Icons.delete_forever_outlined,
+//                       size: 26.sp, color: RC.danger),
+//                 ),
+//               ),
+//               SizedBox(height: 12.h),
+//               Text('Delete your account?',
+//                   textAlign: TextAlign.center,
+//                   style: RC
+//                       .body()
+//                       .copyWith(fontSize: 17.sp, fontWeight: FontWeight.w700)),
+//               SizedBox(height: 6.h),
+//               Text(
+//                 'This permanently deletes all your cases, clients, hearings, and files. This cannot be undone.',
+//                 textAlign: TextAlign.center,
+//                 style: RC
+//                     .caption(color: RC.textSecondary)
+//                     .copyWith(fontSize: 12.5.sp, height: 1.5),
+//               ),
+//               SizedBox(height: 18.h),
+//
+//               // Password field -- new. The backend requires this as an
+//               // independent factor, since typing a word alone proves
+//               // nothing if a session is left open on a shared device.
+//               Text('Enter your password to confirm it\'s really you',
+//                   style: RC
+//                       .caption(color: RC.textSecondary)
+//                       .copyWith(fontSize: 12.sp)),
+//               SizedBox(height: 8.h),
+//               TextField(
+//                 controller: _passwordController,
+//                 obscureText: viewModel.obscurePassword,
+//                 style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+//                 decoration: InputDecoration(
+//                   hintText: 'Current password',
+//                   hintStyle: TextStyle(
+//                       color: RC.textTertiary, fontWeight: FontWeight.w500),
+//                   filled: true,
+//                   fillColor: RC.background,
+//                   contentPadding:
+//                       EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
+//                   suffixIcon: IconButton(
+//                       icon: Icon(
+//                         viewModel.obscurePassword
+//                             ? Icons.visibility_off_outlined
+//                             : Icons.visibility_outlined,
+//                         size: 20.sp,
+//                         color: RC.textSecondary,
+//                       ),
+//                       onPressed: () => viewModel.toggleObscurePassword()),
+//                   border: OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(10.r),
+//                       borderSide: BorderSide(color: RC.divider, width: 0.5)),
+//                   enabledBorder: OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(10.r),
+//                       borderSide: BorderSide(color: RC.divider, width: 0.5)),
+//                   focusedBorder: OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(10.r),
+//                       borderSide: BorderSide(color: RC.danger, width: 1.5)),
+//                 ),
+//               ),
+//               SizedBox(height: 16.h),
+//
+//               Text.rich(
+//                 TextSpan(
+//                   text: 'Type ',
+//                   style: RC
+//                       .caption(color: RC.textSecondary)
+//                       .copyWith(fontSize: 12.sp),
+//                   children: [
+//                     TextSpan(
+//                       text: 'DELETE',
+//                       style: TextStyle(
+//                         fontWeight: FontWeight.w800,
+//                         color: RC.danger,
+//                       ),
+//                     ),
+//                     const TextSpan(text: ' to confirm'),
+//                   ],
+//                 ),
+//               ),
+//               SizedBox(height: 8.h),
+//               TextField(
+//                 controller: _confirmController,
+//                 textCapitalization: TextCapitalization.characters,
+//                 style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+//                 decoration: InputDecoration(
+//                   hintText: 'DELETE',
+//                   hintStyle: TextStyle(
+//                       color: RC.textTertiary, fontWeight: FontWeight.w500),
+//                   filled: true,
+//                   fillColor: RC.background,
+//                   contentPadding:
+//                       EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
+//                   border: OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(10.r),
+//                       borderSide: BorderSide(color: RC.divider, width: 0.5)),
+//                   enabledBorder: OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(10.r),
+//                       borderSide: BorderSide(color: RC.divider, width: 0.5)),
+//                   focusedBorder: OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(10.r),
+//                       borderSide: BorderSide(color: RC.danger, width: 1.5)),
+//                 ),
+//               ),
+//               SizedBox(height: 18.h),
+//               AnimatedBuilder(
+//                 animation: _inputFieldListener,
+//                 builder: (context, child) {
+//                   return SizedBox(
+//                     width: double.infinity,
+//                     child: ElevatedButton(
+//                       onPressed: _canConfirm && !viewModel.isLoading
+//                           ? _handleConfirm
+//                           : null,
+//                       style: ElevatedButton.styleFrom(
+//                         backgroundColor: RC.danger,
+//                         disabledBackgroundColor:
+//                             RC.danger.withValues(alpha: 0.35),
+//                         padding: EdgeInsets.symmetric(vertical: 14.h),
+//                         shape: RoundedRectangleBorder(
+//                             borderRadius: BorderRadius.circular(12.r)),
+//                         elevation: 0,
+//                       ),
+//                       child: viewModel.isLoading
+//                           ? SizedBox(
+//                               width: 18.w,
+//                               height: 18.w,
+//                               child: const CircularProgressIndicator(
+//                                   color: Colors.white, strokeWidth: 2.2),
+//                             )
+//                           : Text(
+//                               'Permanently Delete Account',
+//                               style: TextStyle(
+//                                 color: Colors.white,
+//                                 fontWeight: FontWeight.w700,
+//                                 fontSize: 13.5.sp,
+//                               ),
+//                             ),
+//                     ),
+//                   );
+//                 },
+//               ),
+//               SizedBox(height: 8.h),
+//               SizedBox(
+//                 width: double.infinity,
+//                 child: TextButton(
+//                   onPressed:
+//                       viewModel.isLoading ? null : () => Navigator.pop(context),
+//                   child: Text('Cancel',
+//                       style: TextStyle(
+//                           color: RC.textSecondary,
+//                           fontWeight: FontWeight.w500,
+//                           fontSize: 13.5.sp)),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
 class _DeleteAccountSheet extends StatefulWidget {
   const _DeleteAccountSheet();
 
@@ -532,14 +787,33 @@ class _DeleteAccountSheet extends StatefulWidget {
 class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
   final _confirmController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
+
+  late final Listenable _inputFieldListener;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _inputFieldListener =
+        Listenable.merge([_confirmController, _passwordController]);
+    // Dismiss a stale error the moment the user starts correcting a field
+    // (most commonly: retyping a mistaken password) rather than leaving it
+    // visible until they resubmit.
+    _inputFieldListener.addListener(_handleFieldsChanged);
+  }
 
   bool get _canConfirm =>
       _confirmController.text.trim().toUpperCase() == 'DELETE' &&
       _passwordController.text.isNotEmpty;
 
+  void _handleFieldsChanged() {
+    final vm = context.read<DeleteAccountViewModel>();
+    if (vm.hasError) vm.clearError();
+  }
+
   @override
   void dispose() {
+    _inputFieldListener.removeListener(_handleFieldsChanged);
     _confirmController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -551,27 +825,25 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
 
     final result = await viewModel.deleteAccount(
       password: _passwordController.text,
-      // Always send the normalized uppercase value -- the backend's
-      // confirmation check is case-sensitive, but _canConfirm above (like
-      // the original sheet) accepts any casing the user types.
       confirmation: _confirmController.text.trim().toUpperCase(),
     );
 
     if (!mounted) return;
 
     if (result.success) {
-      Navigator.pop(
-          context); // dismiss the sheet itself (not a go_router route)
+      Navigator.pop(context);
       SnakeBars.flutterToast(result.message, context);
       // Account no longer exists -- goNamed replaces the whole stack so
-      // back can't return into a deleted account. Previously this used
-      // Navigator.pushNamedAndRemoveUntil, the same wrong-Navigator-API
-      // issue found in the forgot-password flow -- this app navigates via
-      // go_router everywhere else.
+      // back can't return into a deleted account.
       context.goNamed(RoutesName.signInScreen);
-    } else {
-      SnakeBars.flutterToast(result.message, context, type: SnackType.error);
     }
+    // Failure: nothing to do here. viewModel.errorMessage now holds the
+    // reason and the inline banner below reacts to it via context.watch.
+    // Previously this called SnakeBars.flutterToast(result.message,
+    // context) here -- that toast was real and correctly worded, it just
+    // rendered on the Home screen's Scaffold underneath this modal route
+    // (the nearest Scaffold ancestor from this sheet's own context), so it
+    // was visually buried behind the sheet itself.
   }
 
   @override
@@ -592,12 +864,15 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
-                  child: Container(
-                      width: 36.w,
-                      height: 4,
-                      decoration: BoxDecoration(
-                          color: RC.divider,
-                          borderRadius: BorderRadius.circular(2)))),
+                child: Container(
+                  width: 36.w,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: RC.divider,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
               SizedBox(height: 16.h),
               Center(
                 child: Container(
@@ -623,9 +898,24 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
                     .caption(color: RC.textSecondary)
                     .copyWith(fontSize: 12.5.sp, height: 1.5),
               ),
+
+              // Inline error banner -- this is the actual fix for the
+              // toast-hidden-behind-the-sheet problem. No SnackBar/toast
+              // involved, so there's no cross-route context/Overlay lookup
+              // that can resolve to the wrong layer. Keyed on errorVersion
+              // so the entrance animation replays even for two identical
+              // consecutive error messages.
+              if (viewModel.hasError) ...[
+                SizedBox(height: 14.h),
+                _ErrorBanner(
+                  key: ValueKey(viewModel.errorVersion),
+                  message: viewModel.errorMessage!,
+                ),
+              ],
+
               SizedBox(height: 18.h),
 
-              // Password field -- new. The backend requires this as an
+              // Password field -- the backend requires this as an
               // independent factor, since typing a word alone proves
               // nothing if a session is left open on a shared device.
               Text('Enter your password to confirm it\'s really you',
@@ -635,8 +925,7 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
               SizedBox(height: 8.h),
               TextField(
                 controller: _passwordController,
-                obscureText: _obscurePassword,
-                onChanged: (_) => setState(() {}),
+                obscureText: viewModel.obscurePassword,
                 style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
                   hintText: 'Current password',
@@ -647,22 +936,27 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
                   contentPadding:
                       EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
                   suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      size: 20.sp,
-                      color: RC.textSecondary,
-                    ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                  ),
+                      icon: Icon(
+                        viewModel.obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        size: 20.sp,
+                        color: RC.textSecondary,
+                      ),
+                      onPressed: () => viewModel.toggleObscurePassword()),
+                  // Border reflects the VM's error state directly -- ties
+                  // the failure visually to the field that's the most
+                  // likely cause (wrong password), on top of the banner.
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.r),
-                      borderSide: BorderSide(color: RC.divider, width: 0.5)),
+                      borderSide: BorderSide(
+                          color: viewModel.hasError ? RC.danger : RC.divider,
+                          width: viewModel.hasError ? 1.2 : 0.5)),
                   enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.r),
-                      borderSide: BorderSide(color: RC.divider, width: 0.5)),
+                      borderSide: BorderSide(
+                          color: viewModel.hasError ? RC.danger : RC.divider,
+                          width: viewModel.hasError ? 1.2 : 0.5)),
                   focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.r),
                       borderSide: BorderSide(color: RC.danger, width: 1.5)),
@@ -691,7 +985,6 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
               SizedBox(height: 8.h),
               TextField(
                 controller: _confirmController,
-                onChanged: (_) => setState(() {}),
                 textCapitalization: TextCapitalization.characters,
                 style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
@@ -714,32 +1007,42 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
                 ),
               ),
               SizedBox(height: 18.h),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _canConfirm && !viewModel.isLoading
-                      ? _handleConfirm
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: RC.danger,
-                    disabledBackgroundColor: RC.danger.withValues(alpha: 0.35),
-                    padding: EdgeInsets.symmetric(vertical: 14.h),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r)),
-                    elevation: 0,
-                  ),
-                  child: viewModel.isLoading
-                      ? SizedBox(
-                          width: 18.w,
-                          height: 18.w,
-                          child: const CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2.2))
-                      : Text('Permanently Delete Account',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13.5.sp)),
-                ),
+              AnimatedBuilder(
+                animation: _inputFieldListener,
+                builder: (context, child) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _canConfirm && !viewModel.isLoading
+                          ? _handleConfirm
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: RC.danger,
+                        disabledBackgroundColor:
+                            RC.danger.withValues(alpha: 0.35),
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r)),
+                        elevation: 0,
+                      ),
+                      child: viewModel.isLoading
+                          ? SizedBox(
+                              width: 18.w,
+                              height: 18.w,
+                              child: const CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2.2),
+                            )
+                          : Text(
+                              'Permanently Delete Account',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13.5.sp,
+                              ),
+                            ),
+                    ),
+                  );
+                },
               ),
               SizedBox(height: 8.h),
               SizedBox(
@@ -759,6 +1062,47 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
         ),
       ),
     );
+  }
+}
+
+/// Compact inline failure banner. Deliberately not a toast/SnackBar --
+/// see the note in _handleConfirm for why those render behind this sheet.
+class _ErrorBanner extends StatelessWidget {
+  final String message;
+  const _ErrorBanner({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: RC.dangerSurface,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: RC.danger.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.error_outline_rounded, size: 18.sp, color: RC.danger),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                fontSize: 12.5.sp,
+                fontWeight: FontWeight.w600,
+                color: RC.danger,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
+      ),
+    )
+        .animate()
+        .fadeIn(duration: 200.ms)
+        .shake(hz: 4, curve: Curves.easeInOutCubic, duration: 400.ms);
   }
 }
 
