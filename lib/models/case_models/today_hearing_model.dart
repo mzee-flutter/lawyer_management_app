@@ -12,6 +12,9 @@ class TodayHearingModel {
   final String title;
   final DateTime hearingDateTime;
   final bool hasSpecificTime;
+  // "none" | "soft" | "hard" — computed server-side per calendar day, not
+  // per hearing in isolation. See HearingService._classify_day.
+  final String conflictLevel;
   final String? notes;
   final String status;
   final DateTime createdAt;
@@ -32,6 +35,7 @@ class TodayHearingModel {
     required this.title,
     required this.hearingDateTime,
     required this.hasSpecificTime,
+    required this.conflictLevel,
     this.notes,
     required this.status,
     required this.createdAt,
@@ -50,12 +54,10 @@ class TodayHearingModel {
       id: json['id'] as String,
       caseId: json['case_id'] as String,
       title: json['title'] as String,
-      // .toLocal() was missing — this was the direct cause of the "4:00 AM"
-      // deadline card (a 9 AM PKT anchor stored/serialized as 4 AM UTC,
-      // displayed without converting back to local time).
       hearingDateTime:
           DateTime.parse(json['hearing_datetime'] as String).toLocal(),
       hasSpecificTime: json['has_specific_time'] as bool? ?? false,
+      conflictLevel: json['conflict_level'] as String? ?? 'none',
       notes: json['notes'] as String?,
       status: json['status'] as String,
       createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
@@ -88,6 +90,14 @@ class TodayHearingModel {
     final displayHour = hour % 12 == 0 ? 12 : hour % 12;
     return '$displayHour:$minute $period';
   }
+
+  /// True if this hearing falls on a day flagged as a hard (physically
+  /// double-booked) conflict.
+  bool get hasHardConflict => conflictLevel == 'hard';
+
+  /// True if this hearing falls on a day flagged as a soft (potential —
+  /// untimed overlap or heavy same-day load) conflict.
+  bool get hasSoftConflict => conflictLevel == 'soft';
 
   /// Display name for the agenda card — "Shah vs. State"
   String get caseTitle {
