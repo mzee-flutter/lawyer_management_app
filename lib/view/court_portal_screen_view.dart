@@ -5,8 +5,10 @@
 // Uses the same _RC design tokens as home_screen.dart and calendar_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:right_case/resources/system_design/rc_theme.dart';
 
 import '../models/case_models/court_portal_model.dart';
 import '../view_model/cases_view_model/case_list_view_model.dart';
@@ -311,10 +313,9 @@ class _BenchCard extends StatefulWidget {
 }
 
 class _BenchCardState extends State<_BenchCard> {
-  bool _expanded = true;
-
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<CourtPortalViewModel>();
     final bench = widget.bench;
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
@@ -327,7 +328,7 @@ class _BenchCardState extends State<_BenchCard> {
         children: [
           // Header row — tap to expand/collapse
           InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
+            onTap: () => vm.toggleExpand(),
             borderRadius: BorderRadius.circular(14.r),
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
@@ -336,8 +337,10 @@ class _BenchCardState extends State<_BenchCard> {
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(14.r),
                   topRight: Radius.circular(14.r),
-                  bottomLeft: _expanded ? Radius.zero : Radius.circular(14.r),
-                  bottomRight: _expanded ? Radius.zero : Radius.circular(14.r),
+                  bottomLeft:
+                      vm.isExpanded ? Radius.zero : Radius.circular(14.r),
+                  bottomRight:
+                      vm.isExpanded ? Radius.zero : Radius.circular(14.r),
                 ),
               ),
               child: Row(
@@ -394,7 +397,7 @@ class _BenchCardState extends State<_BenchCard> {
                   ),
                   SizedBox(width: 8.w),
                   Icon(
-                    _expanded
+                    vm.isExpanded
                         ? Icons.keyboard_arrow_up_rounded
                         : Icons.keyboard_arrow_down_rounded,
                     color: _RC.textOnDarkMuted,
@@ -406,7 +409,7 @@ class _BenchCardState extends State<_BenchCard> {
           ),
 
           // Case rows
-          if (_expanded)
+          if (vm.isExpanded)
             ...bench.cases.asMap().entries.map(
                   (entry) => _RosterCaseRow(
                     item: entry.value,
@@ -982,7 +985,6 @@ class _AddCopySheetState extends State<_AddCopySheet> {
   final _refController = TextEditingController();
   final _descController = TextEditingController();
   final _caseController = TextEditingController();
-  String? _selectedCaseId;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -1037,14 +1039,14 @@ class _AddCopySheetState extends State<_AddCopySheet> {
               SizedBox(height: 16.h),
               DropdownButtonFormField<String>(
                 dropdownColor: _RC.surface,
-                initialValue: _selectedCaseId,
+                initialValue: vm.selectedCaseId,
                 items: casesVM.filterCases
                     .map((c) => DropdownMenuItem(
                           value: c.id,
                           child: Text("${c.caseNumber} — ${c.firstPartyName}"),
                         ))
                     .toList(),
-                onChanged: (value) => setState(() => _selectedCaseId = value),
+                onChanged: (value) => vm.getSelectedCaseId(value),
                 validator: (v) => v == null ? "Please select a case" : null,
                 decoration: _inputDecoration(
                   "Select a case",
@@ -1120,7 +1122,7 @@ class _AddCopySheetState extends State<_AddCopySheet> {
     // using your existing cases list from CasesViewModel.
     // For now, this requires a valid caseId to be passed.
     // See INTEGRATION.dart Step 5 for the case selector pattern.
-    if (_selectedCaseId == null) {
+    if (vm.selectedCaseId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a case first')),
       );
@@ -1128,7 +1130,7 @@ class _AddCopySheetState extends State<_AddCopySheet> {
     }
 
     final success = await vm.createCopy(
-      caseId: _selectedCaseId!,
+      caseId: vm.selectedCaseId!,
       referenceNumber: _refController.text.trim(),
       description: _descController.text.trim().isEmpty
           ? null
@@ -1194,27 +1196,32 @@ class _RosterEmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 64.w,
-              height: 64.w,
+              width: 72.w,
+              height: 72.w,
               decoration: BoxDecoration(
-                  color: _RC.navy.withValues(alpha: 0.07),
-                  shape: BoxShape.circle),
-              child: Icon(Icons.balance_outlined,
-                  size: 30.sp, color: _RC.navy.withValues(alpha: 0.4)),
-            ),
+                color: RC.navy.withValues(alpha: 0.07),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.balance_outlined,
+                size: 32.sp,
+                color: RC.navy.withValues(alpha: 0.4),
+              ),
+            ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
             SizedBox(height: 16.h),
-            Text('No active courts',
-                style: TextStyle(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w600,
-                    color: _RC.textPrimary)),
+            Text('No active courts', style: RC.heading())
+                .animate()
+                .fadeIn(delay: 100.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
             SizedBox(height: 6.h),
             Text(
               'Cases with a court name assigned will appear here grouped by court and judge.',
-              style: TextStyle(
-                  fontSize: 12.sp, color: _RC.textSecondary, height: 1.5),
+              style: RC.body(color: RC.textSecondary),
               textAlign: TextAlign.center,
-            ),
+            )
+                .animate()
+                .fadeIn(delay: 100.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
           ],
         ),
       ),
@@ -1236,33 +1243,38 @@ class _CopiesEmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 64.w,
-              height: 64.w,
+              width: 72.w,
+              height: 72.w,
               decoration: BoxDecoration(
                   color: _RC.navy.withValues(alpha: 0.07),
                   shape: BoxShape.circle),
-              child: Icon(Icons.file_copy_outlined,
-                  size: 28.sp, color: _RC.navy.withValues(alpha: 0.4)),
-            ),
+              child: Icon(
+                Icons.file_copy_outlined,
+                size: 32.sp,
+                color: _RC.navy.withValues(alpha: 0.4),
+              ),
+            ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
             SizedBox(height: 16.h),
             Text(
               isFiltered
                   ? 'No ${filter.label.toLowerCase()} copies'
                   : 'No applications yet',
-              style: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w600,
-                  color: _RC.textPrimary),
-            ),
+              style: RC.heading(),
+            )
+                .animate()
+                .fadeIn(delay: 100.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
             SizedBox(height: 6.h),
             Text(
               isFiltered
                   ? 'No copies are currently in "${filter.label}" status.'
                   : 'Tap the button below to apply for a certified copy.',
-              style: TextStyle(
-                  fontSize: 12.sp, color: _RC.textSecondary, height: 1.5),
+              style: RC.body(color: RC.textSecondary),
               textAlign: TextAlign.center,
-            ),
+            )
+                .animate()
+                .fadeIn(delay: 100.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
           ],
         ),
       ),
@@ -1298,25 +1310,106 @@ class _Skeleton extends StatelessWidget {
 class _ErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
-  const _ErrorState({required this.message, required this.onRetry});
+  final String? title;
+
+  const _ErrorState({
+    required this.message,
+    required this.onRetry,
+    this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: EdgeInsets.all(24.w),
+      child: Container(
+        // No borders, no shadows. It sits natively on whatever background it's placed over.
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 40.h, horizontal: 24.w),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(message,
-                style: TextStyle(fontSize: 13.sp, color: _RC.dangerText),
-                textAlign: TextAlign.center),
-            SizedBox(height: 12.h),
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: _RC.navy),
+            // 1. Polite, Muted Icon
+            Container(
+              width: 72.w,
+              height: 72.w,
+              decoration: BoxDecoration(
+                color: _RC.danger.withValues(alpha: 0.08), // Soft tint
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons
+                    .cloud_off_rounded, // A softer conceptual icon than an alert triangle
+                color: _RC.danger.withValues(alpha: 0.9),
+                size: 32.sp,
+              ),
+            ).animate().scale(
+                  duration: 400.ms,
+                  curve: Curves.easeOutBack,
+                ),
+
+            SizedBox(height: 16.h),
+
+            // 2. Integrated Typography (Using Standard UI Colors)
+            Text(
+              title ?? 'Couldn\'t load data',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                color: _RC
+                    .textPrimary, // Blends perfectly with your standard app headers
+                letterSpacing: -0.2,
+              ),
+            )
+                .animate()
+                .fadeIn(delay: 100.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
+
+            SizedBox(height: 6.h),
+
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: _RC
+                    .textSecondary, // Blends with your standard app subtitles
+                height: 1.4,
+              ),
+            )
+                .animate()
+                .fadeIn(delay: 150.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
+
+            SizedBox(height: 16.h),
+
+            // 3. Tonal, Inline Action Button
+            TextButton.icon(
               onPressed: onRetry,
-              child: const Text('Try again'),
-            ),
+              style: TextButton.styleFrom(
+                foregroundColor: _RC.navy, // Your standard primary action color
+                backgroundColor: _RC.navy
+                    .withValues(alpha: 0.06), // Very soft "Tonal" background
+                elevation: 0,
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+              icon: Icon(Icons.refresh_rounded, size: 16.sp),
+              label: Text(
+                'Try again',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            )
+                .animate()
+                .fadeIn(delay: 200.ms, duration: 300.ms)
+                .slideY(begin: 0.1, end: 0),
           ],
         ),
       ),
