@@ -188,7 +188,7 @@ class _SuccessPanel extends StatelessWidget {
                   'Link sent successfully. It may take a few minutes to arrive — check your spam folder too.',
                   style: RC
                       .body(color: RC.successText)
-                      .copyWith(fontSize: 12.5.sp, height: 1.4),
+                      .copyWith(fontSize: 12.5.sp, height: 1.4.h),
                 ),
               ),
             ],
