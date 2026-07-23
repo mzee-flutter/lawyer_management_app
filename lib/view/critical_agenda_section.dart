@@ -52,8 +52,6 @@ class CriticalAgendaSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: 4.h),
-
         // ═══════════════════════════════════════════════════════════════
         // 1. ALERT BANNER — Today's existential threat (if any)
         // ═══════════════════════════════════════════════════════════════
@@ -407,6 +405,214 @@ class _MetaChip extends StatelessWidget {
   }
 }
 
+///we have to redesign the hearing card in the calendar screen and agenda section
+
+// class _DocketTimeline extends StatelessWidget {
+//   final List<dynamic> hearings; // TodayHearingModel
+//   const _DocketTimeline({required this.hearings});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       decoration: BoxDecoration(
+//         color: RC.surface,
+//         borderRadius: BorderRadius.circular(14.r),
+//         boxShadow: [RC.cardShadow],
+//       ),
+//       child: Column(
+//         children: [
+//           for (int i = 0; i < hearings.length; i++)
+//             _DocketTimelineRow(
+//               hearing: hearings[i],
+//               isLast: i == hearings.length - 1,
+//             ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+//
+// class _DocketTimelineRow extends StatelessWidget {
+//   final dynamic hearing; // TodayHearingModel
+//   final bool isLast;
+//   const _DocketTimelineRow({required this.hearing, required this.isLast});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final Color accent = _accentColor(hearing.urgency);
+//     final String? time = hearing.formattedTime;
+//
+//     // Fallback chain for hearing title — adapt to your actual model field names
+//     final String hearingTitle = (hearing.title ?? 'Hearing').toString();
+//
+//     final String caseTitle = (hearing.caseTitle ?? 'Untitled Case').toString();
+//
+//     return Padding(
+//       padding: EdgeInsets.symmetric(horizontal: 14.w),
+//       child: IntrinsicHeight(
+//         child: Row(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             // ─── Time column ───
+//             SizedBox(
+//               width: 58.w,
+//               child: Padding(
+//                 padding: EdgeInsets.only(top: 16.h),
+//                 child: Text(
+//                   time ?? 'No time',
+//                   style: TextStyle(
+//                     fontSize: 10.5.sp,
+//                     fontWeight: FontWeight.w600,
+//                     color: time != null ? accent : RC.textTertiary,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//
+//             // ─── Dot + connecting rail ───
+//             Column(
+//               children: [
+//                 SizedBox(height: 16.h),
+//                 Container(
+//                   width: 8.w,
+//                   height: 8.w,
+//                   decoration:
+//                       BoxDecoration(color: accent, shape: BoxShape.circle),
+//                 ),
+//                 if (!isLast)
+//                   Expanded(
+//                     child: Container(width: 1.5, color: RC.divider),
+//                   ),
+//               ],
+//             ),
+//             SizedBox(width: 12.w),
+//
+//             // ─── Content ───
+//             Expanded(
+//               child: Padding(
+//                 padding: EdgeInsets.only(top: 12.h, bottom: 16.h),
+//                 child: Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     // 1. HEARING TITLE — Primary, most prominent
+//                     Text(
+//                       hearingTitle,
+//                       style: TextStyle(
+//                         fontSize: 13.sp,
+//                         fontWeight: FontWeight.w600,
+//                         color: RC.textPrimary,
+//                         height: 1.3,
+//                       ),
+//                       maxLines: 2,
+//                       overflow: TextOverflow.ellipsis,
+//                     ),
+//
+//                     SizedBox(height: 3.h),
+//
+//                     // 2. CASE TITLE — Secondary context
+//                     Text(
+//                       caseTitle,
+//                       style: TextStyle(
+//                         fontSize: 11.5.sp,
+//                         fontWeight: FontWeight.w500,
+//                         color: RC.textSecondary,
+//                         height: 1.3,
+//                       ),
+//                       maxLines: 1,
+//                       overflow: TextOverflow.ellipsis,
+//                     ),
+//
+//                     SizedBox(height: 6.h),
+//
+//                     // 3. META CHIPS — Location only (stage removed)
+//                     Wrap(
+//                       spacing: 6,
+//                       runSpacing: 4,
+//                       children: [
+//                         if (hearing.courtName != null)
+//                           _MetaChip(
+//                             icon: Icons.location_on_outlined,
+//                             label: hearing.courtName!,
+//                             color: RC.textSecondary,
+//                           ),
+//                         // Optional: If you absolutely need stage here, uncomment below.
+//                         // Keeping it commented enforces the "drop" decision.
+//                         //
+//                         // if (hearing.caseStageName != null)
+//                         //   _MetaChip(
+//                         //     icon: Icons.gavel_outlined,
+//                         //     label: hearing.caseStageName,
+//                         //     color: RC.textSecondary,
+//                         //   ),
+//                       ],
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+//
+//   Color _accentColor(dynamic urgency) {
+//     switch (urgency.toString()) {
+//       case 'DeadlineUrgency.overdue':
+//       case 'DeadlineUrgency.critical':
+//         return RC.danger;
+//       case 'DeadlineUrgency.warning':
+//         return RC.gold;
+//       default:
+//         return RC.navy;
+//     }
+//   }
+// }
+//
+// class _MetaChip extends StatelessWidget {
+//   final IconData icon;
+//   final String label;
+//   final Color color;
+//   final Color? background;
+//
+//   const _MetaChip({
+//     required this.icon,
+//     required this.label,
+//     required this.color,
+//     this.background,
+//   });
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final row = Row(
+//       mainAxisSize: MainAxisSize.min,
+//       children: [
+//         Icon(icon, size: 11.sp, color: color),
+//         SizedBox(width: 4.w),
+//         Text(
+//           label,
+//           style: TextStyle(
+//             fontSize: 10.5.sp,
+//             fontWeight: background != null ? FontWeight.w600 : FontWeight.w400,
+//             color: color,
+//           ),
+//         ),
+//       ],
+//     );
+//
+//     if (background == null) return row;
+//
+//     return Container(
+//       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+//       decoration: BoxDecoration(
+//         color: background,
+//         borderRadius: BorderRadius.circular(6.r),
+//       ),
+//       child: row,
+//     );
+//   }
+// }
+
 // ═════════════════════════════════════════════════════════════════════════════
 // 3. WEEK STRIP — Background highlight so it separates from scaffold
 // ═════════════════════════════════════════════════════════════════════════════
@@ -581,127 +787,177 @@ class _EdgeCard extends StatelessWidget {
                 : RC.navy.withValues(alpha: 0.5);
 
     final String badge = isToday
-        ? 'Today'
+        ? 'TODAY'
         : isTomorrow
-            ? 'Tmrw'
-            : '${days}d';
+            ? 'TOMORROW'
+            : 'IN $days DAYS';
 
     final bool hasHard = hearing.hasHardConflict as bool? ?? false;
     final bool hasSoft = hearing.hasSoftConflict as bool? ?? false;
     final String? time = hearing.formattedTime;
 
     return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : 8.h),
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      margin: EdgeInsets.only(
+        bottom: isLast ? 0 : 8.h,
+      ), // Tighter bottom margin
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: isCritical
             ? (isToday
-                ? RC.dangerSurface.withValues(alpha: 0.4)
+                ? RC.dangerSurface.withValues(alpha: 0.35)
                 : RC.warningSurface)
             : RC.surface,
-        borderRadius: BorderRadius.circular(isCritical ? 12.r : 10.r),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
           color: isCritical
               ? (isToday
-                  ? RC.dangerBorder.withValues(alpha: 0.6)
-                  : RC.warningBorder)
+                  ? RC.dangerBorder.withValues(alpha: 0.5)
+                  : RC.warning.withValues(alpha: 0.3))
               : RC.divider.withValues(alpha: 0.5),
           width: 0.5,
         ),
+        boxShadow: isCritical ? [] : [RC.cardShadow],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Left accent bar for critical items
-          if (isCritical) ...[
-            Container(
-              width: 3,
-              height: 36.h,
-              decoration: BoxDecoration(
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // LEFT ACCENT BAR - Thinner for compact mode
+            if (isCritical)
+              Container(
+                width: 3.w,
                 color: accent,
-                borderRadius: BorderRadius.circular(2.r),
               ),
-            ),
-            SizedBox(width: 12.w),
-          ],
 
-          // Countdown badge
-          Container(
-            width: 50.w,
-            padding: EdgeInsets.symmetric(vertical: 4.h),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: isCritical ? 0.15 : 0.08),
-              borderRadius: BorderRadius.circular(6.r),
-            ),
-            child: Text(
-              badge,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11.sp,
-                fontWeight: FontWeight.w700,
-                color: accent,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            ),
-          ),
-          SizedBox(width: 12.w),
-
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  hearing.caseTitle ?? 'Untitled matter',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: isToday ? RC.dangerText : RC.textPrimary,
-                    height: 1.3,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  hearing.title ?? '',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: RC.textSecondary,
-                    height: 1.4,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (hasHard || hasSoft) ...[
-                  SizedBox(height: 5.h),
-                  Text(
-                    hasHard
-                        ? 'Overlapping hearing time'
-                        : 'Timing unconfirmed — possible conflict',
-                    style: TextStyle(
-                      fontSize: 10.5.sp,
-                      fontWeight: FontWeight.w600,
-                      color: hasHard ? RC.dangerText : RC.warningText,
+            // MAIN CONTENT AREA - Aggressively reduced padding
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min, // Hugs content tightly
+                  children: [
+                    // --- HEADER ROW ---
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 6.w, vertical: 2.h), // Micro padding
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          child: Text(
+                            badge,
+                            style: TextStyle(
+                              fontSize: 8.5.sp, // Reduced
+                              fontWeight: FontWeight.w800,
+                              color: accent,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        if (time != null)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(Icons.schedule,
+                                  size: 10.sp, color: RC.textTertiary),
+                              SizedBox(width: 4.w),
+                              Text(
+                                time,
+                                style: TextStyle(
+                                  fontSize: 10.sp, // Reduced
+                                  fontWeight: FontWeight.w600,
+                                  color: RC.textSecondary,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures()
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+                    SizedBox(height: 6.h), // 50% smaller spacer
 
-          // Optional time
-          if (time != null) ...[
-            SizedBox(width: 8.w),
-            Text(
-              time,
-              style: TextStyle(
-                fontSize: 11.sp,
-                color: RC.textTertiary,
-                fontFeatures: const [FontFeature.tabularFigures()],
+                    // --- CONTENT BLOCK ---
+                    Text(
+                      hearing.caseTitle ?? 'Untitled matter',
+                      style: TextStyle(
+                        fontSize: 13.sp, // Scaled down
+                        fontWeight: FontWeight.w600,
+                        color: isToday ? RC.dangerText : RC.textPrimary,
+                        height: 1.15, // Tighter line height
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 2.h), // Micro spacer
+                    Text(
+                      hearing.title ?? '',
+                      style: TextStyle(
+                        fontSize: 11.5.sp, // Scaled down
+                        color: RC.textSecondary,
+                        height: 1.2,
+                      ),
+                      maxLines: 1, // STRICTLY 1 line to save vertical space
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    // --- CONFLICT WARNINGS ---
+                    if (hasHard || hasSoft) ...[
+                      SizedBox(height: 5.h),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.w, vertical: 5.h),
+                        decoration: BoxDecoration(
+                          color: hasHard
+                              ? RC.dangerSurface.withValues(alpha: 0.5)
+                              : RC.warningSurface.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(4.r),
+                          border: Border.all(
+                            color: hasHard
+                                ? RC.danger.withValues(alpha: 0.2)
+                                : RC.gold.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              hasHard
+                                  ? Icons.warning_amber_rounded
+                                  : Icons.info_outline_rounded,
+                              size: 12.sp, // Smaller icon
+                              color: hasHard ? RC.danger : RC.gold,
+                            ),
+                            SizedBox(width: 6.w),
+                            Expanded(
+                              child: Text(
+                                hasHard
+                                    ? 'Overlapping hearing time'
+                                    : 'Timing unconfirmed — possible conflict', // Shortened copy
+                                style: TextStyle(
+                                  fontSize: 10.sp, // Smaller warning text
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      hasHard ? RC.dangerText : RC.warningText,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }
