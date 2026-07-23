@@ -7,71 +7,8 @@ import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
 
 import '../models/case_models/legal_task_model.dart';
+import '../resources/system_design/rc_widgets.dart';
 import '../view_model/cases_view_model/hearing_create_view_model/legal_task_view_model.dart';
-
-// ─────────────────────────────────────────────
-// Design tokens
-// ─────────────────────────────────────────────
-class _RC {
-  static const navy = Color(0xFF1A2744);
-  static const gold = Color(0xFFC8952A);
-  static const background = Color(0xFFF7F5F1);
-  static const surface = Color(0xFFFFFFFF);
-
-  static const textPrimary = Color(0xFF111827);
-  static const textSecondary = Color(0xFF6B7280);
-  static const textTertiary = Color(0xFF9CA3AF);
-  static const textOnDark = Color(0xFFFFFFFF);
-  static const textOnDarkMuted = Color(0xFFB8C4D8);
-
-  static const danger = Color(0xFFB91C1C);
-  static const dangerSurface = Color(0xFFFEF2F2);
-  static const dangerBorder = Color(0xFFFECACA);
-  static const dangerText = Color(0xFF991B1B);
-
-  static const warningSurface = Color(0xFFFFFBEB);
-  static const warningBorder = Color(0xFFFDE68A);
-  static const warningText = Color(0xFF92400E);
-
-  static const successSurface = Color(0xFFF0FDF4);
-  static const successBorder = Color(0xFFBBF7D0);
-  static const successText = Color(0xFF166534);
-
-  static const infoSurface = Color(0xFFEFF6FF);
-  static const infoBorder = Color(0xFFBFDBFE);
-  static const infoText = Color(0xFF1E40AF);
-
-  static const divider = Color(0xFFE5E1D8);
-
-  static BoxShadow get card => BoxShadow(
-        color: Colors.black.withValues(alpha: 0.055),
-        blurRadius: 10,
-        offset: const Offset(0, 3),
-      );
-
-  // Priority colours
-  static Color priorityColor(TaskPriority p) {
-    switch (p) {
-      case TaskPriority.high:
-        return danger;
-      case TaskPriority.medium:
-        return gold;
-      case TaskPriority.low:
-        return successText;
-    }
-  }
-
-  static Color prioritySurface(TaskPriority p) {
-    switch (p) {
-      case TaskPriority.high:
-        return dangerSurface;
-      case TaskPriority.medium:
-        return warningSurface;
-      case TaskPriority.low:
-        return successSurface;
-    }
-  }
-}
 
 // ─────────────────────────────────────────────
 // Screen
@@ -95,12 +32,12 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _RC.background,
+      backgroundColor: RC.background,
       appBar: _buildAppBar(),
       floatingActionButton: _AddFab(),
       body: Consumer<LegalTaskViewModel>(
         builder: (_, vm, __) => RefreshIndicator(
-          color: _RC.navy,
+          color: RC.navy,
           onRefresh: vm.refresh,
           child: _buildBody(vm),
         ),
@@ -110,7 +47,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: _RC.navy,
+      backgroundColor: RC.navy,
       elevation: 0,
       iconTheme: const IconThemeData(color: Colors.white),
       title: Consumer<LegalTaskViewModel>(
@@ -121,12 +58,12 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                 style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
-                    color: _RC.textOnDark)),
+                    color: RC.textOnDark)),
             Text(
               vm.board != null
                   ? '${vm.totalOpen} open · ${vm.overdueCount} overdue'
                   : 'Loading...',
-              style: TextStyle(fontSize: 11.sp, color: _RC.textOnDarkMuted),
+              style: TextStyle(fontSize: 11.sp, color: RC.textOnDarkMuted),
             ),
           ],
         ),
@@ -195,8 +132,8 @@ class _AddFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
-      backgroundColor: _RC.navy,
-      foregroundColor: _RC.textOnDark,
+      backgroundColor: RC.navy,
+      foregroundColor: RC.textOnDark,
       icon: const Icon(Icons.add),
       label:
           const Text('Add task', style: TextStyle(fontWeight: FontWeight.w500)),
@@ -264,7 +201,7 @@ class _BucketHeader extends StatelessWidget {
           width: 3,
           height: 16,
           decoration: BoxDecoration(
-              color: isUrgent ? _RC.danger : _RC.gold,
+              color: isUrgent ? RC.danger : RC.gold,
               borderRadius: BorderRadius.circular(2)),
         ),
         SizedBox(width: 8.w),
@@ -274,7 +211,7 @@ class _BucketHeader extends StatelessWidget {
             fontSize: 11.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.7,
-            color: isUrgent ? _RC.dangerText : _RC.textSecondary,
+            color: isUrgent ? RC.dangerText : RC.textSecondary,
           ),
         ),
         SizedBox(width: 8.w),
@@ -282,7 +219,7 @@ class _BucketHeader extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
           decoration: BoxDecoration(
             color:
-                isUrgent ? _RC.dangerSurface : _RC.navy.withValues(alpha: 0.07),
+                isUrgent ? RC.dangerSurface : RC.navy.withValues(alpha: 0.07),
             borderRadius: BorderRadius.circular(8.r),
           ),
           child: Text(
@@ -290,7 +227,7 @@ class _BucketHeader extends StatelessWidget {
             style: TextStyle(
               fontSize: 10.sp,
               fontWeight: FontWeight.w600,
-              color: isUrgent ? _RC.dangerText : _RC.navy,
+              color: isUrgent ? RC.dangerText : RC.navy,
             ),
           ),
         ),
@@ -320,36 +257,58 @@ class _TaskCard extends StatelessWidget {
         alignment: Alignment.centerRight,
         padding: EdgeInsets.only(right: 20.w),
         decoration: BoxDecoration(
-          color: _RC.dangerSurface,
+          color: RC.dangerSurface,
           borderRadius: BorderRadius.circular(14.r),
         ),
-        child:
-            Icon(Icons.delete_outline_rounded, color: _RC.danger, size: 22.sp),
+        child: isDeleting
+            ? SizedBox(
+                height: 20.sp,
+                width: 20.sp,
+                child: CircularProgressIndicator(
+                  color: RC.danger,
+                  strokeWidth: 2.w,
+                ),
+              )
+            : Icon(
+                Icons.delete_outline_rounded,
+                color: RC.danger,
+                size: 22.sp,
+              ),
       ),
       confirmDismiss: (direction) async {
-        final confirm = await _confirmDelete(context);
-        if (confirm != true) return false;
-        final success = await vm.deleteTask(task.id);
+        bool confirmed = false;
 
+        await RCConfirmDialog.show(
+          context: context,
+          icon: Icons.playlist_remove_rounded,
+          iconColor: RC.danger,
+          iconSurface: RC.dangerSurface,
+          title: 'Delete task?',
+          message: 'Delete "${task.taskTitle}"? This cannot be undone.',
+          confirmLabel: 'Delete',
+          confirmColor: RC.danger,
+          confirmSurface: RC.dangerSurface,
+          confirmBorder: RC.dangerBorder,
+          onConfirm: () async {
+            confirmed = true;
+          },
+        );
+        if (!confirmed) return false;
+
+        final success = await vm.deleteTask(task.id);
         if (!success && context.mounted) {
           SnakeBars.scaffoldMessenger("Failed to delete task", context);
         }
         return success;
       },
-      onDismissed: (_) {
-        // vm.deleteTask(task.id);
-        // if (context.mounted) {
-        //   SnakeBars.scaffoldMessenger("Task removed", context);
-        // }
-      },
       child: Container(
         margin: EdgeInsets.only(bottom: 10.h),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: task.isCompleted
-              ? _RC.surface.withValues(alpha: 0.6)
-              : _RC.surface,
+          color:
+              task.isCompleted ? RC.surface.withValues(alpha: 0.6) : RC.surface,
           borderRadius: BorderRadius.circular(14.r),
-          boxShadow: [_RC.card],
+          boxShadow: [RC.cardShadow],
         ),
         child: IntrinsicHeight(
           child: Row(
@@ -357,11 +316,11 @@ class _TaskCard extends StatelessWidget {
             children: [
               // Priority accent bar
               Container(
-                width: 4,
+                width: 4.w,
                 decoration: BoxDecoration(
                   color: task.isCompleted
-                      ? _RC.divider
-                      : _RC.priorityColor(task.priority),
+                      ? RC.divider
+                      : RC.priorityColor(task.priority),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(14.r),
                     bottomLeft: Radius.circular(14.r),
@@ -380,7 +339,7 @@ class _TaskCard extends StatelessWidget {
                           width: 20.r,
                           child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: _RC.priorityColor(task.priority)),
+                              color: RC.priorityColor(task.priority)),
                         ),
                       )
                     : GestureDetector(
@@ -391,13 +350,13 @@ class _TaskCard extends StatelessWidget {
                           height: 20.w,
                           decoration: BoxDecoration(
                             color: task.isCompleted
-                                ? _RC.priorityColor(task.priority)
+                                ? RC.priorityColor(task.priority)
                                 : Colors.transparent,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: task.isCompleted
-                                  ? _RC.priorityColor(task.priority)
-                                  : _RC.divider,
+                                  ? RC.priorityColor(task.priority)
+                                  : RC.divider,
                               width: 1.5,
                             ),
                           ),
@@ -423,12 +382,12 @@ class _TaskCard extends StatelessWidget {
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w500,
                           color: task.isCompleted
-                              ? _RC.textTertiary
-                              : _RC.textPrimary,
+                              ? RC.textTertiary
+                              : RC.textPrimary,
                           decoration: task.isCompleted
                               ? TextDecoration.lineThrough
                               : null,
-                          decorationColor: _RC.textTertiary,
+                          decorationColor: RC.textTertiary,
                         ),
                       ),
                       SizedBox(height: 5.h),
@@ -436,13 +395,13 @@ class _TaskCard extends StatelessWidget {
                       Row(
                         children: [
                           Icon(Icons.cases_outlined,
-                              size: 10.sp, color: _RC.textSecondary),
+                              size: 10.sp, color: RC.textSecondary),
                           SizedBox(width: 4.w),
                           Expanded(
                             child: Text(
                               task.caseTitle,
                               style: TextStyle(
-                                  fontSize: 10.sp, color: _RC.textSecondary),
+                                  fontSize: 10.sp, color: RC.textSecondary),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -462,28 +421,28 @@ class _TaskCard extends StatelessWidget {
                                   : Icons.schedule_outlined,
                               label: task.dueDateLabel,
                               color: task.isOverdue
-                                  ? _RC.dangerText
-                                  : _RC.textSecondary,
-                              bg: task.isOverdue ? _RC.dangerSurface : null,
+                                  ? RC.dangerText
+                                  : RC.textSecondary,
+                              bg: task.isOverdue ? RC.dangerSurface : null,
                             ),
                           // Priority badge
                           _MetaChip(
                             icon: Icons.flag_outlined,
                             label: task.priority.label,
                             color: task.isCompleted
-                                ? _RC.textTertiary
-                                : _RC.priorityColor(task.priority),
+                                ? RC.textTertiary
+                                : RC.priorityColor(task.priority),
                             bg: task.isCompleted
                                 ? null
-                                : _RC.prioritySurface(task.priority),
+                                : RC.prioritySurface(task.priority),
                           ),
                           // Auto-generated badge
                           if (task.isAutoGenerated)
                             _MetaChip(
                               icon: Icons.auto_awesome_outlined,
                               label: 'Auto',
-                              color: _RC.infoText,
-                              bg: _RC.infoSurface,
+                              color: RC.infoText,
+                              bg: RC.infoSurface,
                             ),
                         ],
                       ),
@@ -496,7 +455,7 @@ class _TaskCard extends StatelessWidget {
                           task.notes!,
                           style: TextStyle(
                             fontSize: 11.sp,
-                            color: _RC.textSecondary,
+                            color: RC.textSecondary,
                             fontStyle: FontStyle.italic,
                           ),
                           maxLines: 1,
@@ -516,7 +475,7 @@ class _TaskCard extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: Icon(Icons.edit_outlined,
-                            size: 16.sp, color: _RC.textTertiary),
+                            size: 16.sp, color: RC.textTertiary),
                         onPressed: () => _showEditSheet(context, task),
                         constraints: BoxConstraints.tight(Size(32.w, 32.w)),
                         padding: EdgeInsets.zero,
@@ -527,32 +486,6 @@ class _TaskCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Future<bool?> _confirmDelete(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
-        title: const Text('Delete task?'),
-        content: Text(
-          'Delete "${task.taskTitle}"? This cannot be undone.',
-          style: TextStyle(fontSize: 13.sp),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: _RC.danger),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
       ),
     );
   }
@@ -606,7 +539,7 @@ class _CompletedBucketSliverState extends State<_CompletedBucketSliver> {
                       width: 3,
                       height: 16,
                       decoration: BoxDecoration(
-                        color: _RC.successText,
+                        color: RC.successText,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -617,7 +550,7 @@ class _CompletedBucketSliverState extends State<_CompletedBucketSliver> {
                         fontSize: 11.sp,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.7,
-                        color: _RC.successText,
+                        color: RC.successText,
                       ),
                     ),
                     SizedBox(width: 8.w),
@@ -625,7 +558,7 @@ class _CompletedBucketSliverState extends State<_CompletedBucketSliver> {
                       padding:
                           EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
                       decoration: BoxDecoration(
-                        color: _RC.successSurface,
+                        color: RC.successSurface,
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Text(
@@ -633,7 +566,7 @@ class _CompletedBucketSliverState extends State<_CompletedBucketSliver> {
                         style: TextStyle(
                           fontSize: 10.sp,
                           fontWeight: FontWeight.w600,
-                          color: _RC.successText,
+                          color: RC.successText,
                         ),
                       ),
                     ),
@@ -642,7 +575,7 @@ class _CompletedBucketSliverState extends State<_CompletedBucketSliver> {
                       isExpanded
                           ? Icons.keyboard_arrow_up_rounded
                           : Icons.keyboard_arrow_down_rounded,
-                      color: _RC.textTertiary,
+                      color: RC.textTertiary,
                       size: 18.sp,
                     ),
                   ],
@@ -713,7 +646,7 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         decoration: BoxDecoration(
-          color: _RC.surface,
+          color: RC.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
         ),
         padding: EdgeInsets.all(20.w),
@@ -731,7 +664,7 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
                     height: 4,
                     margin: EdgeInsets.only(bottom: 16.h),
                     decoration: BoxDecoration(
-                      color: _RC.divider,
+                      color: RC.divider,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -742,13 +675,13 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
-                    color: _RC.textPrimary,
+                    color: RC.textPrimary,
                   ),
                 ),
                 SizedBox(height: 16.h),
                 DropdownButtonFormField<String>(
                   borderRadius: BorderRadius.circular(12.r),
-                  dropdownColor: _RC.surface,
+                  dropdownColor: RC.surface,
                   initialValue: safeValue,
                   items: [
                     if (originalTaskCaseId != null &&
@@ -805,13 +738,13 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
                             padding: EdgeInsets.symmetric(vertical: 9.h),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? _RC.prioritySurface(p)
-                                  : _RC.background,
+                                  ? RC.prioritySurface(p)
+                                  : RC.background,
                               borderRadius: BorderRadius.circular(10.r),
                               border: Border.all(
                                 color: isSelected
-                                    ? _RC.priorityColor(p)
-                                    : _RC.divider,
+                                    ? RC.priorityColor(p)
+                                    : RC.divider,
                                 width: isSelected ? 1.5 : 0.5,
                               ),
                             ),
@@ -821,8 +754,8 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
                                 Icon(Icons.flag_outlined,
                                     size: 13.sp,
                                     color: isSelected
-                                        ? _RC.priorityColor(p)
-                                        : _RC.textTertiary),
+                                        ? RC.priorityColor(p)
+                                        : RC.textTertiary),
                                 SizedBox(width: 5.w),
                                 Text(
                                   p.label,
@@ -832,8 +765,8 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
                                         ? FontWeight.w600
                                         : FontWeight.w400,
                                     color: isSelected
-                                        ? _RC.priorityColor(p)
-                                        : _RC.textSecondary,
+                                        ? RC.priorityColor(p)
+                                        : RC.textSecondary,
                                   ),
                                 ),
                               ],
@@ -855,14 +788,14 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
                     padding:
                         EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
                     decoration: BoxDecoration(
-                      color: _RC.background,
+                      color: RC.background,
                       borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(color: _RC.divider, width: 0.5),
+                      border: Border.all(color: RC.divider, width: 0.5),
                     ),
                     child: Row(
                       children: [
                         Icon(Icons.calendar_today_outlined,
-                            size: 16.sp, color: _RC.textSecondary),
+                            size: 16.sp, color: RC.textSecondary),
                         SizedBox(width: 10.w),
                         Text(
                           taskVM.dueDate != null
@@ -871,8 +804,8 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: taskVM.dueDate != null
-                                ? _RC.textPrimary
-                                : _RC.textTertiary,
+                                ? RC.textPrimary
+                                : RC.textTertiary,
                           ),
                         ),
                         const Spacer(),
@@ -884,7 +817,7 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
                             child: Icon(
                               Icons.close_rounded,
                               size: 16.sp,
-                              color: _RC.textSecondary,
+                              color: RC.textSecondary,
                             ),
                           ),
                       ],
@@ -911,8 +844,8 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _RC.navy,
-                      foregroundColor: _RC.textOnDark,
+                      backgroundColor: RC.navy,
+                      foregroundColor: RC.textOnDark,
                       padding: EdgeInsets.symmetric(vertical: 14.h),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.r)),
@@ -943,7 +876,7 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
                   SizedBox(height: 8.h),
                   Text(
                     taskVM.createError!,
-                    style: TextStyle(fontSize: 12.sp, color: _RC.danger),
+                    style: TextStyle(fontSize: 12.sp, color: RC.danger),
                   ),
                 ],
               ],
@@ -963,7 +896,7 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (_, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(primary: _RC.navy),
+          colorScheme: const ColorScheme.light(primary: RC.navy),
         ),
         child: child!,
       ),
@@ -1025,19 +958,19 @@ class _AddEditTaskSheetState extends State<_AddEditTaskSheet> {
   InputDecoration _inputDecoration(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon, size: 18.sp, color: _RC.textSecondary),
+      prefixIcon: Icon(icon, size: 18.sp, color: RC.textSecondary),
       filled: true,
-      fillColor: _RC.background,
+      fillColor: RC.background,
       border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.r),
-          borderSide: BorderSide(color: _RC.divider, width: 0.5)),
+          borderSide: BorderSide(color: RC.divider, width: 0.5)),
       enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.r),
-          borderSide: BorderSide(color: _RC.divider, width: 0.5)),
+          borderSide: BorderSide(color: RC.divider, width: 0.5)),
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.r),
-          borderSide: BorderSide(color: _RC.navy, width: 1.5)),
-      hintStyle: TextStyle(color: _RC.textTertiary, fontSize: 12.sp),
+          borderSide: BorderSide(color: RC.navy, width: 1.5)),
+      hintStyle: TextStyle(color: RC.textTertiary, fontSize: 12.sp),
       contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
     );
   }
@@ -1091,7 +1024,7 @@ class _FieldLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 12.sp,
         fontWeight: FontWeight.w500,
-        color: _RC.textSecondary,
+        color: RC.textSecondary,
       ),
     );
   }
@@ -1154,7 +1087,7 @@ class _Skeleton extends StatelessWidget {
           height: 90.h,
           margin: EdgeInsets.only(bottom: 12.h),
           decoration: BoxDecoration(
-            color: _RC.divider.withValues(alpha: 0.5),
+            color: RC.divider.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(14.r),
           ),
         ),
@@ -1190,13 +1123,13 @@ class _ErrorState extends StatelessWidget {
               width: 72.w,
               height: 72.w,
               decoration: BoxDecoration(
-                color: _RC.danger.withValues(alpha: 0.08), // Soft tint
+                color: RC.danger.withValues(alpha: 0.08), // Soft tint
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons
                     .cloud_off_rounded, // A softer conceptual icon than an alert triangle
-                color: _RC.danger.withValues(alpha: 0.9),
+                color: RC.danger.withValues(alpha: 0.9),
                 size: 32.sp,
               ),
             ).animate().scale(
@@ -1213,7 +1146,7 @@ class _ErrorState extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: FontWeight.w600,
-                color: _RC
+                color: RC
                     .textPrimary, // Blends perfectly with your standard app headers
                 letterSpacing: -0.2,
               ),
@@ -1229,8 +1162,8 @@ class _ErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: _RC
-                    .textSecondary, // Blends with your standard app subtitles
+                color:
+                    RC.textSecondary, // Blends with your standard app subtitles
                 height: 1.4,
               ),
             )
@@ -1244,8 +1177,8 @@ class _ErrorState extends StatelessWidget {
             TextButton.icon(
               onPressed: onRetry,
               style: TextButton.styleFrom(
-                foregroundColor: _RC.navy, // Your standard primary action color
-                backgroundColor: _RC.navy
+                foregroundColor: RC.navy, // Your standard primary action color
+                backgroundColor: RC.navy
                     .withValues(alpha: 0.06), // Very soft "Tonal" background
                 elevation: 0,
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
