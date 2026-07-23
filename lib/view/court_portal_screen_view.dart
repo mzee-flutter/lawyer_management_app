@@ -9,52 +9,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/system_design/rc_theme.dart';
+import 'package:right_case/resources/system_design/rc_widgets.dart';
 
 import '../models/case_models/court_portal_model.dart';
 import '../view_model/cases_view_model/case_list_view_model.dart';
 import '../view_model/cases_view_model/hearing_create_view_model/court_portal_view_model.dart';
-
-// ─────────────────────────────────────────────
-// Design tokens — identical to the rest of the app
-// ─────────────────────────────────────────────
-class _RC {
-  static const navy = Color(0xFF1A2744);
-  static const gold = Color(0xFFC8952A);
-  static const goldLight = Color(0xFFFAEDD4);
-  static const background = Color(0xFFF7F5F1);
-  static const surface = Color(0xFFFFFFFF);
-
-  static const textPrimary = Color(0xFF111827);
-  static const textSecondary = Color(0xFF6B7280);
-  static const textTertiary = Color(0xFF9CA3AF);
-  static const textOnDark = Color(0xFFFFFFFF);
-  static const textOnDarkMuted = Color(0xFFB8C4D8);
-
-  static const danger = Color(0xFFB91C1C);
-  static const dangerSurface = Color(0xFFFEF2F2);
-  static const dangerBorder = Color(0xFFFECACA);
-  static const dangerText = Color(0xFF991B1B);
-
-  static const successSurface = Color(0xFFF0FDF4);
-  static const successBorder = Color(0xFFBBF7D0);
-  static const successText = Color(0xFF166534);
-
-  static const warningSurface = Color(0xFFFFFBEB);
-  static const warningBorder = Color(0xFFFDE68A);
-  static const warningText = Color(0xFF92400E);
-
-  static const infoSurface = Color(0xFFEFF6FF);
-  static const infoBorder = Color(0xFFBFDBFE);
-  static const infoText = Color(0xFF1E40AF);
-
-  static const divider = Color(0xFFE5E1D8);
-
-  static BoxShadow get card => BoxShadow(
-        color: Colors.black.withValues(alpha: 0.055),
-        blurRadius: 10.r,
-        offset: const Offset(0, 3),
-      );
-}
 
 // ─────────────────────────────────────────────
 // Screen
@@ -78,7 +37,7 @@ class _CourtPortalScreenState extends State<CourtPortalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _RC.background,
+      backgroundColor: RC.background,
       appBar: _buildAppBar(context),
       floatingActionButton: Consumer<CourtPortalViewModel>(
         builder: (_, vm, __) {
@@ -86,8 +45,8 @@ class _CourtPortalScreenState extends State<CourtPortalScreen> {
             return const SizedBox.shrink();
           }
           return FloatingActionButton.extended(
-            backgroundColor: _RC.navy,
-            foregroundColor: _RC.textOnDark,
+            backgroundColor: RC.navy,
+            foregroundColor: RC.textOnDark,
             icon: const Icon(Icons.add),
             label: const Text('New Application',
                 style: TextStyle(fontWeight: FontWeight.w500)),
@@ -97,7 +56,7 @@ class _CourtPortalScreenState extends State<CourtPortalScreen> {
       ),
       body: Consumer<CourtPortalViewModel>(
         builder: (_, vm, __) => RefreshIndicator(
-          color: _RC.navy,
+          color: RC.navy,
           onRefresh: vm.refresh,
           child: Column(
             children: [
@@ -116,7 +75,7 @@ class _CourtPortalScreenState extends State<CourtPortalScreen> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: _RC.navy,
+      backgroundColor: RC.navy,
       elevation: 0,
       iconTheme: const IconThemeData(color: Colors.white),
       title: Column(
@@ -126,9 +85,9 @@ class _CourtPortalScreenState extends State<CourtPortalScreen> {
               style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
-                  color: _RC.textOnDark)),
+                  color: RC.textOnDark)),
           Text('Bench roster & certified copies',
-              style: TextStyle(fontSize: 11.sp, color: _RC.textOnDarkMuted)),
+              style: TextStyle(fontSize: 11.sp, color: RC.textOnDarkMuted)),
         ],
       ),
     );
@@ -157,7 +116,7 @@ class _TabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: _RC.navy,
+      color: RC.navy,
       padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
       child: Container(
         height: 40.h,
@@ -207,22 +166,21 @@ class _TabButton extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           margin: EdgeInsets.all(3.w),
           decoration: BoxDecoration(
-            color: isActive ? _RC.surface : Colors.transparent,
+            color: isActive ? RC.surface : Colors.transparent,
             borderRadius: BorderRadius.circular(8.r),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon,
-                  size: 14.sp,
-                  color: isActive ? _RC.navy : _RC.textOnDarkMuted),
+                  size: 14.sp, color: isActive ? RC.navy : RC.textOnDarkMuted),
               SizedBox(width: 5.w),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 12.sp,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  color: isActive ? _RC.navy : _RC.textOnDarkMuted,
+                  color: isActive ? RC.navy : RC.textOnDarkMuted,
                 ),
               ),
             ],
@@ -279,14 +237,14 @@ class _RosterHeader extends StatelessWidget {
             style: TextStyle(
               fontSize: 15.sp,
               fontWeight: FontWeight.w600,
-              color: _RC.textPrimary,
+              color: RC.textPrimary,
             ),
           ),
           const Spacer(),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 4.h),
             decoration: BoxDecoration(
-              color: _RC.navy.withValues(alpha: 0.08),
+              color: RC.navy.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Text(
@@ -294,7 +252,7 @@ class _RosterHeader extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w500,
-                color: _RC.navy,
+                color: RC.navy,
               ),
             ),
           ),
@@ -320,9 +278,9 @@ class _BenchCardState extends State<_BenchCard> {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
-        color: _RC.surface,
+        color: RC.surface,
         borderRadius: BorderRadius.circular(14.r),
-        boxShadow: [_RC.card],
+        boxShadow: [RC.cardShadow],
       ),
       child: Column(
         children: [
@@ -333,7 +291,7 @@ class _BenchCardState extends State<_BenchCard> {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
               decoration: BoxDecoration(
-                color: _RC.navy,
+                color: RC.navy,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(14.r),
                   topRight: Radius.circular(14.r),
@@ -353,7 +311,7 @@ class _BenchCardState extends State<_BenchCard> {
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Icon(Icons.balance_outlined,
-                        size: 17.sp, color: _RC.textOnDark),
+                        size: 17.sp, color: RC.textOnDark),
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
@@ -365,7 +323,7 @@ class _BenchCardState extends State<_BenchCard> {
                           style: TextStyle(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
-                            color: _RC.textOnDark,
+                            color: RC.textOnDark,
                           ),
                         ),
                         if (bench.hasJudge)
@@ -373,7 +331,7 @@ class _BenchCardState extends State<_BenchCard> {
                             bench.judgeName!,
                             style: TextStyle(
                               fontSize: 11.sp,
-                              color: _RC.textOnDarkMuted,
+                              color: RC.textOnDarkMuted,
                             ),
                           ),
                       ],
@@ -383,7 +341,7 @@ class _BenchCardState extends State<_BenchCard> {
                     padding:
                         EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                     decoration: BoxDecoration(
-                      color: _RC.gold,
+                      color: RC.gold,
                       borderRadius: BorderRadius.circular(6.r),
                     ),
                     child: Text(
@@ -391,7 +349,7 @@ class _BenchCardState extends State<_BenchCard> {
                       style: TextStyle(
                         fontSize: 11.sp,
                         fontWeight: FontWeight.w600,
-                        color: _RC.textOnDark,
+                        color: RC.textOnDark,
                       ),
                     ),
                   ),
@@ -400,7 +358,7 @@ class _BenchCardState extends State<_BenchCard> {
                     vm.isExpanded
                         ? Icons.keyboard_arrow_up_rounded
                         : Icons.keyboard_arrow_down_rounded,
-                    color: _RC.textOnDarkMuted,
+                    color: RC.textOnDarkMuted,
                     size: 20.sp,
                   ),
                 ],
@@ -434,7 +392,7 @@ class _RosterCaseRow extends StatelessWidget {
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : Border(bottom: BorderSide(color: _RC.divider, width: 0.5)),
+            : Border(bottom: BorderSide(color: RC.divider, width: 0.5)),
       ),
       child: Row(
         children: [
@@ -447,7 +405,7 @@ class _RosterCaseRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12.sp,
                     fontWeight: FontWeight.w500,
-                    color: _RC.textPrimary,
+                    color: RC.textPrimary,
                   ),
                 ),
                 SizedBox(height: 3.h),
@@ -457,20 +415,20 @@ class _RosterCaseRow extends StatelessWidget {
                       item.caseNumber,
                       style: TextStyle(
                         fontSize: 10.sp,
-                        color: _RC.textSecondary,
+                        color: RC.textSecondary,
                       ),
                     ),
                     if (item.nextHearingAt != null) ...[
                       Text(' · ',
                           style: TextStyle(
-                              fontSize: 10.sp, color: _RC.textTertiary)),
-                      Icon(Icons.event_outlined, size: 10.sp, color: _RC.gold),
+                              fontSize: 10.sp, color: RC.textTertiary)),
+                      Icon(Icons.event_outlined, size: 10.sp, color: RC.gold),
                       SizedBox(width: 3.w),
                       Text(
                         item.formattedNextHearing!,
                         style: TextStyle(
                           fontSize: 10.sp,
-                          color: _RC.gold,
+                          color: RC.gold,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -484,7 +442,7 @@ class _RosterCaseRow extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
               decoration: BoxDecoration(
-                color: _RC.infoSurface,
+                color: RC.infoSurface,
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: Text(
@@ -492,7 +450,7 @@ class _RosterCaseRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 9.sp,
                   fontWeight: FontWeight.w500,
-                  color: _RC.infoText,
+                  color: RC.infoText,
                 ),
               ),
             ),
@@ -558,13 +516,13 @@ class _CopyFilterRow extends StatelessWidget {
                 duration: const Duration(milliseconds: 180),
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: isActive ? _RC.navy : _RC.surface,
+                  color: isActive ? RC.navy : RC.surface,
                   borderRadius: BorderRadius.circular(20.r),
                   border: Border.all(
-                    color: isActive ? _RC.navy : _RC.divider,
+                    color: isActive ? RC.navy : RC.divider,
                     width: isActive ? 0 : 0.5,
                   ),
-                  boxShadow: isActive ? [_RC.card] : [],
+                  boxShadow: isActive ? [RC.cardShadow] : [],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -574,7 +532,7 @@ class _CopyFilterRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
-                        color: isActive ? _RC.textOnDark : _RC.textSecondary,
+                        color: isActive ? RC.textOnDark : RC.textSecondary,
                       ),
                     ),
                     if (count > 0 && filter != CopyFilter.all) ...[
@@ -593,9 +551,8 @@ class _CopyFilterRow extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 10.sp,
                             fontWeight: FontWeight.w600,
-                            color: isActive
-                                ? _RC.textOnDark
-                                : _statusColor(filter),
+                            color:
+                                isActive ? RC.textOnDark : _statusColor(filter),
                           ),
                         ),
                       ),
@@ -613,13 +570,13 @@ class _CopyFilterRow extends StatelessWidget {
   Color _statusColor(CopyFilter filter) {
     switch (filter) {
       case CopyFilter.applied:
-        return _RC.infoText;
+        return RC.infoText;
       case CopyFilter.processing:
-        return _RC.warningText;
+        return RC.warningText;
       case CopyFilter.ready:
-        return _RC.successText;
+        return RC.successText;
       default:
-        return _RC.textSecondary;
+        return RC.textSecondary;
     }
   }
 }
@@ -634,9 +591,9 @@ class _CopyCard extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
-        color: _RC.surface,
+        color: RC.surface,
         borderRadius: BorderRadius.circular(14.r),
-        boxShadow: [_RC.card],
+        boxShadow: [RC.cardShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,20 +612,19 @@ class _CopyCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w500,
-                          color: _RC.textPrimary,
+                          color: RC.textPrimary,
                         ),
                       ),
                       SizedBox(height: 3.h),
                       Row(
                         children: [
-                          Icon(Icons.tag,
-                              size: 10.sp, color: _RC.textSecondary),
+                          Icon(Icons.tag, size: 10.sp, color: RC.textSecondary),
                           SizedBox(width: 3.w),
                           Text(
                             copy.referenceNumber,
                             style: TextStyle(
                               fontSize: 11.sp,
-                              color: _RC.textSecondary,
+                              color: RC.textSecondary,
                               fontFamily: 'monospace',
                             ),
                           ),
@@ -696,7 +652,7 @@ class _CopyCard extends StatelessWidget {
                 copy.description!,
                 style: TextStyle(
                   fontSize: 11.sp,
-                  color: _RC.textSecondary,
+                  color: RC.textSecondary,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -735,7 +691,7 @@ class _CopyTracker extends StatelessWidget {
             return Expanded(
               child: Container(
                 height: 2,
-                color: isDone ? _RC.navy : _RC.divider,
+                color: isDone ? RC.navy : RC.divider,
               ),
             );
           }
@@ -766,15 +722,15 @@ class _StepCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color bg = isDone
-        ? _RC.navy
+        ? RC.navy
         : isCurrent
-            ? _RC.navy.withValues(alpha: 0.1)
-            : _RC.divider;
+            ? RC.navy.withValues(alpha: 0.1)
+            : RC.divider;
     final Color fg = isDone
-        ? _RC.textOnDark
+        ? RC.textOnDark
         : isCurrent
-            ? _RC.navy
-            : _RC.textTertiary;
+            ? RC.navy
+            : RC.textTertiary;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -785,7 +741,7 @@ class _StepCircle extends StatelessWidget {
           decoration: BoxDecoration(
             color: bg,
             shape: BoxShape.circle,
-            border: isCurrent ? Border.all(color: _RC.navy, width: 1.5) : null,
+            border: isCurrent ? Border.all(color: RC.navy, width: 1.5) : null,
           ),
           child: Icon(
             isDone ? Icons.check_rounded : _stepIcon(step),
@@ -799,7 +755,7 @@ class _StepCircle extends StatelessWidget {
           style: TextStyle(
             fontSize: 9.sp,
             fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
-            color: isCurrent ? _RC.navy : _RC.textTertiary,
+            color: isCurrent ? RC.navy : RC.textTertiary,
           ),
         ),
       ],
@@ -828,16 +784,16 @@ class _StatusBadge extends StatelessWidget {
     Color bg, fg;
     switch (status) {
       case CopyStatus.applied:
-        bg = _RC.infoSurface;
-        fg = _RC.infoText;
+        bg = RC.infoSurface;
+        fg = RC.infoText;
         break;
       case CopyStatus.processing:
-        bg = _RC.warningSurface;
-        fg = _RC.warningText;
+        bg = RC.warningSurface;
+        fg = RC.warningText;
         break;
       case CopyStatus.ready:
-        bg = _RC.successSurface;
-        fg = _RC.successText;
+        bg = RC.successSurface;
+        fg = RC.successText;
         break;
     }
     return Container(
@@ -862,6 +818,7 @@ class _StatusBadge extends StatelessWidget {
 class _CopyActions extends StatelessWidget {
   final CertifiedCopyModel copy;
   final CourtPortalViewModel vm;
+
   const _CopyActions({required this.copy, required this.vm});
 
   @override
@@ -875,8 +832,8 @@ class _CopyActions extends StatelessWidget {
           Expanded(
             child: TextButton.icon(
               style: TextButton.styleFrom(
-                backgroundColor: _RC.navy.withValues(alpha: 0.06),
-                foregroundColor: _RC.navy,
+                backgroundColor: RC.navy.withValues(alpha: 0.06),
+                foregroundColor: RC.navy,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.r)),
               ),
@@ -885,7 +842,7 @@ class _CopyActions extends StatelessWidget {
                       width: 14.w,
                       height: 14.w,
                       child: const CircularProgressIndicator(
-                          strokeWidth: 2, color: _RC.navy),
+                          strokeWidth: 2, color: RC.navy),
                     )
                   : Icon(Icons.arrow_forward_rounded, size: 15.sp),
               label: Text(
@@ -902,10 +859,13 @@ class _CopyActions extends StatelessWidget {
         if (copy.canDelete)
           IconButton(
             icon: Icon(Icons.delete_outline_rounded,
-                size: 18.sp, color: _RC.danger),
-            onPressed: () => _confirmDelete(context),
+                size: 18.sp, color: RC.danger),
+            onPressed: () => _confirmDelete(
+              context,
+              () => vm.deleteCopy(copy.id),
+            ),
             style: IconButton.styleFrom(
-              backgroundColor: _RC.dangerSurface,
+              backgroundColor: RC.dangerSurface,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.r)),
             ),
@@ -917,22 +877,22 @@ class _CopyActions extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 8.h),
               decoration: BoxDecoration(
-                color: _RC.successSurface,
+                color: RC.successSurface,
                 borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: _RC.successBorder),
+                border: Border.all(color: RC.successBorder),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.check_circle_outline,
-                      size: 14.sp, color: _RC.successText),
+                      size: 14.sp, color: RC.successText),
                   SizedBox(width: 6.w),
                   Text(
                     'Ready for collection',
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w500,
-                      color: _RC.successText,
+                      color: RC.successText,
                     ),
                   ),
                 ],
@@ -943,30 +903,19 @@ class _CopyActions extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context) {
-    showDialog(
+  void _confirmDelete(BuildContext context, VoidCallback? onDelete) {
+    RCConfirmDialog.show(
       context: context,
-      builder: (_) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
-        title: const Text('Delete application?'),
-        content: const Text(
-            'This will permanently remove the certified copy application.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: _RC.danger),
-            onPressed: () {
-              Navigator.pop(context);
-              vm.deleteCopy(copy.id);
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      icon: Icons.warning_amber_rounded,
+      iconColor: RC.danger,
+      iconSurface: RC.dangerSurface,
+      title: 'Delete application?',
+      message: 'This will permanently remove the certified copy application.',
+      confirmLabel: 'Delete',
+      confirmColor: RC.danger,
+      confirmSurface: RC.dangerSurface,
+      confirmBorder: RC.dangerBorder,
+      onConfirm: () async => onDelete?.call(),
     );
   }
 }
@@ -1005,110 +954,114 @@ class _AddCopySheetState extends State<_AddCopySheet> {
           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         decoration: BoxDecoration(
-          color: _RC.surface,
+          color: RC.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
         ),
         padding: EdgeInsets.all(20.w),
         child: Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle
-              Center(
-                child: Container(
-                  width: 36.w,
-                  height: 4,
-                  margin: EdgeInsets.only(bottom: 16.h),
-                  decoration: BoxDecoration(
-                    color: _RC.divider,
-                    borderRadius: BorderRadius.circular(2),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle
+                Center(
+                  child: Container(
+                    width: 36.w,
+                    height: 4,
+                    margin: EdgeInsets.only(bottom: 16.h),
+                    decoration: BoxDecoration(
+                      color: RC.divider,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
 
-              Text(
-                'New copy application',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: _RC.textPrimary,
-                ),
-              ),
-              SizedBox(height: 16.h),
-              DropdownButtonFormField<String>(
-                dropdownColor: _RC.surface,
-                initialValue: vm.selectedCaseId,
-                items: casesVM.filterCases
-                    .map((c) => DropdownMenuItem(
-                          value: c.id,
-                          child: Text("${c.caseNumber} — ${c.firstPartyName}"),
-                        ))
-                    .toList(),
-                onChanged: (value) => vm.getSelectedCaseId(value),
-                validator: (v) => v == null ? "Please select a case" : null,
-                decoration: _inputDecoration(
-                  "Select a case",
-                  Icons.cases_outlined,
-                ),
-              ),
-              SizedBox(height: 16.h),
-              // Reference number field
-              _FieldLabel('Reference number *'),
-              SizedBox(height: 5.h),
-              TextFormField(
-                controller: _refController,
-                decoration: _inputDecoration('e.g. CC-2026-0412', Icons.tag),
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Reference number is required'
-                    : null,
-                textCapitalization: TextCapitalization.characters,
-              ),
-              SizedBox(height: 12.h),
-
-              // Description field
-              _FieldLabel('Description (optional)'),
-              SizedBox(height: 5.h),
-              TextFormField(
-                controller: _descController,
-                decoration: _inputDecoration(
-                    'e.g. Order sheet dated 15 June 2026',
-                    Icons.description_outlined),
-                maxLines: 2,
-              ),
-              SizedBox(height: 20.h),
-
-              // Submit
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _RC.navy,
-                    foregroundColor: _RC.textOnDark,
-                    padding: EdgeInsets.symmetric(vertical: 14.h),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.r)),
+                Text(
+                  'New copy application',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: RC.textPrimary,
                   ),
-                  onPressed: vm.isCreating ? null : () => _submit(context, vm),
-                  child: vm.isCreating
-                      ? SizedBox(
-                          height: 18.h,
-                          width: 18.w,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2),
-                        )
-                      : Text('Submit application',
-                          style: TextStyle(
-                              fontSize: 14.sp, fontWeight: FontWeight.w600)),
                 ),
-              ),
-              SizedBox(height: 8.h),
+                SizedBox(height: 16.h),
+                DropdownButtonFormField<String>(
+                  dropdownColor: RC.surface,
+                  initialValue: vm.selectedCaseId,
+                  items: casesVM.filterCases
+                      .map((c) => DropdownMenuItem(
+                            value: c.id,
+                            child:
+                                Text("${c.caseNumber} — ${c.firstPartyName}"),
+                          ))
+                      .toList(),
+                  onChanged: (value) => vm.getSelectedCaseId(value),
+                  validator: (v) => v == null ? "Please select a case" : null,
+                  decoration: _inputDecoration(
+                    "Select a case",
+                    Icons.cases_outlined,
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                // Reference number field
+                _FieldLabel('Reference number *'),
+                SizedBox(height: 5.h),
+                TextFormField(
+                  controller: _refController,
+                  decoration: _inputDecoration('e.g. CC-2026-0412', Icons.tag),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Reference number is required'
+                      : null,
+                  textCapitalization: TextCapitalization.characters,
+                ),
+                SizedBox(height: 12.h),
 
-              if (vm.createError != null)
-                Text(vm.createError!,
-                    style: TextStyle(fontSize: 12.sp, color: _RC.danger)),
-            ],
+                // Description field
+                _FieldLabel('Description (optional)'),
+                SizedBox(height: 5.h),
+                TextFormField(
+                  controller: _descController,
+                  decoration: _inputDecoration(
+                      'e.g. Order sheet dated 15 June 2026',
+                      Icons.description_outlined),
+                  maxLines: 2,
+                ),
+                SizedBox(height: 20.h),
+
+                // Submit
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: RC.navy,
+                      foregroundColor: RC.textOnDark,
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r)),
+                    ),
+                    onPressed:
+                        vm.isCreating ? null : () => _submit(context, vm),
+                    child: vm.isCreating
+                        ? SizedBox(
+                            height: 18.h,
+                            width: 18.w,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2),
+                          )
+                        : Text('Submit application',
+                            style: TextStyle(
+                                fontSize: 14.sp, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                SizedBox(height: 8.h),
+
+                if (vm.createError != null)
+                  Text(vm.createError!,
+                      style: TextStyle(fontSize: 12.sp, color: RC.danger)),
+              ],
+            ),
           ),
         ),
       ),
@@ -1145,22 +1098,22 @@ class _AddCopySheetState extends State<_AddCopySheet> {
   InputDecoration _inputDecoration(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon, size: 18.sp, color: _RC.textSecondary),
+      prefixIcon: Icon(icon, size: 18.sp, color: RC.textSecondary),
       filled: true,
-      fillColor: _RC.background,
+      fillColor: RC.background,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10.r),
-        borderSide: BorderSide(color: _RC.divider, width: 0.5),
+        borderSide: BorderSide(color: RC.divider, width: 0.5),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10.r),
-        borderSide: BorderSide(color: _RC.divider, width: 0.5),
+        borderSide: BorderSide(color: RC.divider, width: 0.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10.r),
-        borderSide: BorderSide(color: _RC.navy, width: 1.5),
+        borderSide: BorderSide(color: RC.navy, width: 1.5),
       ),
-      hintStyle: TextStyle(color: _RC.textTertiary, fontSize: 12.sp),
+      hintStyle: TextStyle(color: RC.textTertiary, fontSize: 12.sp),
       contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
     );
   }
@@ -1177,7 +1130,7 @@ class _FieldLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 12.sp,
         fontWeight: FontWeight.w500,
-        color: _RC.textSecondary,
+        color: RC.textSecondary,
       ),
     );
   }
@@ -1246,12 +1199,12 @@ class _CopiesEmptyState extends StatelessWidget {
               width: 72.w,
               height: 72.w,
               decoration: BoxDecoration(
-                  color: _RC.navy.withValues(alpha: 0.07),
+                  color: RC.navy.withValues(alpha: 0.07),
                   shape: BoxShape.circle),
               child: Icon(
                 Icons.file_copy_outlined,
                 size: 32.sp,
-                color: _RC.navy.withValues(alpha: 0.4),
+                color: RC.navy.withValues(alpha: 0.4),
               ),
             ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
             SizedBox(height: 16.h),
@@ -1298,7 +1251,7 @@ class _Skeleton extends StatelessWidget {
           height: 100.h,
           margin: EdgeInsets.only(bottom: 12.h),
           decoration: BoxDecoration(
-            color: _RC.divider.withValues(alpha: 0.5),
+            color: RC.divider.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(14.r),
           ),
         ),
@@ -1334,13 +1287,13 @@ class _ErrorState extends StatelessWidget {
               width: 72.w,
               height: 72.w,
               decoration: BoxDecoration(
-                color: _RC.danger.withValues(alpha: 0.08), // Soft tint
+                color: RC.danger.withValues(alpha: 0.08), // Soft tint
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons
                     .cloud_off_rounded, // A softer conceptual icon than an alert triangle
-                color: _RC.danger.withValues(alpha: 0.9),
+                color: RC.danger.withValues(alpha: 0.9),
                 size: 32.sp,
               ),
             ).animate().scale(
@@ -1357,7 +1310,7 @@ class _ErrorState extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: FontWeight.w600,
-                color: _RC
+                color: RC
                     .textPrimary, // Blends perfectly with your standard app headers
                 letterSpacing: -0.2,
               ),
@@ -1373,8 +1326,8 @@ class _ErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: _RC
-                    .textSecondary, // Blends with your standard app subtitles
+                color:
+                    RC.textSecondary, // Blends with your standard app subtitles
                 height: 1.4,
               ),
             )
@@ -1388,8 +1341,8 @@ class _ErrorState extends StatelessWidget {
             TextButton.icon(
               onPressed: onRetry,
               style: TextButton.styleFrom(
-                foregroundColor: _RC.navy, // Your standard primary action color
-                backgroundColor: _RC.navy
+                foregroundColor: RC.navy, // Your standard primary action color
+                backgroundColor: RC.navy
                     .withValues(alpha: 0.06), // Very soft "Tonal" background
                 elevation: 0,
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
