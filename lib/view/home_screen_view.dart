@@ -453,15 +453,15 @@ class _AgendaBody extends StatelessWidget {
       children: [
         // Section label row
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 14.h),
+          padding: EdgeInsets.symmetric(vertical: 8.h),
           child: Row(
             children: [
               Container(
-                width: 3,
-                height: 16,
+                width: 3.w,
+                height: 16.h,
                 decoration: BoxDecoration(
                   color: _RC.gold,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(2.r),
                 ),
               ),
               const SizedBox(width: 8),
@@ -581,6 +581,3 @@ class _QuickActionButton extends StatelessWidget {
     );
   }
 }
-
-/// we are going to work on the TODAY'S DOCKET and Deadlines because the deadlines must have the case that are
-/// upcoming within 7 days or whatever
