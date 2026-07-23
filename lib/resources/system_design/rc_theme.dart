@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../models/case_models/legal_task_model.dart';
+
 /// RightCase design tokens. Import this everywhere instead of redeclaring
 /// a private `_RC` class per file — that pattern already exists in three
 /// screens and will drift out of sync over time.
@@ -81,4 +83,27 @@ abstract final class RC {
       color: color,
       fontWeight: FontWeight.w500,
       letterSpacing: 0.4);
+
+  // Priority colours
+  static Color priorityColor(TaskPriority p) {
+    switch (p) {
+      case TaskPriority.high:
+        return danger;
+      case TaskPriority.medium:
+        return gold;
+      case TaskPriority.low:
+        return successText;
+    }
+  }
+
+  static Color prioritySurface(TaskPriority p) {
+    switch (p) {
+      case TaskPriority.high:
+        return dangerSurface;
+      case TaskPriority.medium:
+        return warningSurface;
+      case TaskPriority.low:
+        return successSurface;
+    }
+  }
 }
