@@ -23,13 +23,6 @@ class _SignUpScreenState extends State<SignUpScreen>
   final _confirmPasswordController = TextEditingController();
   late final AnimationController _shakeCtrl;
 
-  // Captured once via didChangeDependencies — never re-read via context in
-  // dispose(), since context.read() during dispose is unsafe with Provider.
-  RegisterViewModel? _registerVM;
-
-  bool _agreedToTerms = false; // must start unchecked — explicit consent only
-  String _passwordValue = '';
-
   @override
   void initState() {
     super.initState();
@@ -37,24 +30,16 @@ class _SignUpScreenState extends State<SignUpScreen>
         vsync: this, duration: const Duration(milliseconds: 500));
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_registerVM == null) {
-      _registerVM = context.read<RegisterViewModel>();
-      _registerVM!.passwordController.addListener(_onPasswordChanged);
-    }
-  }
-
-  void _onPasswordChanged() {
-    if (mounted) {
-      setState(() => _passwordValue = _registerVM!.passwordController.text);
-    }
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   if (_registerVM == null) {
+  //     _registerVM = context.read<RegisterViewModel>();
+  //   }
+  // }
 
   @override
   void dispose() {
-    _registerVM?.passwordController.removeListener(_onPasswordChanged);
     _confirmPasswordController.dispose();
     _shakeCtrl.dispose();
     super.dispose();
@@ -68,7 +53,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       _shake();
       return;
     }
-    if (!_agreedToTerms) {
+    if (!registerVM.agreedToTerms) {
       _shake();
       SnakeBars.flutterToast(
           'Please agree to the Terms & Privacy Policy to continue', context);
@@ -83,14 +68,8 @@ class _SignUpScreenState extends State<SignUpScreen>
     if (result.success) {
       registerVM.clearFields();
       _confirmPasswordController.clear();
-      // No navigation call here -- registration authenticates the user
-      // (same as login), so AuthGate reacts to CurrentUserViewModel and
-      // swaps to HomeScreen on its own.
     } else {
       _shake();
-      // Deliberately NOT clearing fields on failure (e.g. "email already
-      // exists") -- forcing a full retype on every failed attempt is bad
-      // UX. The user should only need to fix whatever was wrong.
     }
   }
 
@@ -188,9 +167,14 @@ class _SignUpScreenState extends State<SignUpScreen>
                         duration: 380.ms,
                         curve: Curves.easeOutCubic),
                     SizedBox(height: 8.h),
-                    PasswordStrengthBar(password: _passwordValue)
-                        .animate()
-                        .fadeIn(delay: 650.ms, duration: 300.ms),
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: registerVM.passwordController,
+                      builder: (context, value, child) {
+                        return PasswordStrengthBar(password: value.text)
+                            .animate()
+                            .fadeIn(delay: 650.ms, duration: 300.ms);
+                      },
+                    ),
                     SizedBox(height: 14.h),
                     AuthTextField(
                             controller: _confirmPasswordController,
@@ -212,8 +196,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                             curve: Curves.easeOutCubic),
                     SizedBox(height: 16.h),
                     _TermsCheckbox(
-                      value: _agreedToTerms,
-                      onChanged: (v) => setState(() => _agreedToTerms = v),
+                      value: registerVM.agreedToTerms,
+                      onChanged: (v) => registerVM.toggleAgreedToTermCheckbox(),
                     ).animate().fadeIn(delay: 760.ms, duration: 350.ms),
                     SizedBox(height: 22.h),
                     AuthPrimaryButton(
