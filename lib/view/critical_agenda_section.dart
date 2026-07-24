@@ -264,80 +264,118 @@ class _DocketTimelineRow extends StatelessWidget {
     final Color accent = _accentColor(hearing.urgency);
     final String? time = hearing.formattedTime;
 
+    final String caseTitle = (hearing.caseTitle ?? 'Untitled Case').toString();
+    final String? hearingTitle = hearing.title;
+    final String? courtName = hearing.courtName;
+    final String? caseStageName = hearing.caseStageName;
+
+    final bool hasStage =
+        caseStageName != null && caseStageName.trim().isNotEmpty;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 14.w),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Time column
+            // ─── 1. TIME COLUMN ───
             SizedBox(
-              width: 58.w,
+              width: 54.w,
               child: Padding(
-                padding: EdgeInsets.only(top: 14.h),
+                padding: EdgeInsets.only(top: 10.h),
                 child: Text(
                   time ?? 'No time',
                   style: TextStyle(
                     fontSize: 10.5.sp,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     color: time != null ? accent : RC.textTertiary,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),
             ),
-            // Dot + connecting rail
+
+            // ─── 2. TIMELINE RAIL ───
             Column(
               children: [
                 SizedBox(height: 14.h),
                 Container(
-                  width: 8.w,
-                  height: 8.w,
+                  width: 7.w,
+                  height: 7.w,
                   decoration:
                       BoxDecoration(color: accent, shape: BoxShape.circle),
                 ),
                 if (!isLast)
                   Expanded(
-                    child: Container(width: 1.5, color: RC.divider),
+                    child: Container(
+                      width: 1.5,
+                      color: RC.divider.withValues(alpha: 0.6),
+                    ),
                   ),
               ],
             ),
             SizedBox(width: 12.w),
-            // Content
+
+            // ─── 3. CONTENT AREA ───
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(top: 10.h, bottom: 16.h),
+                padding: EdgeInsets.only(top: 8.h, bottom: 10.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Headline: Primary Case Title
                     Text(
-                      hearing.caseTitle,
+                      caseTitle,
                       style: TextStyle(
                         fontSize: 13.sp,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                         color: RC.textPrimary,
-                        height: 1.3,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 5.h),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [
-                        if (hearing.courtName != null)
-                          _MetaChip(
-                            icon: Icons.location_on_outlined,
-                            label: hearing.courtName!,
-                            color: RC.textSecondary,
-                          ),
-                        if (hearing.caseStageName != null)
-                          _MetaChip(
-                            icon: Icons.gavel_outlined,
-                            label: hearing.caseStageName,
-                            color: RC.infoText,
-                            background: RC.infoSurface,
-                          ),
-                      ],
+
+                    // ROW 1: Hearing Title • Location Icon + Court Name (Extracted)
+                    _MetaData(
+                      hearingTitle: hearingTitle,
+                      courtName: courtName,
                     ),
+
+                    // ROW 2: Case Stage Badge
+                    if (hasStage) ...[
+                      SizedBox(height: 3.h),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 6.w, vertical: 2.h),
+                        decoration: BoxDecoration(
+                          color: RC.infoSurface,
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.file_open_rounded,
+                              size: 11.sp,
+                              color: RC.infoText,
+                            ),
+                            SizedBox(width: 4.w),
+                            Flexible(
+                              child: Text(
+                                caseStageName,
+                                style: TextStyle(
+                                  fontSize: 10.5.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: RC.infoText,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -361,257 +399,84 @@ class _DocketTimelineRow extends StatelessWidget {
   }
 }
 
-class _MetaChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final Color? background;
+class _MetaData extends StatelessWidget {
+  final String? hearingTitle;
+  final String? courtName;
 
-  const _MetaChip({
-    required this.icon,
-    required this.label,
-    required this.color,
-    this.background,
+  const _MetaData({
+    required this.hearingTitle,
+    required this.courtName,
   });
 
   @override
   Widget build(BuildContext context) {
-    final row = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 11.sp, color: color),
-        SizedBox(width: 4.w),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10.5.sp,
-            fontWeight: background != null ? FontWeight.w600 : FontWeight.w400,
-            color: color,
-          ),
-        ),
-      ],
-    );
+    final bool hasTitle =
+        hearingTitle != null && hearingTitle!.trim().isNotEmpty;
+    final bool hasCourt = courtName != null && courtName!.trim().isNotEmpty;
 
-    if (background == null) return row;
+    // If both are missing, render nothing (avoids empty spaces)
+    if (!hasTitle && !hasCourt) return const SizedBox.shrink();
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(6.r),
+    return Padding(
+      padding: EdgeInsets.only(top: 2.h),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (hasTitle)
+            Flexible(
+              flex: 2,
+              child: Text(
+                hearingTitle!,
+                style: TextStyle(
+                  fontSize: 11.5.sp,
+                  fontWeight: FontWeight.w500,
+                  color: RC.textSecondary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+
+          // Dot Separator
+          if (hasTitle && hasCourt)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 5.w),
+              child: Container(
+                width: 4.w,
+                height: 4.w,
+                decoration: BoxDecoration(
+                  color: RC.textTertiary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+
+          if (hasCourt) ...[
+            Icon(
+              Icons.location_on_outlined,
+              size: 11.5.sp,
+              color: RC.textTertiary,
+            ),
+            SizedBox(width: 2.w),
+            Flexible(
+              flex: 3,
+              child: Text(
+                courtName!,
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w400,
+                  color: RC.textSecondary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ],
       ),
-      child: row,
     );
   }
 }
-
-///we have to redesign the hearing card in the calendar screen and agenda section
-
-// class _DocketTimeline extends StatelessWidget {
-//   final List<dynamic> hearings; // TodayHearingModel
-//   const _DocketTimeline({required this.hearings});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       decoration: BoxDecoration(
-//         color: RC.surface,
-//         borderRadius: BorderRadius.circular(14.r),
-//         boxShadow: [RC.cardShadow],
-//       ),
-//       child: Column(
-//         children: [
-//           for (int i = 0; i < hearings.length; i++)
-//             _DocketTimelineRow(
-//               hearing: hearings[i],
-//               isLast: i == hearings.length - 1,
-//             ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-//
-// class _DocketTimelineRow extends StatelessWidget {
-//   final dynamic hearing; // TodayHearingModel
-//   final bool isLast;
-//   const _DocketTimelineRow({required this.hearing, required this.isLast});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final Color accent = _accentColor(hearing.urgency);
-//     final String? time = hearing.formattedTime;
-//
-//     // Fallback chain for hearing title — adapt to your actual model field names
-//     final String hearingTitle = (hearing.title ?? 'Hearing').toString();
-//
-//     final String caseTitle = (hearing.caseTitle ?? 'Untitled Case').toString();
-//
-//     return Padding(
-//       padding: EdgeInsets.symmetric(horizontal: 14.w),
-//       child: IntrinsicHeight(
-//         child: Row(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             // ─── Time column ───
-//             SizedBox(
-//               width: 58.w,
-//               child: Padding(
-//                 padding: EdgeInsets.only(top: 16.h),
-//                 child: Text(
-//                   time ?? 'No time',
-//                   style: TextStyle(
-//                     fontSize: 10.5.sp,
-//                     fontWeight: FontWeight.w600,
-//                     color: time != null ? accent : RC.textTertiary,
-//                   ),
-//                 ),
-//               ),
-//             ),
-//
-//             // ─── Dot + connecting rail ───
-//             Column(
-//               children: [
-//                 SizedBox(height: 16.h),
-//                 Container(
-//                   width: 8.w,
-//                   height: 8.w,
-//                   decoration:
-//                       BoxDecoration(color: accent, shape: BoxShape.circle),
-//                 ),
-//                 if (!isLast)
-//                   Expanded(
-//                     child: Container(width: 1.5, color: RC.divider),
-//                   ),
-//               ],
-//             ),
-//             SizedBox(width: 12.w),
-//
-//             // ─── Content ───
-//             Expanded(
-//               child: Padding(
-//                 padding: EdgeInsets.only(top: 12.h, bottom: 16.h),
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     // 1. HEARING TITLE — Primary, most prominent
-//                     Text(
-//                       hearingTitle,
-//                       style: TextStyle(
-//                         fontSize: 13.sp,
-//                         fontWeight: FontWeight.w600,
-//                         color: RC.textPrimary,
-//                         height: 1.3,
-//                       ),
-//                       maxLines: 2,
-//                       overflow: TextOverflow.ellipsis,
-//                     ),
-//
-//                     SizedBox(height: 3.h),
-//
-//                     // 2. CASE TITLE — Secondary context
-//                     Text(
-//                       caseTitle,
-//                       style: TextStyle(
-//                         fontSize: 11.5.sp,
-//                         fontWeight: FontWeight.w500,
-//                         color: RC.textSecondary,
-//                         height: 1.3,
-//                       ),
-//                       maxLines: 1,
-//                       overflow: TextOverflow.ellipsis,
-//                     ),
-//
-//                     SizedBox(height: 6.h),
-//
-//                     // 3. META CHIPS — Location only (stage removed)
-//                     Wrap(
-//                       spacing: 6,
-//                       runSpacing: 4,
-//                       children: [
-//                         if (hearing.courtName != null)
-//                           _MetaChip(
-//                             icon: Icons.location_on_outlined,
-//                             label: hearing.courtName!,
-//                             color: RC.textSecondary,
-//                           ),
-//                         // Optional: If you absolutely need stage here, uncomment below.
-//                         // Keeping it commented enforces the "drop" decision.
-//                         //
-//                         // if (hearing.caseStageName != null)
-//                         //   _MetaChip(
-//                         //     icon: Icons.gavel_outlined,
-//                         //     label: hearing.caseStageName,
-//                         //     color: RC.textSecondary,
-//                         //   ),
-//                       ],
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Color _accentColor(dynamic urgency) {
-//     switch (urgency.toString()) {
-//       case 'DeadlineUrgency.overdue':
-//       case 'DeadlineUrgency.critical':
-//         return RC.danger;
-//       case 'DeadlineUrgency.warning':
-//         return RC.gold;
-//       default:
-//         return RC.navy;
-//     }
-//   }
-// }
-//
-// class _MetaChip extends StatelessWidget {
-//   final IconData icon;
-//   final String label;
-//   final Color color;
-//   final Color? background;
-//
-//   const _MetaChip({
-//     required this.icon,
-//     required this.label,
-//     required this.color,
-//     this.background,
-//   });
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final row = Row(
-//       mainAxisSize: MainAxisSize.min,
-//       children: [
-//         Icon(icon, size: 11.sp, color: color),
-//         SizedBox(width: 4.w),
-//         Text(
-//           label,
-//           style: TextStyle(
-//             fontSize: 10.5.sp,
-//             fontWeight: background != null ? FontWeight.w600 : FontWeight.w400,
-//             color: color,
-//           ),
-//         ),
-//       ],
-//     );
-//
-//     if (background == null) return row;
-//
-//     return Container(
-//       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-//       decoration: BoxDecoration(
-//         color: background,
-//         borderRadius: BorderRadius.circular(6.r),
-//       ),
-//       child: row,
-//     );
-//   }
-// }
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 3. WEEK STRIP — Background highlight so it separates from scaffold
