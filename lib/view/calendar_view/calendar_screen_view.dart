@@ -1975,7 +1975,7 @@ class _HearingDetailRow extends StatelessWidget {
 
     return Container(
       margin: EdgeInsets.fromLTRB(14.w, 0, 14.w, 8.h),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 11.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
         color: RC.background,
         borderRadius: BorderRadius.circular(10.r),
@@ -2005,23 +2005,45 @@ class _HearingDetailRow extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     color: RC.textPrimary,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 4.h),
-                Wrap(spacing: 6, runSpacing: 4, children: [
-                  if (hearing.courtName != null)
-                    _Chip(
-                      icon: Icons.location_on_outlined,
-                      label: hearing.courtName!,
-                      color: RC.textSecondary,
-                    ),
-                  if (hearing.caseStageName != null)
-                    _Chip(
-                      icon: Icons.gavel_outlined,
-                      label: hearing.caseStageName!,
-                      color: RC.infoText,
-                      bg: RC.infoSurface,
-                    ),
-                ]),
+                SizedBox(height: 3.h),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    if (hearing.courtName != null)
+                      _Chip(
+                        icon: Icons.location_on_outlined,
+                        label: hearing.courtName!,
+                        hearingTitle: hearing.title,
+                      ),
+                    if (hearing.caseStageName != null)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 6.w, vertical: 3.h),
+                        decoration: BoxDecoration(
+                            color: RC.infoSurface,
+                            borderRadius: BorderRadius.circular(5.r)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.file_open_rounded,
+                                size: 10.sp, color: RC.infoText),
+                            SizedBox(width: 3.w),
+                            Text(
+                              hearing.caseStageName!,
+                              style: TextStyle(
+                                  fontSize: 10.sp,
+                                  color: RC.infoText,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -2409,29 +2431,55 @@ class _SoftConflictCard extends StatelessWidget {
 class _Chip extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
-  final Color? bg;
-  const _Chip(
-      {required this.icon, required this.label, required this.color, this.bg});
+  final String hearingTitle;
+
+  const _Chip({
+    required this.icon,
+    required this.label,
+    required this.hearingTitle,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
-      decoration: bg != null
-          ? BoxDecoration(color: bg, borderRadius: BorderRadius.circular(5.r))
-          : null,
+      padding: EdgeInsets.symmetric(
+        horizontal: 6.w,
+        vertical: 3.h,
+      ),
+      decoration: BoxDecoration(
+          color: RC.surface, borderRadius: BorderRadius.circular(5.r)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10.sp, color: color),
-          SizedBox(width: 3.w),
+          Text(
+            hearingTitle,
+            style: TextStyle(
+              fontSize: 11.5.sp,
+              fontWeight: FontWeight.w500,
+              color: RC.textSecondary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            child: Container(
+              width: 3.w,
+              height: 3.w,
+              decoration: BoxDecoration(
+                color: RC.textTertiary,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Icon(icon, size: 11.sp, color: RC.textSecondary),
+          SizedBox(width: 2.w),
           Text(
             label,
             style: TextStyle(
                 fontSize: 10.sp,
-                color: color,
-                fontWeight: bg != null ? FontWeight.w500 : FontWeight.normal),
+                color: RC.textSecondary,
+                fontWeight: FontWeight.normal),
           ),
         ],
       ),
