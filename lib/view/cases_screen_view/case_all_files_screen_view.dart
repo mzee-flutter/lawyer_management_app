@@ -10,6 +10,7 @@ import 'package:right_case/view_model/cases_view_model/case_files_view_model.dar
 import 'package:right_case/view_model/cases_view_model/remove_case_file_view_model.dart';
 
 import '../../resources/system_design/rc_theme.dart';
+import '../../resources/system_design/rc_widgets.dart';
 
 class CaseAllFilesScreenView extends StatelessWidget {
   const CaseAllFilesScreenView({super.key});
@@ -139,7 +140,7 @@ class CaseFileCard extends StatelessWidget {
                       size: 22,
                     ),
                     onPressed: () {
-                      _confirmDelete(context);
+                      _confirmDeleteFile(context);
                     },
                   ),
                 ],
@@ -181,110 +182,146 @@ class CaseFileCard extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context) {
-    showDialog(
+  void _confirmDeleteFile(BuildContext context) {
+    RCConfirmDialog.show(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: RC.surface,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'Delete Case',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey.shade800,
-                fontWeight: FontWeight.bold,
-                fontSize: 20.sp,
-              ),
-            ),
-            SizedBox(height: 10.h),
-            Text(
-              "Are you sure you want to delete this file?",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.black87,
-              ),
-            ),
-            SizedBox(height: 10.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: _deleteConformationButtons(
-                    title: "Cancel",
-                    color: Colors.blue,
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: _deleteConformationButtons(
-                    title: "Delete",
-                    color: Colors.red,
-                    onTap: () async {
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                      }
-                      try {
-                        final removedFile =
-                            await removeCaseFileVM.removeFileFromCase(file.id);
-                        caseFilesVM.removeFile(context, removedFile.id);
+      icon: Icons.delete_outline_rounded,
+      iconColor: RC.danger,
+      iconSurface: RC.dangerSurface,
+      title: 'Delete file?',
+      message: 'Are you sure you want to permanently delete this file?',
+      confirmLabel: 'Delete',
+      confirmColor: RC.danger,
+      confirmSurface: RC.dangerSurface,
+      confirmBorder: RC.dangerBorder,
+      onConfirm: () async {
+        try {
+          final removedFile =
+              await removeCaseFileVM.removeFileFromCase(file.id);
+          caseFilesVM.removeFile(context, removedFile.id);
 
-                        if (context.mounted) {
-                          SnakeBars.flutterToast(
-                            "File removed successfully",
-                            context,
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          SnakeBars.flutterToast(
-                            "Failed to remove file",
-                            context,
-                          );
-                        }
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+          if (context.mounted) {
+            SnakeBars.flutterToast(
+              "File removed successfully",
+              context,
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            SnakeBars.flutterToast(
+              "Failed to remove file",
+              context,
+            );
+          }
+        }
+      },
     );
   }
 }
-
-Widget _deleteConformationButtons({
-  required String title,
-  required Color color,
-  required VoidCallback onTap,
-}) {
-  return Container(
-    height: 40.h,
-    width: 75.w,
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(50.r),
-    ),
-    child: InkWell(
-      onTap: onTap,
-      child: Text(
-        title,
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    ),
-  );
-}
+//   void _confirmDelete(BuildContext context) {
+//     showDialog(
+//       context: context,
+//       builder: (_) => AlertDialog(
+//         backgroundColor: RC.surface,
+//         content: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           crossAxisAlignment: CrossAxisAlignment.center,
+//           children: [
+//             Text(
+//               'Delete Case',
+//               textAlign: TextAlign.center,
+//               style: TextStyle(
+//                 color: Colors.grey.shade800,
+//                 fontWeight: FontWeight.bold,
+//                 fontSize: 20.sp,
+//               ),
+//             ),
+//             SizedBox(height: 10.h),
+//             Text(
+//               "Are you sure you want to delete this file?",
+//               textAlign: TextAlign.center,
+//               style: TextStyle(
+//                 color: Colors.black87,
+//               ),
+//             ),
+//             SizedBox(height: 10.h),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               children: [
+//                 Expanded(
+//                   child: _deleteConformationButtons(
+//                     title: "Cancel",
+//                     color: Colors.blue,
+//                     onTap: () {
+//                       Navigator.pop(context);
+//                     },
+//                   ),
+//                 ),
+//                 SizedBox(width: 10.w),
+//                 Expanded(
+//                   child: _deleteConformationButtons(
+//                     title: "Delete",
+//                     color: Colors.red,
+//                     onTap: () async {
+//                       if (context.mounted) {
+//                         Navigator.pop(context);
+//                       }
+//                       try {
+//                         final removedFile =
+//                             await removeCaseFileVM.removeFileFromCase(file.id);
+//                         caseFilesVM.removeFile(context, removedFile.id);
+//
+//                         if (context.mounted) {
+//                           SnakeBars.flutterToast(
+//                             "File removed successfully",
+//                             context,
+//                           );
+//                         }
+//                       } catch (e) {
+//                         if (context.mounted) {
+//                           SnakeBars.flutterToast(
+//                             "Failed to remove file",
+//                             context,
+//                           );
+//                         }
+//                       }
+//                     },
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+//
+// Widget _deleteConformationButtons({
+//   required String title,
+//   required Color color,
+//   required VoidCallback onTap,
+// }) {
+//   return Container(
+//     height: 40.h,
+//     width: 75.w,
+//     alignment: Alignment.center,
+//     decoration: BoxDecoration(
+//       color: color,
+//       borderRadius: BorderRadius.circular(50.r),
+//     ),
+//     child: InkWell(
+//       onTap: onTap,
+//       child: Text(
+//         title,
+//         style: TextStyle(
+//           color: Colors.white,
+//           fontWeight: FontWeight.w500,
+//         ),
+//       ),
+//     ),
+//   );
+// }
 
 class _FileIcon extends StatelessWidget {
   final String filename;
