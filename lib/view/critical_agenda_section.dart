@@ -336,9 +336,11 @@ class _DocketTimelineRow extends StatelessWidget {
                     ),
 
                     // ROW 1: Hearing Title • Location Icon + Court Name (Extracted)
-                    _MetaData(
-                      hearingTitle: hearingTitle,
-                      courtName: courtName,
+                    Expanded(
+                      child: _MetaData(
+                        hearingTitle: hearingTitle,
+                        courtName: courtName,
+                      ),
                     ),
 
                     // ROW 2: Case Stage Badge
