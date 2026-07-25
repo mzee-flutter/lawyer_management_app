@@ -125,6 +125,7 @@ class _TabBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(10.r),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _TabButton(
               label: 'Bench Roster',
@@ -163,8 +164,9 @@ class _TabButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
+          alignment: Alignment.center,
           duration: const Duration(milliseconds: 200),
-          margin: EdgeInsets.all(3.w),
+          margin: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
             color: isActive ? RC.surface : Colors.transparent,
             borderRadius: BorderRadius.circular(8.r),
