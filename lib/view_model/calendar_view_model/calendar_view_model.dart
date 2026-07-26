@@ -1,14 +1,3 @@
-// lib/viewmodels/calendar_viewmodel.dart
-//
-// Drives the entire calendar screen.
-// Follows your AgendaViewModel pattern with ChangeNotifier.
-//
-// Responsibilities:
-//   - Month navigation (prev/next with auto-fetch)
-//   - Selected day detail panel state
-//   - Adjournment history loading (per case, on demand)
-//   - Cache: stores fetched months so navigating back is instant
-
 import 'package:flutter/foundation.dart';
 
 import '../../models/case_models/calendar_hearing_model.dart';
