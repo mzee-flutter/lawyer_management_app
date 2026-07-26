@@ -1,11 +1,3 @@
-// lib/viewmodels/court_portal_viewmodel.dart
-//
-// Drives the entire Court Portal screen.
-// Follows your AgendaViewModel / CalendarViewModel pattern.
-//
-// Two domains, one ViewModel — they share the same screen.
-// Tab selection (roster vs copies) is state here, not in the widget.
-
 import 'package:flutter/foundation.dart';
 
 import '../../../models/case_models/court_portal_model.dart';
