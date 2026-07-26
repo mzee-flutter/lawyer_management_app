@@ -13,10 +13,50 @@ class HearingCreateViewModel with ChangeNotifier {
   DateTime? _hearingDateTime;
   DateTime? get hearingDateTime => _hearingDateTime;
 
+  // True only if the lawyer explicitly picked a time via setHearingTime.
+  // Most hearings are cause-list date entries with no fixed clock time —
+  // this stays false unless the lawyer opts in.
+  bool _hasSpecificTime = false;
+  bool get hasSpecificTime => _hasSpecificTime;
+
   void setHearingDateTime(DateTime? date) {
     if (date != null) {
-      _hearingDateTime = date;
+      if (_hasSpecificTime && _hearingDateTime != null) {
+        // A time was already picked — keep it when the date changes.
+        _hearingDateTime = DateTime(
+          date.year,
+          date.month,
+          date.day,
+          _hearingDateTime!.hour,
+          _hearingDateTime!.minute,
+        );
+      } else {
+        _hearingDateTime = DateTime(date.year, date.month, date.day);
+      }
     }
+    notifyListeners();
+  }
+
+  /// Sets or clears the specific time-of-day for the currently selected
+  /// date. Pass null to remove a previously set time and fall back to
+  /// date-only (the backend will anchor it to the default court hour).
+  void setHearingTime(TimeOfDay? time) {
+    if (_hearingDateTime == null) return;
+
+    _hasSpecificTime = time != null;
+    _hearingDateTime = time != null
+        ? DateTime(
+            _hearingDateTime!.year,
+            _hearingDateTime!.month,
+            _hearingDateTime!.day,
+            time.hour,
+            time.minute,
+          )
+        : DateTime(
+            _hearingDateTime!.year,
+            _hearingDateTime!.month,
+            _hearingDateTime!.day,
+          );
     notifyListeners();
   }
 
@@ -33,6 +73,7 @@ class HearingCreateViewModel with ChangeNotifier {
     final hearing = HearingCreateModel(
       title: hearingTitleController.text.trim(),
       hearingDateTime: _hearingDateTime ?? DateTime.now(),
+      hasSpecificTime: _hasSpecificTime,
       notes: hearingNotesController.text.trim(),
     );
 
@@ -60,6 +101,7 @@ class HearingCreateViewModel with ChangeNotifier {
 
   void resetFields() {
     _hearingDateTime = null;
+    _hasSpecificTime = false;
     hearingTitleController.clear();
     hearingNotesController.clear();
   }
