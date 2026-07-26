@@ -98,11 +98,11 @@ class HearingInfoCard extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          _ActionIcon(
-                              icon: Icons.settings_outlined,
-                              color: RC.textSecondary,
-                              onTap: onManage),
-                          SizedBox(width: 8.w),
+                          // _ActionIcon(
+                          //     icon: Icons.settings_outlined,
+                          //     color: RC.textSecondary,
+                          //     onTap: onManage),
+                          // SizedBox(width: 8.w),
                           _ActionIcon(
                               icon: Icons.edit_outlined,
                               color: RC.gold,

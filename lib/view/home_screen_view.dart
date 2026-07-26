@@ -70,6 +70,7 @@ class HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: RC.navy,
         elevation: 0,
+        actionsPadding: EdgeInsets.only(right: 24.w),
         iconTheme: const IconThemeData(color: RC.textOnDark),
         titleSpacing: 0,
         title: Row(
@@ -136,14 +137,6 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
               );
             },
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: const Icon(Icons.account_circle_outlined,
-                  color: RC.textOnDarkMuted, size: 24),
-              onPressed: () {},
-            ),
           ),
         ],
       ),
