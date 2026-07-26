@@ -54,6 +54,11 @@ abstract final class RC {
         blurRadius: 10,
         offset: const Offset(0, 3),
       );
+  static BoxShadow get subtleShadow => BoxShadow(
+        color: Colors.black.withValues(alpha: 0.04),
+        blurRadius: 6,
+        offset: const Offset(0, 2),
+      );
 
   // Type scale — matches case_detail_info_screen_view.dart exactly
   static TextStyle display(
