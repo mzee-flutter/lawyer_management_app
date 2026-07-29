@@ -834,142 +834,333 @@ class _EdgeCard extends StatelessWidget {
 // 5. EMPTY STATE — Centered, no extra horizontal padding (parent handles it)
 // ═════════════════════════════════════════════════════════════════════════════
 
+// class _EmptyState extends StatelessWidget {
+//   const _EmptyState();
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final now = DateTime.now();
+//     const months = [
+//       'January',
+//       'February',
+//       'March',
+//       'April',
+//       'May',
+//       'June',
+//       'July',
+//       'August',
+//       'September',
+//       'October',
+//       'November',
+//       'December'
+//     ];
+//     const weekdays = [
+//       'Monday',
+//       'Tuesday',
+//       'Wednesday',
+//       'Thursday',
+//       'Friday',
+//       'Saturday',
+//       'Sunday'
+//     ];
+//
+//     return Center(
+//       child: Column(
+//         mainAxisAlignment: MainAxisAlignment.center,
+//         children: [
+//           SizedBox(height: 100.h),
+//           Text(
+//             '${now.day}',
+//             style: TextStyle(
+//               fontSize: 72.sp,
+//               fontWeight: FontWeight.w200,
+//               color: RC.textTertiary.withValues(alpha: 0.25),
+//               height: 1.0,
+//               fontFeatures: const [FontFeature.tabularFigures()],
+//             ),
+//           ),
+//           SizedBox(height: 8.h),
+//           Text(
+//             weekdays[now.weekday - 1],
+//             style: TextStyle(
+//               fontSize: 17.sp,
+//               fontWeight: FontWeight.w600,
+//               color: RC.textPrimary,
+//               letterSpacing: -0.3,
+//             ),
+//           ),
+//           Text(
+//             '${months[now.month - 1]} ${now.year}',
+//             style: TextStyle(
+//               fontSize: 14.sp,
+//               color: RC.textSecondary,
+//             ),
+//           ),
+//           SizedBox(height: 36.h),
+//           Container(
+//             width: 40.w,
+//             height: 0.5,
+//             color: RC.divider,
+//           ),
+//           SizedBox(height: 36.h),
+//           Text(
+//             'Your docket is clear',
+//             style: TextStyle(
+//               fontSize: 20.sp,
+//               fontWeight: FontWeight.w500,
+//               color: RC.textPrimary,
+//               letterSpacing: -0.4,
+//             ),
+//           ),
+//           SizedBox(height: 6.h),
+//           Text(
+//             'No hearings or deadlines require attention.',
+//             style: TextStyle(
+//               fontSize: 14.sp,
+//               color: RC.textSecondary,
+//               height: 1.45,
+//             ),
+//             textAlign: TextAlign.center,
+//           ),
+//           SizedBox(height: 40.h),
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               _GhostButton(
+//                 label: 'View Cases',
+//                 onTap: () => context.pushNamed(RoutesName.casesListScreen),
+//               ),
+//               SizedBox(width: 12.w),
+//               _GhostButton(
+//                 label: 'Calendar',
+//                 onTap: () => context.pushNamed(RoutesName.calendarScreen),
+//               ),
+//             ],
+//           ),
+//           SizedBox(height: 80.h),
+//         ],
+//       ),
+//     );
+//   }
+// }
+//
+// class _GhostButton extends StatelessWidget {
+//   final String label;
+//   final VoidCallback onTap;
+//
+//   const _GhostButton({required this.label, required this.onTap});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: onTap,
+//       child: Container(
+//         padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
+//         decoration: BoxDecoration(
+//           border: Border.all(
+//             color: RC.divider.withValues(alpha: 0.8),
+//             width: 0.5,
+//           ),
+//           borderRadius: BorderRadius.circular(8.r),
+//         ),
+//         child: Text(
+//           label,
+//           style: TextStyle(
+//             fontSize: 13.sp,
+//             fontWeight: FontWeight.w600,
+//             color: RC.navy,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-    const weekdays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday'
-    ];
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(height: 100.h),
-          Text(
-            '${now.day}',
-            style: TextStyle(
-              fontSize: 72.sp,
-              fontWeight: FontWeight.w200,
-              color: RC.textTertiary.withValues(alpha: 0.25),
-              height: 1.0,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
+    return Column(
+      children: [
+        SizedBox(height: 8.h),
+        // Main empty card
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 28.h),
+          decoration: BoxDecoration(
+            color: RC.surface,
+            borderRadius: BorderRadius.circular(16.r),
+            boxShadow: [RC.cardShadow],
           ),
-          SizedBox(height: 8.h),
-          Text(
-            weekdays[now.weekday - 1],
-            style: TextStyle(
-              fontSize: 17.sp,
-              fontWeight: FontWeight.w600,
-              color: RC.textPrimary,
-              letterSpacing: -0.3,
-            ),
-          ),
-          Text(
-            '${months[now.month - 1]} ${now.year}',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: RC.textSecondary,
-            ),
-          ),
-          SizedBox(height: 36.h),
-          Container(
-            width: 40.w,
-            height: 0.5,
-            color: RC.divider,
-          ),
-          SizedBox(height: 36.h),
-          Text(
-            'Your docket is clear',
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w500,
-              color: RC.textPrimary,
-              letterSpacing: -0.4,
-            ),
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            'No hearings or deadlines require attention.',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: RC.textSecondary,
-              height: 1.45,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 40.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
             children: [
-              _GhostButton(
-                label: 'View Cases',
-                onTap: () => context.pushNamed(RoutesName.casesListScreen),
+              // Illustration — scales/gavel icon in a navy circle
+              Container(
+                width: 64.w,
+                height: 64.w,
+                decoration: BoxDecoration(
+                  color: RC.navy.withValues(alpha: 0.07),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.balance_outlined,
+                  size: 30.sp,
+                  color: RC.navy.withValues(alpha: 0.5),
+                ),
               ),
-              SizedBox(width: 12.w),
-              _GhostButton(
-                label: 'Calendar',
-                onTap: () => context.pushNamed(RoutesName.calendarScreen),
+              SizedBox(height: 16.h),
+              Text(
+                'No hearings scheduled today',
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w600,
+                  color: RC.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 6.h),
+              Text(
+                'Your docket is clear. Add a hearing to a case\nto see it appear here.',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: RC.textSecondary,
+                  height: 1.55,
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
-          SizedBox(height: 80.h),
-        ],
-      ),
+        ),
+
+        SizedBox(height: 14.h),
+
+        // "What you can do" quick links row
+        Row(
+          children: [
+            Expanded(
+              child: _EmptyActionCard(
+                icon: Icons.cases_outlined,
+                label: 'View cases',
+                sublabel: 'Open a case to add a hearing',
+                color: RC.navy,
+                onTap: () {
+                  context.pushNamed(RoutesName.casesListScreen);
+                },
+              ),
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: _EmptyActionCard(
+                icon: Icons.calendar_month_outlined,
+                label: 'Check calendar',
+                sublabel: 'See all upcoming hearings',
+                color: RC.gold,
+                onTap: () {
+                  context.pushNamed(RoutesName.calendarScreen);
+                },
+              ),
+            ),
+          ],
+        ),
+
+        SizedBox(height: 14.h),
+
+        // Motivational context strip — subtle, not clingy
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 11.h),
+          decoration: BoxDecoration(
+            color: RC.navy.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(color: RC.divider),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.tips_and_updates_outlined,
+                  size: 15.sp, color: RC.textSecondary),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Text(
+                  'Hearings within 3 days will appear as deadline cards automatically.',
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: RC.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 8.h),
+      ],
     );
   }
 }
 
-class _GhostButton extends StatelessWidget {
+class _EmptyActionCard extends StatelessWidget {
+  final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final String sublabel;
+  final Color color;
+  final Function() onTap;
 
-  const _GhostButton({required this.label, required this.onTap});
+  const _EmptyActionCard({
+    required this.icon,
+    required this.label,
+    required this.sublabel,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: RC.divider.withValues(alpha: 0.8),
-            width: 0.5,
-          ),
-          borderRadius: BorderRadius.circular(8.r),
+          color: RC.surface,
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: [RC.cardShadow],
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13.sp,
-            fontWeight: FontWeight.w600,
-            color: RC.navy,
-          ),
+        child: Row(
+          children: [
+            Container(
+              width: 34.w,
+              height: 34.w,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.09),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Icon(icon, size: 17.sp, color: color),
+            ),
+            SizedBox(width: 9.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w600,
+                      color: RC.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    sublabel,
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      color: RC.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
