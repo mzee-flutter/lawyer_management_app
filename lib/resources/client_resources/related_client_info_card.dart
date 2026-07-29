@@ -2,26 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:right_case/models/client_models/client_model.dart';
+import 'package:right_case/resources/system_design/rc_theme.dart';
+import 'package:right_case/resources/system_design/rc_widgets.dart';
 import 'package:right_case/view_model/services/contact_service.dart';
-
-class _RC {
-  static const navy = Color(0xFF1A2744);
-  static const gold = Color(0xFFC8952A);
-  static const surface = Color(0xFFFFFFFF);
-  static const background = Color(0xFFF7F5F1);
-  static const textPrimary = Color(0xFF111827);
-  static const textSecondary = Color(0xFF6B7280);
-  static const textTertiary = Color(0xFF9CA3AF);
-  static const danger = Color(0xFFB91C1C);
-  static const dangerSurface = Color(0xFFFEF2F2);
-  static const divider = Color(0xFFE5E1D8);
-
-  static BoxShadow get card => BoxShadow(
-        color: Colors.black.withValues(alpha: 0.05),
-        blurRadius: 8,
-        offset: const Offset(0, 2),
-      );
-}
 
 class RelatedClientInfoCard extends StatelessWidget {
   final bool isSynced;
@@ -43,9 +26,9 @@ class RelatedClientInfoCard extends StatelessWidget {
       opacity: isSynced ? 1.0 : 0.65,
       child: Container(
         decoration: BoxDecoration(
-          color: _RC.surface,
+          color: RC.surface,
           borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [_RC.card],
+          boxShadow: [RC.cardShadow],
         ),
         child: Column(
           children: [
@@ -60,7 +43,7 @@ class RelatedClientInfoCard extends StatelessWidget {
                     height: 40.w,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: _RC.navy,
+                      color: RC.navy,
                       borderRadius: BorderRadius.circular(10.r),
                     ),
                     child: Text(
@@ -85,14 +68,14 @@ class RelatedClientInfoCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
-                            color: _RC.textPrimary,
+                            color: RC.textPrimary,
                           ),
                         ),
                         SizedBox(height: 2.h),
                         Text(
                           client.phone.toString(),
                           style: TextStyle(
-                              fontSize: 12.sp, color: _RC.textSecondary),
+                              fontSize: 12.sp, color: RC.textSecondary),
                         ),
                       ],
                     ),
@@ -103,16 +86,17 @@ class RelatedClientInfoCard extends StatelessWidget {
                         size: 18.sp, color: Colors.orange.shade700)
                   else
                     InkWell(
-                      onTap: () => _confirmRemove(context),
+                      onTap: () =>
+                          _confirmRemove(context, () => onRemoveFromCase),
                       borderRadius: BorderRadius.circular(8.r),
                       child: Container(
                         padding: EdgeInsets.all(6.r),
                         decoration: BoxDecoration(
-                          color: _RC.dangerSurface,
+                          color: RC.dangerSurface,
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Icon(Icons.person_remove_outlined,
-                            size: 16.sp, color: _RC.danger),
+                            size: 16.sp, color: RC.danger),
                       ),
                     ),
                 ],
@@ -122,7 +106,7 @@ class RelatedClientInfoCard extends StatelessWidget {
             // ── Divider ────────────────────────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-              child: Divider(color: _RC.divider, height: 1, thickness: 0.5),
+              child: Divider(color: RC.divider, height: 1, thickness: 0.5),
             ),
 
             // ── Contact actions ────────────────────────────
@@ -136,14 +120,14 @@ class RelatedClientInfoCard extends StatelessWidget {
                       Text(
                         'Contact now',
                         style:
-                            TextStyle(fontSize: 11.sp, color: _RC.textTertiary),
+                            TextStyle(fontSize: 11.sp, color: RC.textTertiary),
                       ),
                       Text(
                         'Call & Message',
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
-                          color: _RC.textPrimary,
+                          color: RC.textPrimary,
                         ),
                       ),
                     ],
@@ -173,30 +157,18 @@ class RelatedClientInfoCard extends StatelessWidget {
     );
   }
 
-  void _confirmRemove(BuildContext context) {
-    showDialog(
+  void _confirmRemove(BuildContext context, VoidCallback? onDelete) {
+    RCConfirmDialog.show(
       context: context,
-      builder: (_) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
-        title: const Text('Remove client?'),
-        content: const Text(
-            'This only removes the client from this case, not from the app.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: _RC.danger),
-            onPressed: () {
-              Navigator.pop(context);
-              onRemoveFromCase();
-            },
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
+      icon: Icons.person_off_outlined,
+      iconColor: RC.danger,
+      iconSurface: RC.dangerSurface,
+      title: "Remove Client?",
+      message: 'This only removes the client from this case, not from the app.',
+      confirmLabel: "Remove",
+      confirmColor: RC.danger,
+      confirmSurface: RC.dangerSurface,
+      onConfirm: () async => onRemoveFromCase(),
     );
   }
 }
