@@ -17,32 +17,6 @@ import '../../resources/case_resources/case_info_card.dart';
 import 'case_detail_info_screen_view.dart';
 import 'case_update_screen_view.dart';
 
-class _RC {
-  static const navy = Color(0xFF1A2744);
-  static const gold = Color(0xFFC8952A);
-  static const goldLight = Color(0xFFFAEDD4);
-  static const background = Color(0xFFF7F5F1);
-  static const surface = Color(0xFFFFFFFF);
-  static const textPrimary = Color(0xFF111827);
-  static const textSecondary = Color(0xFF6B7280);
-  static const textTertiary = Color(0xFF9CA3AF);
-  static const textOnDark = Color(0xFFFFFFFF);
-  static const textOnDarkMuted = Color(0xFFB8C4D8);
-  static const danger = Color(0xFFB91C1C);
-  static const dangerSurface = Color(0xFFFEF2F2);
-  static const dangerBorder = Color(0xFFFECACA);
-  static const warningText = Color(0xFF92400E);
-  static const warningSurface = Color(0xFFFFFBEB);
-  static const warningBorder = Color(0xFFFDE68A);
-  static const divider = Color(0xFFE5E1D8);
-
-  static BoxShadow get card => BoxShadow(
-        color: Colors.black.withValues(alpha: 0.055),
-        blurRadius: 10,
-        offset: const Offset(0, 3),
-      );
-}
-
 class CasesListScreen extends StatefulWidget {
   const CasesListScreen({super.key});
   @override
@@ -94,7 +68,7 @@ class _CasesListScreenState extends State<CasesListScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: _RC.background,
+        backgroundColor: RC.background,
         appBar: _buildAppBar(context),
         body: Consumer<CaseListViewModel>(
           builder: (_, vm, __) {
@@ -121,7 +95,7 @@ class _CasesListScreenState extends State<CasesListScreen> {
             }
 
             return RefreshIndicator(
-              color: _RC.navy,
+              color: RC.navy,
               onRefresh: () async {
                 await vm.fetchCaseList(loadMore: false, isRefresh: true);
                 if (!context.mounted) return;
@@ -167,17 +141,17 @@ class _CasesListScreenState extends State<CasesListScreen> {
                     child: Center(
                       child: vm.isLoadingMore
                           ? CircularProgressIndicator(
-                              color: _RC.navy, strokeWidth: 2)
+                              color: RC.navy, strokeWidth: 2)
                           : vm.hasError
                               ? TextButton.icon(
                                   onPressed: () =>
                                       vm.fetchCaseList(loadMore: true),
                                   icon: Icon(Icons.refresh_rounded,
-                                      size: 16.sp, color: _RC.navy),
+                                      size: 16.sp, color: RC.navy),
                                   label: Text(
                                     "Couldn't load more · Tap to retry",
                                     style: TextStyle(
-                                        color: _RC.navy,
+                                        color: RC.navy,
                                         fontSize: 12.sp,
                                         fontWeight: FontWeight.w600),
                                   ),
@@ -200,7 +174,7 @@ class _CasesListScreenState extends State<CasesListScreen> {
               opacity: visible ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 280),
               child: FloatingActionButton.extended(
-                backgroundColor: _RC.navy,
+                backgroundColor: RC.navy,
                 icon: const Icon(Icons.cases_outlined, color: Colors.white),
                 label: const Text('Add Case',
                     style: TextStyle(
@@ -216,7 +190,7 @@ class _CasesListScreenState extends State<CasesListScreen> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: _RC.navy,
+      backgroundColor: RC.navy,
       elevation: 0,
       iconTheme: const IconThemeData(color: Colors.white),
       title: _showSearch
@@ -228,7 +202,7 @@ class _CasesListScreenState extends State<CasesListScreen> {
               decoration: InputDecoration(
                 hintText: 'Search cases…',
                 hintStyle: TextStyle(
-                  color: _RC.textOnDarkMuted,
+                  color: RC.textOnDarkMuted,
                   fontSize: 15.sp,
                 ),
                 border: InputBorder.none,
@@ -249,8 +223,8 @@ class _CasesListScreenState extends State<CasesListScreen> {
                   if (vm.filterCases.isNotEmpty)
                     Text(
                       '${vm.filterCases.length} active',
-                      style: TextStyle(
-                          fontSize: 11.sp, color: _RC.textOnDarkMuted),
+                      style:
+                          TextStyle(fontSize: 11.sp, color: RC.textOnDarkMuted),
                     ),
                 ],
               ),
@@ -301,7 +275,7 @@ class _DeleteCaseSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: _RC.surface,
+        color: RC.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 32.h),
@@ -323,11 +297,11 @@ class _DeleteCaseSheet extends StatelessWidget {
             width: 56.w,
             height: 56.w,
             decoration: BoxDecoration(
-              color: _RC.dangerSurface,
+              color: RC.dangerSurface,
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.delete_outline_rounded,
-                size: 26.sp, color: _RC.danger),
+                size: 26.sp, color: RC.danger),
           ),
           SizedBox(height: 12.h),
           Text(
@@ -335,14 +309,14 @@ class _DeleteCaseSheet extends StatelessWidget {
             style: TextStyle(
                 fontSize: 17.sp,
                 fontWeight: FontWeight.w600,
-                color: _RC.textPrimary),
+                color: RC.textPrimary),
           ),
           SizedBox(height: 6.h),
           Text(
             '${caseData.firstPartyName} vs. '
             '${caseData.oppositePartyName ?? '—'}',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13.sp, color: _RC.textSecondary),
+            style: TextStyle(fontSize: 13.sp, color: RC.textSecondary),
           ),
           SizedBox(height: 20.h),
           Consumer<CaseArchiveViewModel>(
@@ -351,8 +325,8 @@ class _DeleteCaseSheet extends StatelessWidget {
               label: 'Archive',
               subtitle: 'Hide from active list. Can be restored later.',
               color: const Color(0xFF92400E),
-              surface: _RC.warningSurface,
-              border: _RC.warningBorder,
+              surface: RC.warningSurface,
+              border: RC.warningBorder,
               onTap: () async {
                 await vm.archiveCase(context, caseData.id);
                 if (context.mounted) {
@@ -368,9 +342,9 @@ class _DeleteCaseSheet extends StatelessWidget {
               icon: Icons.delete_forever_outlined,
               label: 'Delete permanently',
               subtitle: 'This cannot be undone.',
-              color: _RC.danger,
-              surface: _RC.dangerSurface,
-              border: _RC.dangerBorder,
+              color: RC.danger,
+              surface: RC.dangerSurface,
+              border: RC.dangerBorder,
               onTap: () async {
                 await vm.deleteCasePermanent(context, caseData.id);
                 if (context.mounted) Navigator.of(context).pop();
@@ -392,7 +366,7 @@ class _DeleteCaseSheet extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
-                    color: _RC.textSecondary),
+                    color: RC.textSecondary),
               ),
             ),
           ),
@@ -494,14 +468,14 @@ class _EmptyState extends StatelessWidget {
               width: 72.w,
               height: 72.w,
               decoration: BoxDecoration(
-                color: _RC.navy.withValues(alpha: 0.07),
+                color: RC.navy.withValues(alpha: 0.07),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isSearching
                     ? Icons.search_off_rounded
-                    : FontAwesomeIcons.folderOpen,
-                color: _RC.navy.withValues(alpha: 0.4),
+                    : FontAwesomeIcons.folder.data,
+                color: RC.navy.withValues(alpha: 0.4),
                 size: 32.sp,
               ),
             ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
@@ -556,12 +530,12 @@ class _ErrorState extends StatelessWidget {
               width: 72.w,
               height: 72.w,
               decoration: BoxDecoration(
-                color: _RC.danger.withValues(alpha: 0.08),
+                color: RC.danger.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.cloud_off_rounded,
-                color: _RC.danger,
+                color: RC.danger,
                 size: 32.sp,
               ),
             ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
@@ -572,7 +546,7 @@ class _ErrorState extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: FontWeight.w600,
-                color: _RC.textPrimary,
+                color: RC.textPrimary,
                 letterSpacing: -0.2,
               ),
             )
@@ -585,7 +559,7 @@ class _ErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: _RC.textSecondary,
+                color: RC.textSecondary,
                 height: 1.4,
               ),
             )
@@ -596,8 +570,8 @@ class _ErrorState extends StatelessWidget {
             TextButton.icon(
               onPressed: onRetry,
               style: TextButton.styleFrom(
-                foregroundColor: _RC.navy,
-                backgroundColor: _RC.navy.withValues(alpha: 0.06),
+                foregroundColor: RC.navy,
+                backgroundColor: RC.navy.withValues(alpha: 0.06),
                 elevation: 0,
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
                 shape: RoundedRectangleBorder(
