@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:right_case/resources/system_design/rc_theme.dart';
 import 'package:right_case/view/critical_agenda_section.dart';
+import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/scan_hearing_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/hearing_create_view_model/today_and_upcoming_hearing_view_model.dart';
 
 import '../utils/routes/routes_names.dart';
@@ -155,30 +156,48 @@ class HomeScreenState extends State<HomeScreen> {
         ),
         padding: EdgeInsets.only(
           top: 12.h,
-          left: 8.w,
-          right: 8.w,
+          left: 4.w,
+          right: 4.w,
           bottom: MediaQuery.of(context).padding.bottom + 10.h,
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _BottomNavButton(
-              label: 'Add Client',
-              icon: Icons.person_add_outlined,
-              onTap: () => context.pushNamed(RoutesName.addClientScreen),
+            Expanded(
+              child: _BottomNavButton(
+                label: 'Add Client',
+                icon: Icons.person_add_outlined,
+                onTap: () => context.pushNamed(RoutesName.addClientScreen),
+              ),
             ),
-            _BottomNavButton(
-              label: 'Add Case',
-              icon: Icons.cases_outlined,
-              onTap: () => context.pushNamed(RoutesName.caseCreateScreen),
+            Expanded(
+              child: _BottomNavButton(
+                label: 'Add Case',
+                icon: Icons.cases_outlined,
+                onTap: () => context.pushNamed(RoutesName.caseCreateScreen),
+              ),
             ),
-            _BottomNavButton(
-              label: 'Add Task',
-              icon: Icons.playlist_add_check_outlined,
-              onTap: () {
-                context.pushNamed(RoutesName.legalTaskScreenView);
-              },
-              isPrimary: true, // Gold accent for the primary CTA
+            Expanded(
+              child: _BottomNavButton(
+                label: 'Scan Doc',
+                icon: Icons.document_scanner_outlined,
+                onTap: () {
+                  // Clears any leftover state from a previous scan session
+                  // (e.g. the lawyer backed out mid-flow last time) so this
+                  // always opens on a clean capture screen.
+                  context.read<ScanHearingViewModel>().resetWorkflow();
+                  context.pushNamed(RoutesName.scanHearingScreen);
+                },
+              ),
+            ),
+            Expanded(
+              child: _BottomNavButton(
+                label: 'Add Task',
+                icon: Icons.playlist_add_check_outlined,
+                onTap: () {
+                  context.pushNamed(RoutesName.legalTaskScreenView);
+                },
+                isPrimary: true, // Gold accent for the primary CTA
+              ),
             ),
           ],
         ),
@@ -449,7 +468,11 @@ class _BottomNavButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.r),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+        // No fixed horizontal padding — each button now fills exactly
+        // 1/4 of the row (via the Expanded it's wrapped in above), so
+        // width comes from the layout, not from the button's own content.
+        margin: EdgeInsets.symmetric(horizontal: 3.w),
+        padding: EdgeInsets.symmetric(vertical: 8.h),
         decoration: isPrimary
             ? BoxDecoration(
                 color: RC.gold,
@@ -465,8 +488,15 @@ class _BottomNavButton extends StatelessWidget {
               color: isPrimary ? RC.textOnDark : RC.textOnDarkMuted,
             ),
             SizedBox(height: 4.h),
+            // Guards against overflow on narrow screens — truncates
+            // gracefully to an ellipsis instead of wrapping or forcing
+            // the row wider than its available space.
             Text(
               label,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w500,
