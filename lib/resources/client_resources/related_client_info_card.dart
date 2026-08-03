@@ -144,7 +144,7 @@ class RelatedClientInfoCard extends StatelessWidget {
                   ),
                   SizedBox(width: 8.w),
                   _ContactBtn(
-                    icon: FontAwesomeIcons.whatsapp,
+                    icon: FontAwesomeIcons.whatsapp.data,
                     onTap: () => _contact.openWhatsApp(context, client.phone),
                     isWhatsApp: true,
                   ),

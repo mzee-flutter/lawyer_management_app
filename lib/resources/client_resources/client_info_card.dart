@@ -113,7 +113,7 @@ class ClientInfoCard extends StatelessWidget {
                     onTap: () => _contact.sendSMS(context, client.phone)),
                 SizedBox(width: 8.w),
                 _ContactBtn(
-                  icon: FontAwesomeIcons.whatsapp,
+                  icon: FontAwesomeIcons.whatsapp.data,
                   onTap: () => _contact.openWhatsApp(context, client.phone),
                   isWhatsApp: true,
                 ),
