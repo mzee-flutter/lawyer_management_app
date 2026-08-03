@@ -17,4 +17,5 @@ class RoutesName {
   static const String legalTaskScreenView = "legal_task_screen_view";
   static const String forgotPasswordFlowScreen = "forgot_password_flow_screen";
   static const String changePasswordScreen = "change_password_screen";
+  static const String scanHearingScreen = "scanner_screen_view";
 }

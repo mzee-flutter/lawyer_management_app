@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:right_case/utils/routes/routes_names.dart';
 import 'package:right_case/view/auth_view/change_password_screen.dart';
 import 'package:right_case/view/auth_view/forgot_password_flow_screen.dart';
+import 'package:right_case/view/cases_screen_view/scan_hearing_screen_view.dart';
 
 import '../../view/calendar_view/calendar_screen_view.dart';
 import '../../view/cases_screen_view/case_create_screen.dart';
@@ -143,6 +144,11 @@ class AppRouter {
             caseId: state.pathParameters['caseId']!,
             hearingId: state.uri.queryParameters['hearingId'],
           ),
+        ),
+        GoRoute(
+          path: "/scanner",
+          name: RoutesName.scanHearingScreen,
+          builder: (context, state) => ScanHearingScreenView(),
         ),
       ],
       errorBuilder: (context, state) {
