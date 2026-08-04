@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, func, Text
+from sqlalchemy import Column, String, DateTime, func, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database.base import Base
@@ -8,6 +8,7 @@ class Client(Base):
     __tablename__ = "client" 
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id= Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     name = Column(String, nullable=False, index=True)
     email = Column(String, index=True)  
     phone = Column(String, index=True)
@@ -22,8 +23,5 @@ class Client(Base):
     
     cases = relationship(
         "CaseRelatedClient",
-        backref="client",
+        back_populates="client",
     )
-    # tasks = relationship("Task", back_populates="client", cascade="all, delete-orphan")
-    # documents = relationship("Document", back_populates="client", cascade="all, delete-orphan")
-    # notes_rel = relationship("Note", back_populates="client", cascade="all, delete-orphan")
