@@ -1,180 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:right_case/models/case_models/case_model.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:right_case/view/cases_screen_view/case_all_files_screen_view.dart';
+import 'package:right_case/view_model/cases_view_model/case_files_service_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_files_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/remove_case_file_view_model.dart';
 
-class CaseAllFilesScreenView extends StatelessWidget {
-  final List<CaseFileModel>? files;
+import '../system_design/rc_theme.dart';
 
-  const CaseAllFilesScreenView({super.key, required this.files});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.grey.shade300,
-        title: Text(
-          "Case Files",
-          style: TextStyle(
-            color: Colors.grey.shade900,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            letterSpacing: 0.5,
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-
-            // 🔹 Body Section
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildCaseFilesSection(files, context),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCaseFilesSection(
-      List<CaseFileModel>? files, BuildContext context) {
-    if (files == null || files.isEmpty) {
-      return Center(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Text(
-            "No files uploaded yet.",
-            style: TextStyle(fontSize: 14, color: Colors.black54),
-          ),
-        ),
-      );
-    }
-
-    IconData getFileIcon(String filename) {
-      final lower = filename.toLowerCase();
-      if (lower.endsWith(".pdf")) return Icons.picture_as_pdf_rounded;
-      if (lower.endsWith(".jpg") ||
-          lower.endsWith(".jpeg") ||
-          lower.endsWith(".png")) {
-        return Icons.image_outlined;
-      }
-      if (lower.endsWith(".doc") || lower.endsWith(".docx")) {
-        return Icons.description_outlined;
-      }
-      if (lower.endsWith(".xls") || lower.endsWith(".xlsx")) {
-        return Icons.table_chart_outlined;
-      }
-      if (lower.endsWith(".txt")) return Icons.notes_outlined;
-      return Icons.insert_drive_file_outlined;
-    }
-
-    void openFilePreview(CaseFileModel file) async {
-      final filename = file.filename.toLowerCase();
-      final url = file.fileUrl;
-
-      if (filename.endsWith(".pdf")) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => Scaffold(
-              appBar: AppBar(
-                title: Text(file.filename),
-                backgroundColor: Colors.grey.shade300,
-              ),
-              body: PDFView(filePath: url),
-            ),
-          ),
-        );
-      } else if (filename.endsWith(".jpg") ||
-          filename.endsWith(".jpeg") ||
-          filename.endsWith(".png")) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => Scaffold(
-              appBar: AppBar(
-                title: Text(file.filename),
-                backgroundColor: Colors.grey.shade300,
-              ),
-              body: Center(
-                child: InteractiveViewer(
-                  child: Image.network(url, fit: BoxFit.contain),
-                ),
-              ),
-            ),
-          ),
-        );
-      } else {
-        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-      }
-    }
-
-    return AnimatedOpacity(
-      opacity: 1.0,
-      duration: const Duration(milliseconds: 500),
-      child: ListView.separated(
-        itemCount: files.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final file = files[index];
-
-          return Card(
-            color: Colors.grey.shade300,
-            elevation: 3,
-            shadowColor: Colors.indigo.withValues(alpha: 0.15),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: ListTile(
-              leading: CircleAvatar(
-                radius: 24.r,
-                backgroundColor: Colors.white,
-                child: Icon(
-                  getFileIcon(file.filename),
-                  color: Colors.grey.shade900,
-                  size: 26,
-                ),
-              ),
-              title: Text(
-                file.filename,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                  color: Colors.black87,
-                ),
-              ),
-              subtitle: Text(
-                "Uploaded: ${DateFormat('dd MMM yyyy, hh:mm a').format(file.uploadedAt)}",
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
-              ),
-              trailing: IconButton(
-                icon: Icon(
-                  Icons.remove_red_eye_outlined,
-                  color: Colors.grey.shade900,
-                ),
-                onPressed: () => openFilePreview(file),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
+/// Compact summary row for case files. Lives as the first child inside a
+/// bordered `RC.surface` card (see `_OtherInfoSection`), so it carries no
+/// background/shadow/margin of its own.
 class CaseFilesEmbeddedSection extends StatelessWidget {
   final List<CaseFileModel>? files;
 
@@ -183,47 +20,79 @@ class CaseFilesEmbeddedSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalFiles = files?.length ?? 0;
-    return Container(
-      margin: EdgeInsets.only(bottom: 8.r),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.white,
-          child: Icon(
-            Icons.folder_copy_outlined,
-            color: Colors.grey.shade700,
-            size: 22,
-          ),
-        ),
-        title: const Text(
-          "Case Related Files",
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          totalFiles > 0 ? "files($totalFiles)" : "No files uploaded yet",
-          style: const TextStyle(fontSize: 12, color: Colors.black54),
-        ),
-        trailing: Icon(Icons.chevron_right, color: Colors.grey.shade900),
-        onTap: totalFiles > 0
-            ? () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CaseAllFilesScreenView(files: files),
+    final hasFiles = totalFiles > 0;
+
+    return InkWell(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      onTap: !hasFiles ? null : () => _openAllFiles(context),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        child: Row(
+          children: [
+            Container(
+              width: 32.w,
+              height: 32.h,
+              decoration: BoxDecoration(
+                  color: RC.goldLight,
+                  borderRadius: BorderRadius.circular(8.r)),
+              child:
+                  Icon(Icons.folder_copy_outlined, color: RC.gold, size: 16.sp),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Case Files', style: RC.label()),
+                  SizedBox(height: 2.h),
+                  Text(
+                    hasFiles
+                        ? '$totalFiles file${totalFiles == 1 ? '' : 's'} attached'
+                        : 'No files uploaded yet',
+                    style: RC.body(
+                        color: hasFiles ? RC.textPrimary : RC.textTertiary),
                   ),
-                );
-              }
-            : null,
+                ],
+              ),
+            ),
+            if (hasFiles) ...[
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: RC.navy.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Text('$totalFiles',
+                    style: TextStyle(
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w700,
+                        color: RC.navy)),
+              ),
+              SizedBox(width: 6.w),
+              Icon(Icons.chevron_right_rounded,
+                  size: 18.sp, color: RC.textTertiary),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openAllFiles(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(
+                value: context.read<CaseFilesViewModel>()),
+            ChangeNotifierProvider.value(
+                value: context.read<CaseFilesServiceViewModel>()),
+            ChangeNotifierProvider.value(
+                value: context.read<RemoveCaseFileViewModel>()),
+          ],
+          child: const CaseAllFilesScreenView(),
+        ),
       ),
     );
   }

@@ -1,611 +1,480 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:right_case/models/case_models/case_model.dart';
-import 'package:right_case/resources/custom_text_fields.dart';
+import 'package:right_case/resources/court_type_dropdown_field.dart';
+import 'package:right_case/resources/custom_dropdown_form_field.dart';
+import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
 import 'package:right_case/view_model/cases_view_model/case_create_view_model.dart';
-import 'package:flutter/material.dart';
+import 'package:right_case/view_model/cases_view_model/case_list_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_stage_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_status_view_model.dart';
 import 'package:right_case/view_model/cases_view_model/case_type_view_model.dart';
-import 'package:right_case/resources/custom_dropdown_form_field.dart';
 import 'package:right_case/view_model/cases_view_model/court_type_view_model.dart';
+
+class _RC {
+  static const navy = Color(0xFF1A2744);
+  static const gold = Color(0xFFC8952A);
+  static const background = Color(0xFFF7F5F1);
+  static const surface = Color(0xFFFFFFFF);
+  static const textPrimary = Color(0xFF111827);
+  static const textSecondary = Color(0xFF6B7280);
+  static const textTertiary = Color(0xFF9CA3AF);
+  static const textOnDark = Color(0xFFFFFFFF);
+  static const divider = Color(0xFFE5E1D8);
+
+  static BoxShadow get card => BoxShadow(
+        color: Colors.black.withValues(alpha: 0.05),
+        blurRadius: 8,
+        offset: const Offset(0, 2),
+      );
+
+  static InputDecoration field(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: _RC.textTertiary, fontSize: 13.sp),
+      prefixIcon: Icon(icon, size: 18.sp, color: _RC.textSecondary),
+      filled: true,
+      fillColor: _RC.background,
+      contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.r),
+        borderSide: BorderSide(color: _RC.divider, width: 0.5),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.r),
+        borderSide: BorderSide(color: _RC.divider, width: 0.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.r),
+        borderSide: BorderSide(color: _RC.navy, width: 1.5),
+      ),
+    );
+  }
+}
 
 class CaseCreateScreen extends StatelessWidget {
   const CaseCreateScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<CaseCreateViewModel>(context);
+    final vm = context.watch<CaseCreateViewModel>();
 
     return Scaffold(
+      backgroundColor: _RC.background,
       appBar: AppBar(
-        title: const Text("Add Case"),
-        backgroundColor: Colors.grey.shade300,
+        backgroundColor: _RC.navy,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Add Case',
+                style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white)),
+            Text('Create a new legal case',
+                style: TextStyle(fontSize: 11.sp, color: Colors.white54)),
+          ],
+        ),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildLabels("Enter Registration Date"),
-            ListTile(
-              titleAlignment: ListTileTitleAlignment.center,
-              tileColor: Colors.grey.shade300,
-              shape: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.r),
-                borderSide: BorderSide.none,
-              ),
-              title: Text(
-                vm.registrationDate == null
-                    ? "Select Registration Date"
-                    : vm.registrationDate.toString().split(" ").first,
-              ),
-              trailing: Icon(Icons.calendar_month),
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                  initialDate: DateTime.now(),
-                );
-                if (date != null) {
-                  vm.registrationDate = date;
-                  vm.notifyListeners();
-                }
-              },
-            ),
-            SizedBox(height: 12.h),
-
-            _buildLabels('Enter Case Number'),
-            _buildTextField(vm.caseNumberController),
-            SizedBox(height: 12.h),
-
-            _buildLabels("First Party"),
-            _customDropDownButtonFormField(
-              (value) => vm.firstPartyId = value.toString(),
-              onTap: () {},
-              item: [],
-            ),
-            SizedBox(height: 12.h),
-
-            _buildLabels("Opposite Party"),
-            _customDropDownButtonFormField(
-              (value) => vm.secondPartyId = value.toString(),
-              onTap: () {},
-              item: [],
-            ),
-
-            SizedBox(height: 12.h),
-            _buildLabels("Opposite Party Name"),
-            _buildTextField(vm.oppositePartyNameController),
-            SizedBox(height: 12.h),
-
-            // inside your column children where you had the case type
-
-            _buildLabels("Case Type*"),
-            Consumer<CaseTypeViewModel>(
-              builder:
-                  (BuildContext context, CaseTypeViewModel caseTypeVM, child) {
-                return CustomDropdownFormField(
-                  label: "Select Case Type",
-                  items: caseTypeVM.items,
-                  getId: (item) => item.id,
-                  getLabel: (item) => item.name,
-                  onSelected: (String id) {
-                    caseTypeVM.selectItem(
-                      id,
-                      caseTypeVM.items.firstWhere((type) => type.id == id).name,
-                    );
-                  },
-                  viewModel: caseTypeVM,
-                );
-              },
-            ),
-            SizedBox(height: 12.h),
-
-            // Notes
-            _buildLabels("Enter Case Notes"),
-            _buildTextField(
-              vm.caseNotesController,
-              maxLines: 3,
-            ),
-            SizedBox(height: 12.h),
-
-            Row(
+            // ── Section 1: Basic Information ──────────────
+            _Section(
+              title: 'Basic Information',
+              icon: Icons.info_outline,
               children: [
-                Expanded(child: Divider(endIndent: 5.w)),
-                Text(
-                  "Court Detail",
-                  style: TextStyle(
-                    color: Colors.grey.shade700,
+                _Label('Registration date'),
+                SizedBox(height: 5.h),
+                _DatePickerTile(
+                  value: vm.registrationDate,
+                  onPick: vm.setRegistrationDate,
+                ),
+                SizedBox(height: 12.h),
+                _Label('Case number'),
+                SizedBox(height: 5.h),
+                TextField(
+                  controller: vm.caseNumberController,
+                  style: TextStyle(fontSize: 13.sp, color: _RC.textPrimary),
+                  decoration: _RC.field('e.g. 2025/HC/001', Icons.tag),
+                ),
+                SizedBox(height: 12.h),
+                _Label('First party name *'),
+                SizedBox(height: 5.h),
+                TextField(
+                  controller: vm.firstPartyNameController,
+                  textCapitalization: TextCapitalization.words,
+                  style: TextStyle(fontSize: 13.sp, color: _RC.textPrimary),
+                  decoration: _RC.field(
+                      'Plaintiff / Petitioner name', Icons.person_outline),
+                ),
+                SizedBox(height: 12.h),
+                _Label('Opposite party name'),
+                SizedBox(height: 5.h),
+                TextField(
+                  controller: vm.oppositePartyNameController,
+                  textCapitalization: TextCapitalization.words,
+                  style: TextStyle(fontSize: 13.sp, color: _RC.textPrimary),
+                  decoration: _RC.field(
+                      'Defendant / Respondent name', Icons.person_outline),
+                ),
+                SizedBox(height: 12.h),
+                _Label('Case type *'),
+                SizedBox(height: 5.h),
+                Consumer<CaseTypeViewModel>(
+                  builder: (_, typeVM, __) => CustomDropdownFormField(
+                    label: 'Select case type',
+                    items: typeVM.items,
+                    getId: (i) => i.id,
+                    getLabel: (i) => i.name,
+                    onSelected: (id) => typeVM.selectItem(
+                      id,
+                      typeVM.items.firstWhere((t) => t.id == id).name,
+                    ),
+                    viewModel: typeVM,
                   ),
                 ),
-                Expanded(child: Divider(indent: 5.w))
+                SizedBox(height: 12.h),
+                _Label('Case notes'),
+                SizedBox(height: 5.h),
+                TextField(
+                  controller: vm.caseNotesController,
+                  maxLines: 3,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: TextStyle(fontSize: 13.sp, color: _RC.textPrimary),
+                  decoration: _RC.field(
+                      'Background, context, important details…',
+                      Icons.notes_outlined),
+                ),
               ],
             ),
-            _buildLabels("Court Category*"),
-            CourtTypeDropdownField(
-              label: "Select court category",
-              onSelected: (id) {
-                context.read<CourtTypeViewModel>().selectedCourtId = id;
-              },
-            ),
-            // Consumer<CourtTypeViewModel>(
-            //   builder: (BuildContext context, courtTypeVM, child) {
-            //     return CourtTypeDropdownField(
-            //         label: "Court Category",
-            //         items: courtTypeVM.items,
-            //         getId: (item) => item.id,
-            //         getLabel: (item) => item.name,
-            //         onSelected: (String id) {
-            //           courtTypeVM.selectItem(
-            //             id,
-            //             courtTypeVM.items
-            //                 .firstWhere((court) => court.id == id)
-            //                 .name,
-            //           );
-            //         },
-            //         viewModel: courtTypeVM);
-            //   },
-            // ),
-            SizedBox(height: 12.h),
 
-            CustomTextField.fieldLabel('Enter Court Name'),
-            CustomTextField(controller: vm.courtNameController),
-            SizedBox(height: 12.h),
-
-            CustomTextField.fieldLabel('Enter Judge Name'),
-            CustomTextField(controller: vm.judgeNameController),
-            SizedBox(height: 12.h),
-
-            _buildLabels("Case Stage"),
-            Consumer<CaseStageViewModel>(
-              builder: (BuildContext context, caseStageVM, child) {
-                return CustomDropdownFormField(
-                  label: "Case Stage",
-                  items: caseStageVM.items,
-                  getId: (item) => item.id,
-                  getLabel: (item) => item.name,
-                  onSelected: (String id) {
-                    caseStageVM.selectItem(
-                      id,
-                      caseStageVM.items
-                          .firstWhere((stage) => stage.id == id)
-                          .name,
-                    );
+            // ── Section 2: Court Details ──────────────────
+            _Section(
+              title: 'Court Details',
+              icon: Icons.account_balance_outlined,
+              children: [
+                _Label('Court category *'),
+                SizedBox(height: 5.h),
+                CourtTypeDropdownField(
+                  label: 'Select court category',
+                  onSelected: (id) {
+                    context.read<CourtTypeViewModel>().selectedCourtId = id;
                   },
-                  viewModel: caseStageVM,
-                );
-              },
+                ),
+                SizedBox(height: 12.h),
+                _Label('Court name'),
+                SizedBox(height: 5.h),
+                TextField(
+                  controller: vm.courtNameController,
+                  textCapitalization: TextCapitalization.words,
+                  style: TextStyle(fontSize: 13.sp, color: _RC.textPrimary),
+                  decoration: _RC.field('e.g. Peshawar High Court',
+                      Icons.account_balance_outlined),
+                ),
+                SizedBox(height: 12.h),
+                _Label('Judge name'),
+                SizedBox(height: 5.h),
+                TextField(
+                  controller: vm.judgeNameController,
+                  textCapitalization: TextCapitalization.words,
+                  style: TextStyle(fontSize: 13.sp, color: _RC.textPrimary),
+                  decoration:
+                      _RC.field('e.g. Justice A. Malik', Icons.gavel_outlined),
+                ),
+              ],
             ),
-            SizedBox(height: 12.h),
 
-            _buildLabels("Case Status"),
-            Consumer<CaseStatusViewModel>(
-                builder: (BuildContext context, caseStatusVM, child) {
-              return CustomDropdownFormField(
-                label: "Case Status",
-                items: caseStatusVM.items,
-                getId: (item) => item.id,
-                getLabel: (item) => item.name,
-                onSelected: (String id) {
-                  caseStatusVM.selectItem(
-                    id,
-                    caseStatusVM.items
-                        .firstWhere((status) => status.id == id)
-                        .name,
-                  );
-                },
-                viewModel: caseStatusVM,
-              );
-            }),
-            SizedBox(height: 12.h),
-
-            _buildLabels("Enter Legal Fee"),
-            _buildTextField(vm.legalFeesController),
-
-            SizedBox(height: 30),
-
-            ElevatedButton(
-              onPressed: vm.loading
-                  ? null // disable button when loading
-                  : () async {
-                      await vm.createCase(context);
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade800,
-                minimumSize: const Size(double.infinity, 48),
-              ),
-              child: vm.loading
-                  ? CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.person_add_alt, color: Colors.white),
-                        SizedBox(width: 8),
-                        Text(
-                          'Add Case',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ],
+            // ── Section 3: Case Settings ──────────────────
+            _Section(
+              title: 'Case Settings',
+              icon: Icons.tune_outlined,
+              children: [
+                _Label('Case stage'),
+                SizedBox(height: 5.h),
+                Consumer<CaseStageViewModel>(
+                  builder: (_, stageVM, __) => CustomDropdownFormField(
+                    label: 'Select case stage',
+                    items: stageVM.items,
+                    getId: (i) => i.id,
+                    getLabel: (i) => i.name,
+                    onSelected: (id) => stageVM.selectItem(
+                      id,
+                      stageVM.items.firstWhere((s) => s.id == id).name,
                     ),
+                    viewModel: stageVM,
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                _Label('Case status'),
+                SizedBox(height: 5.h),
+                Consumer<CaseStatusViewModel>(
+                  builder: (_, statusVM, __) => CustomDropdownFormField(
+                    label: 'Select case status',
+                    items: statusVM.items,
+                    getId: (i) => i.id,
+                    getLabel: (i) => i.name,
+                    onSelected: (id) => statusVM.selectItem(
+                      id,
+                      statusVM.items.firstWhere((s) => s.id == id).name,
+                    ),
+                    viewModel: statusVM,
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                _Label('Legal fees (PKR)'),
+                SizedBox(height: 5.h),
+                TextField(
+                  controller: vm.legalFeesController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+                  ],
+                  style: TextStyle(fontSize: 13.sp, color: _RC.textPrimary),
+                  decoration:
+                      _RC.field('Enter amount', Icons.payments_outlined),
+                ),
+              ],
             ),
+
+            // ── Submit button ──────────────────────────────
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: vm.loading
+                    ? null
+                    : () async {
+                        final typeVM = context.read<CaseTypeViewModel>();
+                        final stageVM = context.read<CaseStageViewModel>();
+                        final statusVM = context.read<CaseStatusViewModel>();
+                        final courtVM = context.read<CourtTypeViewModel>();
+
+                        if (courtVM.selectedCourtId == null ||
+                            typeVM.selectedId == null ||
+                            stageVM.selectedId == null ||
+                            statusVM.selectedId == null) {
+                          SnakeBars.flutterToast(
+                              'Please complete all required fields', context);
+                          return;
+                        }
+
+                        try {
+                          final dbCase = await vm.createCase(
+                            context: context,
+                            courtCategoryId: courtVM.selectedCourtId!,
+                            caseTypeId: typeVM.selectedId!,
+                            caseStageId: stageVM.selectedId!,
+                            caseStatusId: statusVM.selectedId!,
+                          );
+                          context.read<CaseListViewModel>().addCase(dbCase);
+                          vm.resetForm();
+                          typeVM.reset();
+                          stageVM.reset();
+                          statusVM.reset();
+                          courtVM.reset();
+                          Navigator.pop(context);
+                          SnakeBars.flutterToast(
+                              'Case created successfully', context);
+                        } catch (_) {
+                          SnakeBars.flutterToast(
+                              'Failed to create case', context);
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _RC.navy,
+                  disabledBackgroundColor: _RC.navy.withValues(alpha: 0.4),
+                  padding: EdgeInsets.symmetric(vertical: 15.h),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r)),
+                  elevation: 0,
+                ),
+                child: vm.loading
+                    ? SizedBox(
+                        height: 18.h,
+                        width: 18.h,
+                        child: const CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.cases_outlined,
+                              color: Colors.white, size: 18.sp),
+                          SizedBox(width: 8.w),
+                          Text('Create Case',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+              ),
+            ),
+            SizedBox(height: 24.h),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildTextField(
-    TextEditingController controller, {
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-    int? maxLength,
-    List<TextInputFormatter>? inputFormatter,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      cursorColor: Colors.grey.shade800,
-      maxLength: maxLength,
-      inputFormatters: inputFormatter,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.grey.shade300,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: BorderSide.none),
-      ),
-    );
-  }
-
-  Widget _buildLabels(String title) {
-    return Text(
-      title,
-      style: TextStyle(color: Colors.grey.shade700, fontSize: 13.sp),
-    );
-  }
-
-  Widget _customDropDownButtonFormField(
-    void Function(dynamic newValue) onChange, {
-    required void Function()? onTap,
-    required List<DropdownMenuItem<dynamic>>? item,
-    bool isLoading = false,
-  }) {
-    return Stack(
-      children: [
-        DropdownButtonFormField(
-          iconDisabledColor: Colors.grey.shade900,
-          decoration: InputDecoration(
-            fillColor: Colors.grey.shade300,
-            filled: true,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(
-                8.r,
-              ),
-              borderSide: BorderSide.none,
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.r),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.r),
-              borderSide: BorderSide.none,
-            ),
-          ),
-          items: item,
-          onChanged: onChange,
-          onTap: onTap,
-        ),
-
-        // LOADER OVERLAY INSIDE DROPDOWN FIELD
-        if (isLoading)
-          Positioned.fill(
-            child: Container(
-              alignment: Alignment.centerRight,
-              padding: EdgeInsets.only(right: 12),
-              color: Colors.transparent,
-              child: SizedBox(
-                height: 20.h,
-                width: 20.w,
-                child: CupertinoActivityIndicator(),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
 }
 
-class CourtTypeDropdownField extends StatefulWidget {
-  final String label;
-  final void Function(String id) onSelected;
+// ── Shared form widgets ──────────────────────────────────────────
 
-  const CourtTypeDropdownField({
-    super.key,
-    required this.label,
-    required this.onSelected,
+class _Section extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  const _Section({
+    required this.title,
+    required this.icon,
+    required this.children,
   });
 
   @override
-  State<CourtTypeDropdownField> createState() => _CourtTypeDropdownFieldState();
-}
-
-class _CourtTypeDropdownFieldState extends State<CourtTypeDropdownField> {
-  final LayerLink _layerLink = LayerLink();
-  OverlayEntry? _overlay;
-  bool _isOpen = false;
-
-  // Track expanded items
-  final Set<String> _expandedItems = {};
-
-  void _removeOverlay() {
-    _overlay?.remove();
-    _overlay = null;
-    _isOpen = false;
-  }
-
-  void _showOverlay(BuildContext context, Size fieldSize, Offset fieldOffset) {
-    if (_isOpen) {
-      _removeOverlay();
-      return;
-    }
-
-    final screenHeight = MediaQuery.of(context).size.height;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final availableHeight =
-        screenHeight - fieldOffset.dy - fieldSize.height - bottomPadding - 6.h;
-    final maxHeight = availableHeight > 150 ? availableHeight : 150;
-
-    _overlay = OverlayEntry(
-      builder: (context) {
-        return Stack(
-          children: [
-            // Modal barrier
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: _removeOverlay,
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.3),
-                ),
-              ),
-            ),
-
-            // Dropdown anchored
-            CompositedTransformFollower(
-              link: _layerLink,
-              showWhenUnlinked: false,
-              offset: Offset(0, fieldSize.height + 6),
-              child: Material(
-                elevation: 6,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: fieldSize.width,
-                  constraints: BoxConstraints(maxHeight: maxHeight.toDouble()),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: StatefulBuilder(
-                    builder: (context, setOverlayState) {
-                      void toggleExpanded(String id) {
-                        setState(() {
-                          if (_expandedItems.contains(id)) {
-                            _expandedItems.remove(id);
-                          } else {
-                            _expandedItems.add(id);
-                          }
-                        });
-                        setOverlayState(() {}); // rebuild overlay
-                      }
-
-                      return Scrollbar(
-                        child: ListView(
-                          padding: EdgeInsets.zero,
-                          children: _buildCourtTilesWithToggle(toggleExpanded),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    Overlay.of(context).insert(_overlay!);
-    _isOpen = true;
-  }
-
-  List<Widget> _buildCourtTilesWithToggle(void Function(String) toggleExpanded,
-      {double indent = 0}) {
-    final vm = context.read<CourtTypeViewModel>();
-    final items = vm.courtType;
-    final selectedId = vm.selectedCourtId;
-
-    return items.map((item) {
-      bool isSelected = selectedId == item.id;
-      bool isExpanded = _expandedItems.contains(item.id);
-
-      return Column(
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16.h),
+      decoration: BoxDecoration(
+        color: _RC.surface,
+        borderRadius: BorderRadius.circular(14.r),
+        boxShadow: [_RC.card],
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InkWell(
-            onTap: () {
-              toggleExpanded(item.id);
-            },
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                  horizontal: 12.r + indent, vertical: 14.r),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.grey.shade200 : Colors.white,
-                borderRadius: BorderRadius.circular(
-                  8.r,
-                ),
+          // Section header
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              color: _RC.navy.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(14.r),
+                topRight: Radius.circular(14.r),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.name,
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? Colors.blue.shade700 : Colors.black,
-                      ),
-                    ),
-                  ),
-                  Icon(
-                    isExpanded
-                        ? Icons.keyboard_arrow_down
-                        : Icons.keyboard_arrow_right,
-                    size: 18.r,
-                  ),
-                ],
+              border: Border(
+                bottom: BorderSide(color: _RC.divider, width: 0.5),
               ),
             ),
-          ),
-          Divider(height: 1.h, color: Colors.grey.shade300),
-
-          // Subcategories
-          if (isExpanded)
-            ...item.subcategories!.map((sub) =>
-                _buildSubTile(sub, selectedId, indent + 20, toggleExpanded))
-        ],
-      );
-    }).toList();
-  }
-
-  Widget _buildSubTile(CourtCategoryModel sub, String? selectedId,
-      double indent, void Function(String) toggleExpanded) {
-    final isSelected = selectedId == sub.id;
-    final hasChildren =
-        sub.subcategories != null && sub.subcategories!.isNotEmpty;
-    final isExpanded = _expandedItems.contains(sub.id);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: hasChildren
-              ? () {
-                  toggleExpanded(sub.id);
-                }
-              : () {
-                  _removeOverlay();
-                  context
-                      .read<CourtTypeViewModel>()
-                      .selectCourtType(sub.id, sub.name);
-                  widget.onSelected(sub.id);
-                },
-          child: Container(
-            width: double.infinity,
-            padding:
-                EdgeInsets.symmetric(horizontal: 12.r + indent, vertical: 14.r),
-            color: isSelected ? Colors.grey.shade200 : Colors.white,
             child: Row(
               children: [
-                Expanded(
-                  child: Text(
-                    sub.name,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? Colors.blue.shade700 : Colors.black,
-                    ),
+                Icon(icon, size: 16.sp, color: _RC.navy),
+                SizedBox(width: 8.w),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                    color: _RC.navy,
                   ),
                 ),
-                if (hasChildren)
-                  Icon(
-                    isExpanded
-                        ? Icons.keyboard_arrow_down
-                        : Icons.keyboard_arrow_right,
-                    size: 18.r,
-                  ),
               ],
             ),
           ),
-        ),
-        Divider(height: 1.h, color: Colors.grey.shade300),
-        if (hasChildren && isExpanded)
-          ...sub.subcategories!.map((child) =>
-              _buildSubTile(child, selectedId, indent + 20, toggleExpanded)),
-      ],
+          Padding(
+            padding: EdgeInsets.all(14.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
+            ),
+          ),
+        ],
+      ),
     );
   }
+}
 
-  Future<void> _onTapField(BuildContext context, RenderBox renderBox) async {
-    final vm = context.read<CourtTypeViewModel>();
-
-    if (vm.loading) return;
-
-    if (vm.courtType.isEmpty) {
-      await vm.fetchCourtType();
-    }
-
-    if (vm.courtType.isEmpty) return;
-
-    final size = renderBox.size;
-    final offset = renderBox.localToGlobal(Offset.zero);
-    _showOverlay(context, size, offset);
-  }
-
+class _Label extends StatelessWidget {
+  final String text;
+  const _Label(this.text);
   @override
-  void dispose() {
-    _removeOverlay();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w500,
+          color: _RC.textSecondary),
+    );
+  }
+}
+
+class _DatePickerTile extends StatelessWidget {
+  final DateTime? value;
+  final void Function(DateTime?) onPick;
+
+  const _DatePickerTile({required this.value, required this.onPick});
+
+  String _fmt(DateTime d) {
+    const m = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    const wd = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${wd[d.weekday - 1]}, ${d.day} ${m[d.month - 1]} ${d.year}';
   }
 
   @override
   Widget build(BuildContext context) {
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: GestureDetector(
-        onTap: () {
-          final renderBox = context.findRenderObject() as RenderBox?;
-          if (renderBox != null) {
-            _onTapField(context, renderBox);
-          }
-        },
-        child: Consumer<CourtTypeViewModel>(
-          builder: (context, vm, child) {
-            return Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.r, vertical: 14.r),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(8.r),
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: value ?? DateTime.now(),
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
+          builder: (_, child) => Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(primary: Color(0xFF1A2744)),
+            ),
+            child: child!,
+          ),
+        );
+        onPick(picked);
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
+        decoration: BoxDecoration(
+          color: _RC.background,
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(
+            color: value != null ? _RC.navy : _RC.divider,
+            width: value != null ? 1.5 : 0.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.calendar_month_outlined,
+              size: 18.sp,
+              color: value != null ? _RC.navy : _RC.textSecondary,
+            ),
+            SizedBox(width: 10.w),
+            Text(
+              value == null ? 'Select date' : _fmt(value!),
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: value != null ? _RC.textPrimary : _RC.textTertiary,
+                fontWeight: value != null ? FontWeight.w500 : FontWeight.normal,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      vm.selectedCourtName ?? widget.label,
-                      style: TextStyle(fontSize: 16.sp),
-                    ),
-                  ),
-                  vm.loading
-                      ? SizedBox(
-                          height: 16.h,
-                          width: 18.w,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.arrow_drop_down),
-                ],
-              ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );

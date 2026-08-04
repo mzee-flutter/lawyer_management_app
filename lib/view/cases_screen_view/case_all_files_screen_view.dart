@@ -1,0 +1,263 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:right_case/models/case_models/case_model.dart';
+import 'package:right_case/utils/snakebars_and_popUps/snake_bars.dart';
+import 'package:right_case/view_model/cases_view_model/case_files_service_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/case_files_view_model.dart';
+import 'package:right_case/view_model/cases_view_model/remove_case_file_view_model.dart';
+
+import '../../resources/system_design/rc_theme.dart';
+import '../../resources/system_design/rc_widgets.dart';
+
+class CaseAllFilesScreenView extends StatelessWidget {
+  const CaseAllFilesScreenView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final filesVM = context.watch<CaseFilesViewModel>();
+    final serviceVM = context.watch<CaseFilesServiceViewModel>();
+    final removeVM = context.read<RemoveCaseFileViewModel>();
+
+    final files = filesVM.files;
+
+    return Scaffold(
+      backgroundColor: RC.background,
+      appBar: AppBar(
+        backgroundColor: RC.navy,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: RC.textOnDark),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Case Files',
+                style: TextStyle(
+                    color: RC.textOnDark,
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w700)),
+            Text('${files.length} file${files.length == 1 ? '' : 's'}',
+                style: TextStyle(color: RC.textOnDarkMuted, fontSize: 12.sp)),
+          ],
+        ),
+      ),
+      body: files.isEmpty
+          ? const Center(child: Text("No files uploaded"))
+          : ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: files.length,
+              separatorBuilder: (_, __) => SizedBox(height: 12.h),
+              itemBuilder: (_, index) {
+                final file = files[index];
+                final state = serviceVM.getFileState(file.filename);
+
+                return CaseFileCard(
+                  file: file,
+                  state: state,
+                  caseFilesServiceVM: serviceVM,
+                  caseFilesVM: filesVM,
+                  removeCaseFileVM: removeVM,
+                );
+              },
+            ),
+    );
+  }
+}
+
+class CaseFileCard extends StatelessWidget {
+  final CaseFileModel file;
+  final FileLoadState state;
+  final CaseFilesServiceViewModel caseFilesServiceVM;
+  final CaseFilesViewModel caseFilesVM;
+  final RemoveCaseFileViewModel removeCaseFileVM;
+
+  const CaseFileCard({
+    super.key,
+    required this.file,
+    required this.state,
+    required this.caseFilesServiceVM,
+    required this.caseFilesVM,
+    required this.removeCaseFileVM,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14.r),
+      ),
+      color: RC.surface,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14.r),
+        onTap: state == FileLoadState.loading
+            ? null
+            : () => caseFilesServiceVM.openFile(context, file),
+        child: Padding(
+          padding: EdgeInsets.all(14.r),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// HEADER
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _FileIcon(filename: file.filename),
+
+                  SizedBox(width: 12.w),
+
+                  /// FILE INFO
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          file.filename,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: RC.body().copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.sp,
+                              ),
+                        ),
+                        SizedBox(height: 6.h),
+                        Text(
+                          "Uploaded • ${DateFormat('dd MMM yyyy').format(file.uploadedAt)}",
+                          style: RC.caption().copyWith(
+                                color: RC.textTertiary,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  /// DELETE
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                      size: 22,
+                    ),
+                    onPressed: () {
+                      _confirmDeleteFile(context);
+                    },
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 12.h),
+
+              /// FOOTER
+              Row(
+                children: [
+                  if (state == FileLoadState.loading)
+                    SizedBox(
+                      width: 18.r,
+                      height: 18.r,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    Icon(
+                      Icons.touch_app_outlined,
+                      size: 16,
+                      color: Colors.grey.shade600,
+                    ),
+                  const SizedBox(width: 6),
+                  Text(
+                    state == FileLoadState.loading
+                        ? "Opening file..."
+                        : "Tap to view",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDeleteFile(BuildContext context) {
+    RCConfirmDialog.show(
+      context: context,
+      icon: Icons.delete_outline_rounded,
+      iconColor: RC.danger,
+      iconSurface: RC.dangerSurface,
+      title: 'Delete file?',
+      message: 'Are you sure you want to permanently delete this file?',
+      confirmLabel: 'Delete',
+      confirmColor: RC.danger,
+      confirmSurface: RC.dangerSurface,
+      confirmBorder: RC.dangerBorder,
+      onConfirm: () async {
+        try {
+          final removedFile =
+              await removeCaseFileVM.removeFileFromCase(file.id);
+          caseFilesVM.removeFile(context, removedFile.id);
+
+          if (context.mounted) {
+            SnakeBars.flutterToast(
+              "File removed successfully",
+              context,
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            SnakeBars.flutterToast(
+              "Failed to remove file",
+              context,
+            );
+          }
+        }
+      },
+    );
+  }
+}
+
+class _FileIcon extends StatelessWidget {
+  final String filename;
+
+  const _FileIcon({required this.filename});
+
+  @override
+  Widget build(BuildContext context) {
+    final lower = filename.toLowerCase();
+
+    IconData icon;
+    Color color;
+
+    if (lower.endsWith('.pdf')) {
+      icon = Icons.picture_as_pdf_rounded;
+      color = Colors.red.shade600;
+    } else if (lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png')) {
+      icon = Icons.image_rounded;
+      color = Colors.blue.shade600;
+    } else if (lower.endsWith('.pptx') || lower.endsWith('.ppt')) {
+      icon = FontAwesomeIcons.solidFilePowerpoint.data;
+      color = Colors.deepOrangeAccent;
+    } else if (lower.endsWith('.doc') || lower.endsWith('.docx')) {
+      icon = Icons.description_rounded;
+      color = Colors.indigo.shade600;
+    } else {
+      icon = Icons.insert_drive_file_rounded;
+      color = Colors.grey.shade700;
+    }
+
+    return Container(
+      width: 42.w,
+      height: 42.h,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(icon, color: color, size: 22),
+    );
+  }
+}

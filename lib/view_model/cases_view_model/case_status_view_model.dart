@@ -25,6 +25,15 @@ class CaseStatusViewModel with ChangeNotifier {
     notifyListeners();
   }
 
+  void trySelectById(String? id) {
+    if (id == null || _caseStatuses.isEmpty) return;
+
+    final match = _caseStatuses.where((e) => e.id == id).toList();
+    if (match.isNotEmpty) {
+      selectItem(match.first.id, match.first.name);
+    }
+  }
+
   Future<void> fetchItems() async {
     if (_caseStatuses.isNotEmpty) return;
     try {
@@ -37,5 +46,10 @@ class CaseStatusViewModel with ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  void reset() {
+    selectedId = null;
+    notifyListeners();
   }
 }

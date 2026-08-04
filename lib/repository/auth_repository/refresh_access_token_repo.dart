@@ -1,18 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:right_case/data/base_api_service.dart';
-import 'package:right_case/view_model/services/token_storage_service.dart';
 import 'package:right_case/resources/URLs/auth_urls.dart';
+
+import '../../view_model/services/auth_token_presistance.dart';
 
 class RefreshAccessTokenRepo {
   final BaseApiServices _services;
-
-  final TokenStorageService _tokenStorage = TokenStorageService();
 
   RefreshAccessTokenRepo(this._services);
 
   Future<void> getFreshAccessToken(String? token) async {
     final headers = {"Content-Type": "application/json"};
-
     final requestBody = {"refresh_token": token};
 
     try {
@@ -22,14 +20,13 @@ class RefreshAccessTokenRepo {
         requestBody,
       );
 
-      final accessToken = response["access_token"];
-      final refreshToken = response["refresh_token"];
-      final accessTokenExpiry = response["expire_at"];
-
-      await _tokenStorage.saveToken(
-        accessToken,
-        refreshToken,
-        accessTokenExpiry,
+      // Was previously extracted manually into three local variables and
+      // saved via a local TokenStorageService field -- same pattern
+      // duplicated in LoginRepository/RegisterRepository. Now shared.
+      await AuthTokenPersistence.save(
+        accessToken: response["access_token"],
+        refreshToken: response["refresh_token"],
+        accessTokenExpiry: response["expire_at"],
       );
     } catch (e) {
       debugPrint("RefreshAccessTokenRepo: $e");
