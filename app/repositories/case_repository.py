@@ -1,9 +1,19 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, asc, desc
-from app.models.case_model import Case, CourtCategory, CaseType, CaseStage, CaseStatus, CaseFile, CaseRelatedClient
-from app.schemas.case_schema import CaseCreate, CaseFileCreate, CaseUpdate, CaseRelatedClientCreate, CaseRelatedClientPublic
+from sqlalchemy import func as sqlfunc
+from app.models.case_model import ( 
+    Case, 
+    CourtCategory,
+    CaseType, 
+    CaseStage, 
+    CaseStatus, 
+    CaseFile, 
+    CaseRelatedClient, 
+    Hearing
+    )
+from app.schemas.case_schema import CaseCreate, CaseUpdate
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from uuid import UUID
 import uuid
 
@@ -11,8 +21,8 @@ import uuid
 class CaseRepository:
     # ✅ Create a new case
     @staticmethod
-    def create(db: Session, case_in: CaseCreate) -> Case:
-        db_case = Case(**case_in.model_dump())
+    def create(db: Session, case_in: CaseCreate, user_id:UUID) -> Case:
+        db_case = Case(**case_in.model_dump(), user_id= user_id)
         db.add(db_case)
         db.commit()
         db.refresh(db_case)
@@ -20,19 +30,22 @@ class CaseRepository:
 
     # ✅ Get a case by ID
     @staticmethod
-    def get_by_id(db: Session, case_id) -> Case | None:
-        return db.query(Case).filter(Case.id == case_id).first()
+    def get_by_id(db: Session, case_id, user_id:UUID) -> Case | None:
+        return db.query(Case).filter(Case.id == case_id, Case.user_id == user_id).first()
 
     # ✅ Search active (non-archived) cases
     @staticmethod
     def search(
         db: Session,
+        user_id:UUID,
         query: str | None = None,
         skip: int = 0,
         limit: int = 10,
         sort: str | None = None,
     ) -> list[Case]:
-        q = db.query(Case).filter(Case.archived_at.is_(None))
+        q = db.query(Case).filter(
+            Case.user_id==user_id,
+            Case.archived_at.is_(None))
 
         # Filtering by text query (case number, judge name, etc.)
         if query:
@@ -66,12 +79,15 @@ class CaseRepository:
     @staticmethod
     def search_archived(
         db: Session,
+        user_id:UUID,
         query: str | None = None,
         skip: int = 0,
         limit: int = 10,
         sort: str | None = None
     ) -> list[Case]:
-        q = db.query(Case).filter(Case.archived_at.isnot(None))
+        q = db.query(Case).filter(
+            Case.user_id== user_id,
+            Case.archived_at.isnot(None))
 
         if query:
             q = q.filter(
@@ -133,29 +149,45 @@ class CaseRepository:
 
 class CaseRelatedClientRepository:
 
-    # Attach a client to a case
+    # New: add many(one or more) related clients in one DB transaction
     @staticmethod
-    def add_related_client(db: Session, case_id: UUID, data: CaseRelatedClientCreate):
-        related_client = CaseRelatedClient(
-            id=uuid.uuid4(),
-            case_id=case_id,
-            client_id=data.client_id,
-            role=data.role
-        )
-        db.add(related_client)
+    def add_many_related_clients(db: Session, case_id: UUID, user_id:UUID, items: list[dict]) -> list[CaseRelatedClient]:
+        created = []
+        for data in items:
+            rc = CaseRelatedClient(
+                id=uuid.uuid4(),
+                user_id= user_id,
+                case_id=case_id,
+                client_id=data.get("client_id"),
+                role=data.get("role"),
+            )
+            db.add(rc)
+            created.append(rc)
         db.commit()
-        db.refresh(related_client)
-        return related_client
+        # refresh all created objects
+        for rc in created:
+            db.refresh(rc)
+        return created
+
+
 
     # Get all related clients of a case
     @staticmethod
-    def get_all_for_case(db: Session, case_id: UUID) -> list[CaseRelatedClient]:
-        return db.query(CaseRelatedClient).filter(CaseRelatedClient.case_id == case_id).all()
+    def get_all_for_case(db: Session, case_id: UUID, user_id:UUID) -> list[CaseRelatedClient]:
+        return db.query(CaseRelatedClient).filter(
+            CaseRelatedClient.case_id == case_id,
+            CaseRelatedClient.user_id==user_id
+        ).all()
+
+
 
     # Get one related client
     @staticmethod
-    def get_by_id(db: Session, related_client_id: UUID):
-        return db.query(CaseRelatedClient).filter(CaseRelatedClient.id == related_client_id).first()
+    def get_by_id(db: Session, related_client_id: UUID, user_id:UUID):
+        return db.query(CaseRelatedClient).filter(
+            CaseRelatedClient.id == related_client_id,
+            CaseRelatedClient.user_id==user_id
+        ).first()
 
     # Update related client's role
     @staticmethod
@@ -287,6 +319,7 @@ class CaseFileRepository:
     def create(db: Session, file_data: dict) -> CaseFile:
         db_file = CaseFile(
             id=uuid.uuid4(),
+            user_id=file_data["user_id"],
             case_id=file_data["case_id"],
             filename=file_data["filename"],
             file_url=file_data["file_url"],
@@ -296,16 +329,89 @@ class CaseFileRepository:
         db.commit()
         db.refresh(db_file)
         return db_file
+    
+    # for one or many files to create at once 
+    @staticmethod
+    def create_many(db: Session, files_data: list[dict]) -> list[CaseFile]:
+        created = []
+        for file_data in files_data:
+            db_file = CaseFile(
+                id=uuid.uuid4(),
+                user_id=file_data["user_id"],
+                case_id=file_data["case_id"],
+                filename=file_data["filename"],
+                file_url=file_data["file_url"],
+                uploaded_at=file_data.get("uploaded_at"),
+            )
+            db.add(db_file)
+            created.append(db_file)
+        db.flush()
+        for f in created:
+            db.refresh(f)
+        return created
 
     @staticmethod
-    def get_by_id(db: Session, file_id: UUID) -> CaseFile | None:
-        return db.query(CaseFile).filter(CaseFile.id == file_id).first()
+    def get_by_id(db: Session, file_id: UUID, user_id:UUID) -> CaseFile | None:
+        return db.query(CaseFile).filter(
+            CaseFile.id == file_id,
+            CaseFile.user_id== user_id
+        ).first()
 
     @staticmethod
-    def get_all_by_case(db: Session, case_id: UUID) -> list[CaseFile]:
-        return db.query(CaseFile).filter(CaseFile.case_id == case_id).all()
+    def get_all_by_case(db: Session, case_id: UUID, user_id:UUID) -> list[CaseFile]:
+        return db.query(CaseFile).filter(
+            CaseFile.case_id == case_id,
+            CaseFile.user_id==user_id
+        ).all()
 
     @staticmethod
     def delete(db: Session, file: CaseFile):
         db.delete(file)
         db.commit()
+
+
+
+# ══════════════════════════════════════════════════════════════
+# BENCH ROSTER — add these methods to your CaseRepository
+# ══════════════════════════════════════════════════════════════
+
+class CaseRepositoryRosterAdditions:
+    """
+    Paste these methods into your existing CaseRepository class.
+    """
+
+    @staticmethod
+    def get_active_cases_with_stage_and_next_hearing(
+        db: Session,
+        user_id: UUID,
+    ) -> list[tuple]:   # list[tuple[Case, CaseStage | None, Hearing | None]]
+        """
+        Fetches all non-archived cases for a user, joined with:
+          - CaseStage (for the stage badge)
+          - Their NEXT upcoming hearing (subquery — earliest scheduled hearing)
+
+        Used to build the bench roster grouped by (court_name, judge_name).
+        """
+    
+    
+        next_hearing_subq = (
+            db.query(
+                Hearing.case_id.label("case_id"),
+                sqlfunc.min(Hearing.hearing_datetime).label("next_hearing_at"),
+            )
+            .filter(Hearing.status == "scheduled")
+            .filter(Hearing.hearing_datetime >= datetime.now())
+            .group_by(Hearing.case_id)
+            .subquery()
+        )
+
+        return (
+            db.query(Case, CaseStage, next_hearing_subq.c.next_hearing_at)
+            .outerjoin(CaseStage, Case.case_stage_id == CaseStage.id)
+            .outerjoin(next_hearing_subq, Case.id == next_hearing_subq.c.case_id)
+            .filter(Case.user_id == user_id)
+            .filter(Case.archived_at.is_(None))         # active cases only
+            .filter(Case.court_name.isnot(None))        # must have a court to appear in roster
+            .order_by(Case.court_name.asc(), Case.judge_name.asc())
+            .all()
+        )

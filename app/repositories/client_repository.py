@@ -3,33 +3,42 @@ from sqlalchemy import or_, asc, desc
 from app.models.client_model import Client
 from app.schemas.client_schema import ClientCreate, ClientUpdate
 from datetime import datetime, timezone
+from uuid import UUID
 
 
 class ClientRepository:
 
     @staticmethod
-    def create(db: Session, client_in: ClientCreate) -> Client:
-        db_client = Client(**client_in.model_dump())
+    def create(db: Session, client_in: ClientCreate, user_id: UUID) -> Client:
+        db_client = Client(**client_in.model_dump(), user_id=user_id )
         db.add(db_client)
         db.commit()
         db.refresh(db_client)
         return db_client
 
     @staticmethod
-    def get_by_id(db: Session, client_id) -> Client | None:
-        return db.query(Client).filter(Client.id == client_id).first()
+    def get_by_id(db: Session, client_id, user_id: UUID) -> Client | None:
+        return db.query(Client).filter(
+            Client.id == client_id,
+            Client.user_id== user_id
+        ).first()
 
 
 #This function return the active clients
     @staticmethod
     def search(
         db: Session,
+        user_id: UUID,
         query: str | None,
         skip: int = 0,
         limit: int = 10,
         sort: str | None = None
+        
     ) -> list[Client]:
-        q = db.query(Client).filter(Client.archived_at.is_(None))
+        q = db.query(Client).filter(
+            Client.user_id== user_id,
+            Client.archived_at.is_(None)
+        )
 
         #  Filtering
         if query:
@@ -63,13 +72,17 @@ class ClientRepository:
     @staticmethod
     def search_archived(
         db: Session,
+        user_id: UUID,
         query: str | None,
         skip: int = 0,
         limit: int = 10,
         sort: str | None = None
     ) -> list[Client]:
         """Search archived clients only"""
-        q = db.query(Client).filter(Client.archived_at.isnot(None))
+        q = db.query(Client).filter(
+            Client.user_id== user_id,
+            Client.archived_at.isnot(None)
+        )
 
         if query:
             q = q.filter(
