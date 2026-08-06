@@ -1,7 +1,7 @@
 from typing import Optional, List, Any
 from uuid import UUID
-from datetime import datetime
-from pydantic import BaseModel
+from datetime import datetime, timezone, timedelta
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from app.schemas.client_schema import ClientPublic
 
 
@@ -151,11 +151,18 @@ class CaseCreate(CaseBase):
 
 
 class CaseUpdate(BaseModel):
+    # Basic info
     court_name: Optional[str] = None
     judge_name: Optional[str] = None
     first_party_name: Optional[str] = None
     opposite_party_name: Optional[str] = None
 
+    
+    case_type_id: Optional[UUID] = None
+    court_category_id: Optional[UUID] = None
+    registration_date: Optional[datetime] = None
+
+    # Existing
     case_stage_id: Optional[UUID] = None
     case_status_id: Optional[UUID] = None
     case_notes: Optional[str] = None
@@ -198,6 +205,10 @@ class CaseRelatedClientCreate(CaseRelatedClientBase):
     pass
 
 
+class CaseRelatedClientBatchCreate(BaseModel):
+    items: list[CaseRelatedClientCreate]
+
+
 class CaseRelatedClientPublic(BaseModel):
     id: UUID
     client: ClientPublic
@@ -205,4 +216,3 @@ class CaseRelatedClientPublic(BaseModel):
 
     class Config:
         from_attributes = True
-
