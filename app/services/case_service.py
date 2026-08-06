@@ -1,3 +1,4 @@
+from unittest import case
 from sqlalchemy.orm import Session
 import os
 import socket
@@ -5,8 +6,9 @@ from fastapi import HTTPException, status
 import uuid
 from uuid import UUID
 from fastapi import UploadFile, Request
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
+from app.models.auth_model import User
 from app.repositories.case_repository import (
     CaseRepository,
     CourtCategoryRepository,
@@ -16,6 +18,7 @@ from app.repositories.case_repository import (
     CaseFileRepository,
     CaseRelatedClientRepository,
 )
+from app.repositories.client_repository import ClientRepository 
 from app.schemas.case_schema import (
     CaseCreate,
     CaseUpdate,
@@ -27,10 +30,11 @@ from app.schemas.case_schema import (
     CaseStagePublic,
     CaseStatusPublic,
     CaseRelatedClientCreate,
-    CaseRelatedClientPublic
-    )
-
-
+    CaseRelatedClientPublic,
+    CaseRelatedClientBatchCreate,
+   
+)
+from app.schemas.hearing_schema import TodayHearingResponse
 # -------------------------
 # Helpers: detect server IP and build URLs
 # -------------------------
@@ -52,43 +56,23 @@ def detect_server_ip() -> str:
 
 def get_base_url(request: Request) -> str:
     """
-    Return a base URL that clients can reach.
-    If request.base_url contains localhost/127.0.0.1, replace host with server LAN IP.
-    Keep the port from request if present, otherwise default to 8000.
+    Returns the client-reachable base URL.
+    Works correctly behind proxies, Docker, and locally.
     """
-    # parse host and port from request.url
-    scheme = request.url.scheme or "http"
-    host = request.url.hostname or ""
-    port = request.url.port or 8000
+    return str(request.base_url).rstrip("/")
 
-    # if host is localhost/127.0.0.1, replace with detected LAN IP
-    if host in ("127.0.0.1", "localhost", ""):
-        host = detect_server_ip()
-
-    return f"{scheme}://{host}:{port}".rstrip("/")
 
 
 def build_file_url(request: Request, file_path: str) -> str:
-    """
-    Converts a stored local file path into a full reachable URL for clients.
-    Example: "uploads/case_files/abc.png" -> "http://192.168.1.101:8000/uploads/case_files/abc.png"
-    """
     if not file_path:
         return file_path
 
-    base_url = get_base_url(request)
+    # Already a full URL
+    if file_path.startswith(("http://", "https://")):
+        return file_path
 
-    # normalize path separators
+    base_url = str(request.base_url).rstrip("/")
     normalized = file_path.replace("\\", "/")
-
-    # if the stored value is a full url already, return it unchanged
-    if normalized.startswith("http://") or normalized.startswith("https://"):
-        return normalized
-
-    # Ensure it contains uploads/ path (if the DB stored a filename, attach uploads path)
-    if not normalized.startswith("uploads/"):
-        # common case: db stores full filesystem path like "uploads/case_files/uuid.png" or with directories
-        normalized = f"uploads/case_files/{os.path.basename(normalized)}"
 
     return f"{base_url}/{normalized.lstrip('/')}"
 
@@ -99,13 +83,13 @@ def build_file_url(request: Request, file_path: str) -> str:
 class CaseService:
 
     @staticmethod
-    def create_case(db: Session, case_in: CaseCreate) -> CasePublic:
-        case = CaseRepository.create(db, case_in)
+    def create_case(db: Session, case_in: CaseCreate, user_id: UUID) -> CasePublic:
+        case = CaseRepository.create(db, case_in, user_id)
         return CasePublic.model_validate(case)
 
     @staticmethod
-    def get_case(db: Session, case_id: UUID, request: Request) -> CasePublic:
-        case = CaseRepository.get_by_id(db, case_id)
+    def get_case(db: Session, case_id: UUID,user_id:UUID, request: Request) -> CasePublic:
+        case = CaseRepository.get_by_id(db, case_id, user_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
 
@@ -122,13 +106,14 @@ class CaseService:
     def search_cases(
         db: Session,
         request: Request,
+        user_id:UUID,
         q: str | None = None,
         page: int = 1,
         size: int = 10,
         sort: str | None = None,
     ) -> list[CasePublic]:
         skip = (page - 1) * size
-        cases = CaseRepository.search(db, query=q, skip=skip, limit=size, sort=sort)
+        cases = CaseRepository.search(db,user_id=user_id, query=q, skip=skip, limit=size, sort=sort)
 
         result = []
         for c in cases:
@@ -144,13 +129,14 @@ class CaseService:
     def search_archived_cases(
         db: Session,
         request: Request,
+        user_id:UUID,
         q: str | None = None,
         page: int = 1,
         size: int = 10,
         sort: str | None = None,
     ) -> list[CasePublic]:
         skip = (page - 1) * size
-        cases = CaseRepository.search_archived(db, query=q, skip=skip, limit=size, sort=sort)
+        cases = CaseRepository.search_archived(db, user_id=user_id, query=q, skip=skip, limit=size, sort=sort)
 
         result = []
         for c in cases:
@@ -162,22 +148,22 @@ class CaseService:
 
         return result
 
-    def update_case(db: Session, case_id: UUID, case_in: CaseUpdate) -> CasePublic:
-        case = CaseRepository.get_by_id(db, case_id)
+    def update_case(db: Session, case_id: UUID, case_in: CaseUpdate, user_id:UUID) -> CasePublic:
+        case = CaseRepository.get_by_id(db, case_id, user_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
         updated = CaseRepository.update(db, case, case_in)
         return CasePublic.model_validate(updated)
 
-    def archive_case(db: Session, case_id: UUID) -> CasePublic:
-        case = CaseRepository.get_by_id(db, case_id)
+    def archive_case(db: Session, case_id: UUID, user_id:UUID) -> CasePublic:
+        case = CaseRepository.get_by_id(db, case_id, user_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
         archived = CaseRepository.archive(db, case)
         return CasePublic.model_validate(archived)
 
-    def restore_case(db: Session, case_id: UUID) -> CasePublic:
-        case = CaseRepository.get_by_id(db, case_id)
+    def restore_case(db: Session, case_id: UUID, user_id:UUID) -> CasePublic:
+        case = CaseRepository.get_by_id(db, case_id, user_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
         if case.archived_at is None:
@@ -185,8 +171,8 @@ class CaseService:
         restored = CaseRepository.restore(db, case)
         return CasePublic.model_validate(restored)
 
-    def delete_case_permanently(db: Session, case_id: UUID) -> CasePublic:
-        case = CaseRepository.get_by_id(db, case_id)
+    def delete_case_permanently(db: Session, case_id: UUID, user_id:UUID) -> CasePublic:
+        case = CaseRepository.get_by_id(db, case_id,user_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
         case_copy = CasePublic.model_validate(case)
@@ -200,45 +186,55 @@ class CaseService:
 # ---------------------------------------------------
 class CaseRelatedClientService:
 
+#add one or many clients to case
     @staticmethod
-    def add_related_client(
+    def add_many_related_clients(
         db: Session,
         case_id: UUID,
-        data: CaseRelatedClientCreate
-    ) -> CaseRelatedClientPublic:
-
-        # Ensure case exists
-        case = CaseRepository.get_by_id(db, case_id)
+        payload: CaseRelatedClientBatchCreate,
+        user_id: UUID
+    ) -> list[CaseRelatedClientPublic]:
+        # ensure case exists
+        case = CaseRepository.get_by_id(db, case_id, user_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
+        
+        # IMPORTANT: without this check, a user could attach another lawyer's
+        # client to their own case just by guessing/enumerating a client_id.
+        for item in payload.items:
+            client = ClientRepository.get_by_id(db, item.client_id, user_id)
+            if not client:
+                raise HTTPException(status_code=404, detail=f"Client {item.client_id} not found")
 
-        # Create record
-        linked = CaseRelatedClientRepository.add_related_client(db, case_id, data)
+        # convert payload.items to list[dict] for repo
+        items = [item.model_dump() for item in payload.items]
+        created = CaseRelatedClientRepository.add_many_related_clients(db, case_id, user_id, items)
 
-        # Return DTO
-        return CaseRelatedClientPublic.model_validate(linked)
+        return [CaseRelatedClientPublic.model_validate(rc) for rc in created]
 
     @staticmethod
     def get_all_related_clients(
         db: Session,
-        case_id: UUID
+        case_id: UUID,
+        user_id: UUID
     ) -> list[CaseRelatedClientPublic]:
 
-        case = CaseRepository.get_by_id(db, case_id)
+        case = CaseRepository.get_by_id(db, case_id, user_id)
         if not case:
             raise HTTPException(status_code=404, detail="Case not found")
 
-        clients = CaseRelatedClientRepository.get_all_for_case(db, case_id)
+        clients = CaseRelatedClientRepository.get_all_for_case(db, case_id, user_id)
 
         return [CaseRelatedClientPublic.model_validate(rc) for rc in clients]
 
     @staticmethod
     def get_related_client(
         db: Session,
-        related_id: UUID
+        related_id: UUID,
+        user_id:UUID
     ) -> CaseRelatedClientPublic:
 
-        rc = CaseRelatedClientRepository.get_by_id(db, related_id)
+        rc = CaseRelatedClientRepository.get_by_id(db, related_id, user_id)
         if not rc:
             raise HTTPException(status_code=404, detail="Related client not found")
 
@@ -248,10 +244,11 @@ class CaseRelatedClientService:
     def update_related_client(
         db: Session,
         related_id: UUID,
-        role: str | None
+        role: str | None,
+        user_id:UUID
     ) -> CaseRelatedClientPublic:
 
-        rc = CaseRelatedClientRepository.get_by_id(db, related_id)
+        rc = CaseRelatedClientRepository.get_by_id(db, related_id, user_id)
         if not rc:
             raise HTTPException(status_code=404, detail="Related client not found")
 
@@ -262,10 +259,11 @@ class CaseRelatedClientService:
     @staticmethod
     def delete_related_client(
         db: Session,
-        related_id: UUID
+        related_id: UUID,
+        user_id: UUID
     ) -> CaseRelatedClientPublic:
 
-        rc = CaseRelatedClientRepository.get_by_id(db, related_id)
+        rc = CaseRelatedClientRepository.get_by_id(db, related_id, user_id)
         if not rc:
             raise HTTPException(status_code=404, detail="Related client not found")
 
@@ -370,17 +368,24 @@ class CaseFileService:
         case_id: UUID,
         file: UploadFile,
         request: Request,
+        user_id:UUID
     ) -> CaseFilePublic:
+        case = CaseRepository.get_by_id(db, case_id, user_id)   # ownership gate
+        if not case:
+            raise HTTPException(status_code=404, detail="Case not found")
+        
         os.makedirs(CaseFileService.UPLOAD_DIR, exist_ok=True)
 
         ext = os.path.splitext(file.filename)[1]
         unique_name = f"{uuid.uuid4()}{ext}"
         file_path = os.path.join(CaseFileService.UPLOAD_DIR, unique_name)
 
+        
         with open(file_path, "wb") as buffer:
             buffer.write(file.file.read())
 
         db_file = CaseFileRepository.create(db, {
+            "user_id":user_id,
             "case_id": case_id,
             "filename": file.filename,
             "file_url": file_path,
@@ -388,6 +393,7 @@ class CaseFileService:
 
         public_url = build_file_url(request, file_path)
 
+        # 3. Return response
         return CaseFilePublic(
             id=db_file.id,
             case_id=db_file.case_id,
@@ -396,9 +402,74 @@ class CaseFileService:
             uploaded_at=db_file.uploaded_at,
         )
 
+    # method for one or more file to add to case at once.
     @staticmethod
-    def get_all_files_by_case(db: Session, case_id: UUID, request: Request) -> list[CaseFilePublic]:
-        files = CaseFileRepository.get_all_by_case(db, case_id)
+    def create_many_files(
+        db: Session,
+        case_id: UUID,
+        files: list[UploadFile],
+        request: Request,
+        user_id: UUID
+    ) -> list[CaseFilePublic]:
+        
+        case= CaseRepository.get_by_id(db, case_id, user_id)
+        if not case:
+            raise HTTPException(status_code=404, detail= "Case not found")
+        
+        os.makedirs(CaseFileService.UPLOAD_DIR, exist_ok=True)
+        file_paths = []
+
+        try:
+            file_records = []
+            
+            for file in files:
+                ext = os.path.splitext(file.filename)[1]
+                unique_name = f"{uuid.uuid4()}{ext}"
+                file_path = os.path.join(CaseFileService.UPLOAD_DIR, unique_name)
+
+                with open(file_path, "wb") as buffer:
+                    buffer.write(file.file.read())
+
+                file_records.append({
+                    "user_id":user_id,
+                    "case_id": case_id,
+                    "filename": file.filename,
+                    "file_url": file_path,
+                })
+                
+                file_paths.append(file_path)
+
+          
+            created_rows = CaseFileRepository.create_many(db, file_records)
+            db.commit()
+
+        except Exception as e:
+            
+            for path in file_paths:
+                if os.path.exists(path):
+                    os.remove(path)
+
+            raise e
+
+        public_list = [
+            CaseFilePublic(
+                id=row.id,
+                case_id=row.case_id,
+                filename=row.filename,
+                file_url=build_file_url(request, row.file_url),
+                uploaded_at=row.uploaded_at,
+            )
+            for row in created_rows
+        ]
+
+        return public_list
+
+    @staticmethod
+    def get_all_files_by_case(db: Session, case_id: UUID, request: Request,user_id: UUID) -> list[CaseFilePublic]:
+        case= CaseRepository.get_by_id(db, case_id, user_id)
+        if not case:
+            raise HTTPException(status_code=404, detail="Case not found")
+        files = CaseFileRepository.get_all_by_case(db, case_id, user_id)
         return [
             CaseFilePublic(
                 id=f.id,
@@ -411,8 +482,8 @@ class CaseFileService:
         ]
 
     @staticmethod
-    def get_case_file_by_id(db: Session, file_id: UUID, request: Request) -> CaseFilePublic:
-        file = CaseFileRepository.get_by_id(db, file_id)
+    def get_case_file_by_id(db: Session, file_id: UUID, request: Request, user_id: UUID) -> CaseFilePublic:
+        file = CaseFileRepository.get_by_id(db, file_id, user_id)
         if not file:
             raise HTTPException(status_code=404, detail="Case file not found")
 
@@ -425,14 +496,16 @@ class CaseFileService:
         )
 
     @staticmethod
-    def delete_case_file(db: Session, file_id: UUID) -> CaseFilePublic:
-        file = CaseFileRepository.get_by_id(db, file_id)
+    def delete_case_file(db: Session, file_id: UUID, user_id:UUID) -> CaseFilePublic:
+        file = CaseFileRepository.get_by_id(db, file_id, user_id)
         if not file:
             raise HTTPException(status_code=404, detail="Case file not found")
 
+        # 1. Delete physical file
         if os.path.exists(file.file_url):
             os.remove(file.file_url)
 
+        # 2. Delete DB record
         file_copy = CaseFilePublic.model_validate(file)
         CaseFileRepository.delete(db, file)
         return file_copy
@@ -440,4 +513,3 @@ class CaseFileService:
 
 
 
-        
